@@ -2,27 +2,41 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stream Privado</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { background: #000; color: #fff; margin: 0; }
-        video { width: 100%; height: 50vh; background: #000; }
-        .grid { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; }
-        button { padding: 10px; background: #333; color: white; border: none; cursor: pointer; min-width: 50px; }
-        button:focus { background: #ff3e3e; outline: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
+        
+        video { width: 100vw; height: 100vh; background: #000; outline: none; }
+        
+        .interface { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 15px; transition: opacity 0.3s; box-sizing: border-box; }
+        .grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        button { padding: 12px 20px; background: #333; color: white; border: 2px solid transparent; cursor: pointer; font-size: 14px; border-radius: 4px; }
+        
+        /* Foco para TV e Hover para PC */
+        button:focus, button:hover { border-color: #ff3e3e; background: #555; outline: none; transform: scale(1.05); }
+        
+        .oculto { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
-    <video id="video" controls autoplay></video>
-    <div id="btns-container"></div>
-    <div class="grid" id="lista"></div>
+
+    <video id="video" controls playsinline></video>
+
+    <div id="interface" class="interface">
+        <div id="btns-series" class="grid" style="margin-bottom: 10px;"></div>
+        <div id="btns-eps" class="grid"></div>
+    </div>
 
     <script>
         const video = document.getElementById('video');
-        const lista = document.getElementById('lista');
+        const interfaceDiv = document.getElementById('interface');
+        const listaSeries = document.getElementById('btns-series');
+        const listaEps = document.getElementById('btns-eps');
         let hls = new Hls();
 
-        // Configuração das Séries
         const series = [
             { nome: "Invencivel", pasta: "i/invencivel-4-dublado", total: 8, tipo: "zero" },
             { nome: "Ben 10", pasta: "b/ben-10-dublado", total: 52, tipo: "zero" },
@@ -32,16 +46,15 @@
             { nome: "One Piece", pasta: "o/one-piece", total: 1166, start: 1003, tipo: "puro" }
         ];
 
-        // Cria botões de menu
         series.forEach(s => {
             let b = document.createElement('button');
             b.innerText = s.nome;
             b.onclick = () => renderEps(s);
-            document.getElementById('btns-container').appendChild(b);
+            listaSeries.appendChild(b);
         });
 
         function renderEps(serie) {
-            lista.innerHTML = "";
+            listaEps.innerHTML = "";
             let inicio = serie.start || 1;
             for (let i = inicio; i <= serie.total; i++) {
                 let n = (serie.tipo === 'zero' && i < 10) ? "0" + i : i;
@@ -55,10 +68,26 @@
                     hls.loadSource(url);
                     hls.attachMedia(video);
                     video.play();
+                    interfaceDiv.classList.add('oculto');
+                    video.focus();
                 };
-                lista.appendChild(btn);
+                listaEps.appendChild(btn);
             }
         }
+
+        // Suporte ao botão "Voltar" (Back) no controle da TV
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'Backspace' || e.keyCode === 8) {
+                if (interfaceDiv.classList.contains('oculto')) {
+                    e.preventDefault();
+                    interfaceDiv.classList.remove('oculto');
+                }
+            }
+        });
+
+        // Traz a lista de volta se clicar no vídeo (útil para celular/mouse)
+        video.onclick = () => interfaceDiv.classList.remove('oculto');
+        video.onpause = () => interfaceDiv.classList.remove('oculto');
     </script>
 </body>
 </html>
