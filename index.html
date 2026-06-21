@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Stream Privado</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { background: #000; color: #fff; margin: 0; }
+        video { width: 100%; height: 50vh; background: #000; }
+        .grid { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; }
+        button { padding: 10px; background: #333; color: white; border: none; cursor: pointer; min-width: 50px; }
+        button:focus { background: #ff3e3e; outline: none; }
+    </style>
+</head>
+<body>
+    <video id="video" controls autoplay></video>
+    <div id="btns-container"></div>
+    <div class="grid" id="lista"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const lista = document.getElementById('lista');
+        let hls = new Hls();
+
+        // Configuração das Séries
+        const series = [
+            { nome: "Invencivel", pasta: "i/invencivel-4-dublado", total: 8, tipo: "zero" },
+            { nome: "Ben 10", pasta: "b/ben-10-dublado", total: 52, tipo: "zero" },
+            { nome: "Yomi", pasta: "y/yomi-no-tsugai", total: 12, tipo: "zero" },
+            { nome: "Tintim", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, tipo: "zero" },
+            { nome: "Pantera", pasta: "a/a-pantera-cor-de-rosa", total: 129, tipo: "zero" },
+            { nome: "One Piece", pasta: "o/one-piece", total: 1166, start: 1003, tipo: "puro" }
+        ];
+
+        // Cria botões de menu
+        series.forEach(s => {
+            let b = document.createElement('button');
+            b.innerText = s.nome;
+            b.onclick = () => renderEps(s);
+            document.getElementById('btns-container').appendChild(b);
+        });
+
+        function renderEps(serie) {
+            lista.innerHTML = "";
+            let inicio = serie.start || 1;
+            for (let i = inicio; i <= serie.total; i++) {
+                let n = (serie.tipo === 'zero' && i < 10) ? "0" + i : i;
+                let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`;
+                
+                let btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => {
+                    hls.destroy();
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    video.play();
+                };
+                lista.appendChild(btn);
+            }
+        }
+    </script>
+</body>
+</html>
