@@ -2,27 +2,26 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Stream Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; overflow: hidden; height: 100vh; font-family: sans-serif; }
-        /* Player limpo para controle total via JS */
-        video { width: 100vw; height: 100vh; object-fit: contain; background: #000; outline: none; }
+        video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
         
-        /* Interface de seleção */
-        #interface { position: absolute; bottom: 0; width: 100%; max-height: 40vh; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 20px; transition: 0.3s; z-index: 10; }
+        #status-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                       font-size: 60px; opacity: 0; transition: opacity 0.3s; z-index: 20; pointer-events: none; }
+        
+        #interface { position: absolute; bottom: 0; width: 100%; height: 40vh; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 20px; transition: 0.3s; z-index: 10; }
         .grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        button { padding: 15px; background: #333; color: white; border: 2px solid transparent; cursor: pointer; border-radius: 4px; font-size: 16px; }
-        button:focus { border-color: #ff3e3e; background: #555; outline: none; transform: scale(1.05); }
-        
-        /* Classe para esconder interface */
+        button { padding: 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:focus { background: #ff3e3e; outline: none; transform: scale(1.05); }
         .oculto { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <video id="video" playsinline></video>
+    <div id="status-icon"></div>
 
     <div id="interface">
         <div id="btns-series" class="grid" style="margin-bottom: 20px;"></div>
@@ -32,6 +31,7 @@
     <script>
         const video = document.getElementById('video');
         const interfaceDiv = document.getElementById('interface');
+        const statusIcon = document.getElementById('status-icon');
         const listaSeries = document.getElementById('btns-series');
         const listaEps = document.getElementById('btns-eps');
         let hls = new Hls();
@@ -45,6 +45,12 @@
             { nome: "One Piece", pasta: "o/one-piece", total: 1166, start: 1003, tipo: "puro" }
         ];
 
+        function showIcon(text) {
+            statusIcon.innerText = text;
+            statusIcon.style.opacity = "1";
+            setTimeout(() => statusIcon.style.opacity = "0", 800);
+        }
+
         series.forEach(s => {
             let b = document.createElement('button');
             b.innerText = s.nome;
@@ -57,47 +63,53 @@
             let inicio = serie.start || 1;
             for (let i = inicio; i <= serie.total; i++) {
                 let n = (serie.tipo === 'zero' && i < 10) ? "0" + i : i;
+                let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`;
+                
                 let btn = document.createElement('button');
                 btn.innerText = i;
                 btn.onclick = () => {
                     if (hls) hls.destroy();
                     hls = new Hls();
-                    hls.loadSource(`https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`);
+                    hls.loadSource(url);
                     hls.attachMedia(video);
                     video.play();
                     interfaceDiv.classList.add('oculto');
+                    showIcon("▶️");
                     video.focus();
                 };
                 listaEps.appendChild(btn);
             }
         }
 
-        // CAPTURA DE TECLAS "BLINDADA" (Fire Stick / Android TV)
         document.addEventListener('keydown', (e) => {
-            // O 'true' no final garante que o site receba o comando ANTES do sistema
+            if ([37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
+
             switch(e.keyCode) {
-                case 13: // Botão OK (Centro)
-                    e.preventDefault();
+                case 13: // OK
                     if (!interfaceDiv.classList.contains('oculto')) {
                         document.activeElement.click();
                     } else {
-                        video.paused ? video.play() : video.pause();
+                        if (video.paused) { video.play(); showIcon("▶️"); } 
+                        else { video.pause(); showIcon("⏸️"); }
                     }
                     break;
-                case 8:  // Botão Voltar (Back)
-                case 27: // Escape
+                case 8: case 27: // Voltar
                     e.preventDefault();
-                    e.stopPropagation();
                     if (interfaceDiv.classList.contains('oculto')) {
                         interfaceDiv.classList.remove('oculto');
                         video.pause();
                     }
                     break;
-                case 37: // Seta Esquerda (Voltar 10s)
-                    video.currentTime -= 10;
+                case 38: case 40: // Cima/Baixo
+                    interfaceDiv.classList.remove('oculto');
                     break;
-                case 39: // Seta Direita (Avançar 10s)
+                case 37: // Esquerda
+                    video.currentTime -= 10;
+                    showIcon("⏪ 10s");
+                    break;
+                case 39: // Direita
                     video.currentTime += 10;
+                    showIcon("⏩ 10s");
                     break;
             }
         }, true);
