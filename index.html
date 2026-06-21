@@ -2,18 +2,20 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Stream Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; overflow: hidden; height: 100vh; }
-        video { width: 100vw; height: 100vh; object-fit: contain; }
+        body { margin: 0; background: #000; color: #fff; overflow: hidden; height: 100vh; font-family: sans-serif; }
+        /* Vídeo sem controles nativos para não roubar o comando */
+        video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
         
-        /* Lista vertical para caber tudo */
+        /* Interface de seleção */
         #interface { position: absolute; bottom: 0; width: 100%; max-height: 40vh; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 20px; transition: 0.3s; }
         .grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        button { padding: 15px; background: #333; color: white; border: none; cursor: pointer; }
-        button:focus { background: #ff3e3e; outline: none; }
-        .oculto { transform: translateY(100%); }
+        button { padding: 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:focus { background: #ff3e3e; outline: none; transform: scale(1.05); }
+        .oculto { transform: translateY(100%); opacity: 0; }
     </style>
 </head>
 <body>
@@ -54,34 +56,37 @@
                 let btn = document.createElement('button');
                 btn.innerText = i;
                 btn.onclick = () => {
-                    hls.destroy();
+                    if (hls) hls.destroy();
                     hls = new Hls();
                     hls.loadSource(`https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`);
                     hls.attachMedia(video);
                     video.play();
                     interfaceDiv.classList.add('oculto');
+                    video.focus();
                 };
                 listaEps.appendChild(btn);
             }
         }
 
-        // CONTROLE TOTAL DE TECLAS
+        // CONTROLE TOTAL DE TECLAS (Fire Stick / Android TV)
         document.addEventListener('keydown', (e) => {
             switch(e.keyCode) {
-                case 13: // Botão OK
-                    if (interfaceDiv.classList.contains('oculto')) {
+                case 13: // OK
+                    if (!interfaceDiv.classList.contains('oculto')) {
+                        document.activeElement.click();
+                    } else {
                         video.paused ? video.play() : video.pause();
                     }
                     break;
-                case 8: // Botão Voltar
+                case 8: // Voltar (Back)
                 case 27:
                     e.preventDefault();
                     interfaceDiv.classList.remove('oculto');
                     break;
-                case 37: // Seta esquerda (Voltar 10s)
+                case 37: // Esquerda
                     video.currentTime -= 10;
                     break;
-                case 39: // Seta direita (Avançar 10s)
+                case 39: // Direita
                     video.currentTime += 10;
                     break;
             }
