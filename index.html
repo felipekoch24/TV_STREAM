@@ -5,129 +5,130 @@
     <title>TV Stream Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; overflow: hidden; height: 100vh; font-family: sans-serif; }
-        video { width: 100vw; height: 100vh; object-fit: contain; background: #000; outline: none; }
-        
-        #status-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                       font-size: 60px; opacity: 0; transition: opacity 0.3s; z-index: 20; pointer-events: none; }
-        
-        #interface { position: absolute; bottom: 0; width: 100%; height: 40vh; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 20px; transition: 0.3s; z-index: 10; }
-        .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        body { margin: 0; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
+        video { width: 100vw; height: 100vh; object-fit: contain; }
+        #interface { position: absolute; bottom: 0; width: 100%; height: 50vh; background: rgba(0,0,0,0.95); padding: 20px; transition: 0.3s; z-index: 10; overflow-y: auto; }
+        .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         button { padding: 15px; background: #333; color: white; border: 2px solid transparent; cursor: pointer; border-radius: 4px; }
-        button:focus { background: #ff3e3e; border-color: #fff; outline: none; transform: scale(1.05); }
-        .oculto { opacity: 0; pointer-events: none; }
+        button:focus { background: #ff3e3e; border-color: #fff; transform: scale(1.1); outline: none; }
+        .oculto { display: none; }
+        #next-overlay { position: absolute; bottom: 100px; right: 50px; background: rgba(0,0,0,0.8); padding: 20px; z-index: 20; display: none; border: 2px solid #fff; }
     </style>
 </head>
 <body>
 
-    <video id="video" playsinline></video>
-    <div id="status-icon"></div>
+    <video id="video"></video>
+    <div id="next-overlay">
+        <h3>Próximo Episódio em <span id="countdown">10</span>s</h3>
+        <button id="btn-next">Pular Agora</button>
+    </div>
 
     <div id="interface">
-        <div id="btns-series" class="grid" style="margin-bottom: 20px;"></div>
+        <div id="btns-series" class="grid"></div>
         <div id="btns-eps" class="grid"></div>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const interfaceDiv = document.getElementById('interface');
-        const statusIcon = document.getElementById('status-icon');
-        const listaSeries = document.getElementById('btns-series');
-        const listaEps = document.getElementById('btns-eps');
+        const btnSeries = document.getElementById('btns-series');
+        const btnEps = document.getElementById('btns-eps');
+        const nextOverlay = document.getElementById('next-overlay');
+        const countdownSpan = document.getElementById('countdown');
+        const btnNext = document.getElementById('btn-next');
+        
         let hls = new Hls();
+        let timer = null;
+        let lastBtn = null;
 
         const series = [
-            { nome: "Invencivel", pasta: "i/invencivel-4-dublado", total: 8, tipo: "zero" },
-            { nome: "Ben 10", pasta: "b/ben-10-dublado", total: 52, tipo: "zero" },
-            { nome: "Yomi", pasta: "y/yomi-no-tsugai", total: 12, tipo: "zero" },
             { nome: "Tintim", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, tipo: "zero" },
+            { nome: "Yomi no Tsugai", pasta: "y/yomi-no-tsugai", total: 12, tipo: "zero" },
             { nome: "Pantera", pasta: "a/a-pantera-cor-de-rosa", total: 129, tipo: "zero" },
-            { nome: "One Piece", pasta: "o/one-piece", total: 1166, start: 1003, tipo: "puro" }
+            { nome: "Invencivel", pasta: "i/invencivel-4-dublado", total: 8, tipo: "zero" },
+            { nome: "One Piece", pasta: "o/one-piece", total: 1167, start: 1003, tipo: "puro" }
         ];
 
-        function showIcon(text) {
-            statusIcon.innerText = text;
-            statusIcon.style.opacity = "1";
-            setTimeout(() => statusIcon.style.opacity = "0", 800);
-        }
+        // --- NAVEGAÇÃO ---
+        document.addEventListener('keydown', (e) => {
+            const buttons = Array.from(document.querySelectorAll('button:not([disabled])'));
+            let index = buttons.indexOf(document.activeElement);
 
-        // Auto-save e Auto-next
-        video.ontimeupdate = () => {
-            if (!video.paused) localStorage.setItem(video.currentSrc, video.currentTime);
-        };
+            switch(e.keyCode) {
+                case 37: // Esquerda
+                    if(interfaceDiv.classList.contains('oculto')) { video.currentTime -= 10; }
+                    else if(index > 0) buttons[index - 1].focus();
+                    break;
+                case 39: // Direita
+                    if(interfaceDiv.classList.contains('oculto')) { video.currentTime += 10; }
+                    else if(index < buttons.length - 1) buttons[index + 1].focus();
+                    break;
+                case 38: // Cima
+                    if(interfaceDiv.classList.contains('oculto')) interfaceDiv.classList.remove('oculto');
+                    break;
+                case 40: // Baixo
+                    if(interfaceDiv.classList.contains('oculto')) interfaceDiv.classList.remove('oculto');
+                    break;
+                case 13: // Enter (OK)
+                    if(!interfaceDiv.classList.contains('oculto')) {
+                        if(document.activeElement.tagName === 'BUTTON') document.activeElement.click();
+                    } else {
+                        video.paused ? video.play() : video.pause();
+                    }
+                    break;
+                case 8: case 27: // Voltar
+                    interfaceDiv.classList.toggle('oculto');
+                    break;
+            }
+        });
 
-        video.onended = () => {
-            const prox = document.querySelector('button:focus')?.nextElementSibling;
-            if (prox) prox.click();
-        };
-
+        // --- RENDERIZAÇÃO ---
         series.forEach(s => {
             let b = document.createElement('button');
             b.innerText = s.nome;
             b.onclick = () => renderEps(s);
-            listaSeries.appendChild(b);
+            btnSeries.appendChild(b);
         });
 
         function renderEps(serie) {
-            listaEps.innerHTML = "";
-            let inicio = serie.start || 1;
-            for (let i = inicio; i <= serie.total; i++) {
+            btnEps.innerHTML = "";
+            for (let i = (serie.start || 1); i <= serie.total; i++) {
                 let n = (serie.tipo === 'zero' && i < 10) ? "0" + i : i;
                 let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`;
-                
                 let btn = document.createElement('button');
                 btn.innerText = i;
-                btn.onclick = () => {
-                    if (hls) hls.destroy();
-                    hls = new Hls();
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    
-                    video.onloadedmetadata = () => {
-                        video.currentTime = parseFloat(localStorage.getItem(url) || 0);
-                        video.play();
-                        showIcon("▶️");
-                    };
-                    
-                    interfaceDiv.classList.add('oculto');
-                    video.focus();
-                };
-                listaEps.appendChild(btn);
+                btn.onclick = () => playVideo(url, btn);
+                btnEps.appendChild(btn);
             }
+            btnEps.querySelector('button')?.focus();
         }
 
-        document.addEventListener('keydown', (e) => {
-            if ([37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
+        function playVideo(url, btn) {
+            lastBtn = btn;
+            if(hls) hls.destroy();
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            video.play();
+            interfaceDiv.classList.add('oculto');
+            nextOverlay.style.display = 'none';
+        }
 
-            switch(e.keyCode) {
-                case 13: // OK
-                    if (!interfaceDiv.classList.contains('oculto')) {
-                        document.activeElement.click();
-                    } else {
-                        if (video.paused) { video.play(); showIcon("▶️"); } 
-                        else { video.pause(); showIcon("⏸️"); }
-                    }
-                    break;
-                case 8: case 27: // Voltar
-                    e.preventDefault();
-                    if (interfaceDiv.classList.contains('oculto')) {
-                        interfaceDiv.classList.remove('oculto');
-                        video.pause();
-                    }
-                    break;
-                case 38: case 40: // Cima/Baixo
-                    interfaceDiv.classList.remove('oculto');
-                    break;
-                case 37: // Esquerda
-                    video.currentTime -= 10;
-                    showIcon("⏪ 10s");
-                    break;
-                case 39: // Direita
-                    video.currentTime += 10;
-                    showIcon("⏩ 10s");
-                    break;
-            }
-        }, true);
+        video.onended = () => {
+            nextOverlay.style.display = 'block';
+            let count = 10;
+            countdownSpan.innerText = count;
+            timer = setInterval(() => {
+                count--;
+                countdownSpan.innerText = count;
+                if(count <= 0) { clearInterval(timer); btnNext.click(); }
+            }, 1000);
+        };
+
+        btnNext.onclick = () => {
+            clearInterval(timer);
+            if(lastBtn?.nextElementSibling) lastBtn.nextElementSibling.click();
+        };
     </script>
 </body>
 </html>
