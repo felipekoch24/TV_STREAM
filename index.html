@@ -34,7 +34,7 @@
     background: rgba(0, 0, 0, 0.6); color: white;
     border: 2px solid white; border-radius: 5px;
     cursor: pointer; display: none; /* Começa escondido */
-}
+pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
 #btn-voltar-video:focus { background: white; color: black; }
 
     /* ESTILO ESPECIAL PARA BOTÕES DE NAVEGAÇÃO (Voltar, Anterior, Próximo) */
@@ -259,8 +259,11 @@ document.addEventListener('keydown', (e) => {
                 video.pause(); 
                 infobar.style.display = 'block'; 
                 document.getElementById('btn-voltar-video').style.display = 'block'; // Mostra ao pausar
+// ADICIONE ESTA LINHA ABAIXO:
+                document.getElementById('btn-voltar-video').focus(); 
             }
         }
+    
         // Tecla 8 (Back): volta para o menu
         if (e.keyCode === 8) { 
             e.preventDefault();
