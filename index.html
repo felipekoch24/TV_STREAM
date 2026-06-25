@@ -27,6 +27,15 @@
         width: 250px !important; height: 250px !important; object-fit: cover; 
         margin-bottom: 15px; border-radius: 4px; display: block;
     }
+//VOLTAR VIDEO BOTÃO
+#btn-voltar-video {
+    position: absolute; top: 20px; right: 20px;
+    z-index: 600; padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.6); color: white;
+    border: 2px solid white; border-radius: 5px;
+    cursor: pointer; display: none; /* Começa escondido */
+}
+#btn-voltar-video:focus { background: white; color: black; }
 
     /* ESTILO ESPECIAL PARA BOTÕES DE NAVEGAÇÃO (Voltar, Anterior, Próximo) */
     .nav-btn { width: 280px !important; height: 100px !important; justify-content: center !important; }
@@ -61,6 +70,7 @@
     <div id="infobar">
         <span id="tempo">00:00 / 00:00</span>
         <div id="aviso-prox" style="color: #ff3e3e; margin-top: 10px;"></div>
+<button id="btn-voltar-video" onclick="voltarParaMenu()">MENU</button>
     </div>
 
     <script>
@@ -81,6 +91,13 @@
             { nome: "TINTIM", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, imagem: "https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br" },
             { nome: "INVENCIVEL", pasta: "i/invencivel-4-dublado", total: 8, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1yjoJoCpnAlKp4TkBQ4uKBpbj_cnhm88Ftd4DSfaC6YI8WNMsWLxDGkE&s=10" }
         ];
+//VOLTAR PARA MENU
+function voltarParaMenu() {
+    video.pause();
+    document.getElementById('infobar').style.display = 'none';
+    document.getElementById('btn-voltar-video').style.display = 'none';
+    menu.style.display = 'flex';
+}
 // RENDERIZAR MENU
         function renderizarMenu() {
             lista.innerHTML = ""; 
@@ -178,8 +195,11 @@ video.ontimeupdate = () => {
     if (!tempoElemento) return;
 
     let totalSegundos = Math.floor(video.currentTime);
-    let duracaoTotal = Math.floor(video.duration) || 0;
+    // Adicionamos um "ou" (||) para tentar pegar a duração caso ela venha como NaN
+    let duracaoTotal = Math.floor(video.duration) || 0; 
     
+    // Se a duração ainda for 0, ele tenta atualizar de novo no próximo segundo
+    if (duracaoTotal === 0) return;    
     let min = Math.floor(totalSegundos / 60);
     let seg = totalSegundos % 60;
     let tempoFormatado = (min < 10 ? "0" + min : min) + ":" + (seg < 10 ? "0" + seg : seg);
@@ -230,17 +250,17 @@ document.addEventListener('keydown', (e) => {
         
         // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
         if (e.keyCode === 13) {
-          e.preventDefault();
+            e.preventDefault();
             if (video.paused) { 
                 video.play(); 
                 infobar.style.display = 'none'; 
+                document.getElementById('btn-voltar-video').style.display = 'none'; // Esconde ao dar Play
             } else { 
                 video.pause(); 
-                // O texto já está sendo atualizado pelo ontimeupdate, 
-                // então só precisamos garantir que o infobar apareça:
                 infobar.style.display = 'block'; 
+                document.getElementById('btn-voltar-video').style.display = 'block'; // Mostra ao pausar
             }
-        }        
+        }
         // Tecla 8 (Back): volta para o menu
         if (e.keyCode === 8) { 
             e.preventDefault();
