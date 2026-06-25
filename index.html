@@ -2,133 +2,256 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>TV Stream Pro</title>
+    <title>TV PLAYER</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        body { margin: 0; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
-        video { width: 100vw; height: 100vh; object-fit: contain; }
-        #interface { position: absolute; bottom: 0; width: 100%; height: 50vh; background: rgba(0,0,0,0.95); padding: 20px; transition: 0.3s; z-index: 10; overflow-y: auto; }
-        .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        button { padding: 15px; background: #333; color: white; border: 2px solid transparent; cursor: pointer; border-radius: 4px; }
-        button:focus { background: #ff3e3e; border-color: #fff; transform: scale(1.1); outline: none; }
-        .oculto { display: none; }
-        #next-overlay { position: absolute; bottom: 100px; right: 50px; background: rgba(0,0,0,0.8); padding: 20px; z-index: 20; display: none; border: 2px solid #fff; }
-    </style>
+   <style>
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+    video { width: 100vw; height: 100vh; }
+
+    #menu { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        background: #000; padding: 40px; z-index: 100; 
+        display: flex; flex-direction: column; overflow-y: auto;
+    }
+
+    #lista { display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; }
+
+    /* Botão Padrão (Episódios) */
+    button { 
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        width: 280px; height: 380px; padding: 15px; background: #111; color: #fff; 
+        border: 3px solid #333; font-size: 22px; font-weight: bold; cursor: pointer; transition: transform 0.2s;
+    }
+
+    button img { 
+        width: 250px !important; height: 250px !important; object-fit: cover; 
+        margin-bottom: 15px; border-radius: 4px; display: block;
+    }
+
+    /* ESTILO ESPECIAL PARA BOTÕES DE NAVEGAÇÃO (Voltar, Anterior, Próximo) */
+    .nav-btn { width: 280px !important; height: 100px !important; justify-content: center !important; }
+    .nav-btn img { display: none !important; }
+// MOSTRAR TEMPO, ALGO ASSIM
+#infobar {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    font-size: 24px;
+    border-radius: 10px;
+    display: none; /* Ele começa escondido */
+    z-index: 200;
+}
+
+    button:focus { background: #fff; color: #000; outline: none; border: 4px solid #ff3e3e; transform: scale(1.05); }
+</style>
 </head>
 <body>
 
     <video id="video"></video>
-    <div id="next-overlay">
-        <h3>Próximo Episódio em <span id="countdown">10</span>s</h3>
-        <button id="btn-next">Pular Agora</button>
+    <div id="menu">
+<div id="barra-busca" style="padding: 10px;">
+    <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
+</div>
+        <h2 id="titulo">SELECIONE A SÉRIE</h2>
+        <div id="lista"></div>
     </div>
-
-    <div id="interface">
-        <div id="btns-series" class="grid"></div>
-        <div id="btns-eps" class="grid"></div>
+    <div id="infobar">
+        <span id="tempo">00:00 / 00:00</span>
+        <div id="aviso-prox" style="color: #ff3e3e; margin-top: 10px;"></div>
     </div>
 
     <script>
         const video = document.getElementById('video');
-        const interfaceDiv = document.getElementById('interface');
-        const btnSeries = document.getElementById('btns-series');
-        const btnEps = document.getElementById('btns-eps');
-        const nextOverlay = document.getElementById('next-overlay');
-        const countdownSpan = document.getElementById('countdown');
-        const btnNext = document.getElementById('btn-next');
-        
+        const lista = document.getElementById('lista');
+        const menu = document.getElementById('menu');
+        const infobar = document.getElementById('infobar');
+        const aviso = document.getElementById('aviso-prox');
         let hls = new Hls();
-        let timer = null;
-        let lastBtn = null;
-
+        let serieAtual = null;
+// VARIÁVEIS DE PAGINAÇÃO
+        let paginaAtual = 0;
+        let listaEps = [];
+// SERIES E IMAGENS
         const series = [
-            { nome: "Tintim", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, tipo: "zero" },
-            { nome: "Yomi no Tsugai", pasta: "y/yomi-no-tsugai", total: 12, tipo: "zero" },
-            { nome: "Pantera", pasta: "a/a-pantera-cor-de-rosa", total: 129, tipo: "zero" },
-            { nome: "Invencivel", pasta: "i/invencivel-4-dublado", total: 8, tipo: "zero" },
-            { nome: "One Piece", pasta: "o/one-piece", total: 1167, start: 1003, tipo: "puro" }
+            { nome: "ONE PIECE", pasta: "o/one-piece", total: 1167, start: 1003, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhXXtSj1cyByIvAKRZn785DjftR22PUThzsKc39UeCZw&s=10" },
+            { nome: "PANTERA COR DE ROSA", pasta: "a/a-pantera-cor-de-rosa", total: 129, imagem: "https://m.media-amazon.com/images/S/pv-target-images/7b54ff2289c071c0b5701db9869587c75459ccb6df78cbbc21e99efbd0c300b5.jpg" },
+            { nome: "TINTIM", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, imagem: "https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br" },
+            { nome: "INVENCIVEL", pasta: "i/invencivel-4-dublado", total: 8, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1yjoJoCpnAlKp4TkBQ4uKBpbj_cnhm88Ftd4DSfaC6YI8WNMsWLxDGkE&s=10" }
         ];
-
-        // --- NAVEGAÇÃO ---
-        document.addEventListener('keydown', (e) => {
-            const buttons = Array.from(document.querySelectorAll('button:not([disabled])'));
-            let index = buttons.indexOf(document.activeElement);
-
-            switch(e.keyCode) {
-                case 37: // Esquerda
-                    if(interfaceDiv.classList.contains('oculto')) { video.currentTime -= 10; }
-                    else if(index > 0) buttons[index - 1].focus();
-                    break;
-                case 39: // Direita
-                    if(interfaceDiv.classList.contains('oculto')) { video.currentTime += 10; }
-                    else if(index < buttons.length - 1) buttons[index + 1].focus();
-                    break;
-                case 38: // Cima
-                    if(interfaceDiv.classList.contains('oculto')) interfaceDiv.classList.remove('oculto');
-                    break;
-                case 40: // Baixo
-                    if(interfaceDiv.classList.contains('oculto')) interfaceDiv.classList.remove('oculto');
-                    break;
-                case 13: // Enter (OK)
-                    if(!interfaceDiv.classList.contains('oculto')) {
-                        if(document.activeElement.tagName === 'BUTTON') document.activeElement.click();
-                    } else {
-                        video.paused ? video.play() : video.pause();
-                    }
-                    break;
-                case 8: case 27: // Voltar
-                    interfaceDiv.classList.toggle('oculto');
-                    break;
-            }
-        });
-
-        // --- RENDERIZAÇÃO ---
-        series.forEach(s => {
-            let b = document.createElement('button');
-            b.innerText = s.nome;
-            b.onclick = () => renderEps(s);
-            btnSeries.appendChild(b);
-        });
-
-        function renderEps(serie) {
-            btnEps.innerHTML = "";
-            for (let i = (serie.start || 1); i <= serie.total; i++) {
-                let n = (serie.tipo === 'zero' && i < 10) ? "0" + i : i;
-                let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${serie.pasta}/${n}.mp4/index.m3u8`;
+// RENDERIZAR MENU
+        function renderizarMenu() {
+            lista.innerHTML = ""; 
+            series.forEach(s => {
                 let btn = document.createElement('button');
-                btn.innerText = i;
-                btn.onclick = () => playVideo(url, btn);
-                btnEps.appendChild(btn);
-            }
-            btnEps.querySelector('button')?.focus();
+                let img = document.createElement('img');
+                img.src = s.imagem;
+                let span = document.createElement('span');
+                span.innerText = s.nome;
+                btn.appendChild(img);
+                btn.appendChild(span);
+                btn.onclick = () => renderizarEps(s);
+                lista.appendChild(btn);
+            });
+            lista.querySelector('button').focus();
         }
 
-        function playVideo(url, btn) {
-            lastBtn = btn;
+// FUNÇÃO RENDERIZAR EPS
+        function renderizarEps(s) {
+    listaEps = [];
+    for (let i = (s.start || 1); i <= s.total; i++) {
+        listaEps.push(i);
+    }
+    paginaAtual = 0;
+    mostrarPagina(s);
+}
+// MOSTRAR PAGINA
+function mostrarPagina(s) {
+    lista.innerHTML = '';
+    
+    // Botão VOLTAR
+    let btnVoltar = document.createElement('button');
+    btnVoltar.className = 'nav-btn';
+    btnVoltar.innerText = "⬅ VOLTAR AO MENU";
+    btnVoltar.onclick = () => renderizarMenu();
+    lista.appendChild(btnVoltar);
+    // MUDAR NÚMERO DA PAGINAÇÃO, NOS 3 IGUAIS
+    let inicio = paginaAtual * 7;
+    let fim = inicio + 7;
+    let paginacao = listaEps.slice(inicio, fim);
+
+    paginacao.forEach(i => {
+        let n = (i < 7 && !s.start) ? "0"+i : i;
+        let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${s.pasta}/${n}.mp4/index.m3u8`;
+        let btn = document.createElement('button');
+        btn.innerHTML = `<img src="${s.imagem}"> <span>Episódio ${i}</span>`;
+        btn.onclick = () => tocar(url);
+        lista.appendChild(btn);
+    });
+// FUNÇÃO FILTRAR SÉRIES PRA ABA PESQUISAR
+function filtrarSeries() {
+    let termo = document.getElementById('campo-procura').value.toLowerCase();
+    let botoes = document.querySelectorAll('#menu button'); // Seus botões de série
+    
+    botoes.forEach(btn => {
+        // Verifica se o texto do botão contém o que você digitou
+        if (btn.innerText.toLowerCase().includes(termo)) {
+            btn.style.display = 'block';
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+}
+
+    // Botões de Navegação (Anterior/Próximo)
+    if (paginaAtual > 0) {
+        let b = document.createElement('button');
+        b.className = 'nav-btn';
+        b.innerText = "⬅ ANTERIOR";
+        b.onclick = () => { paginaAtual--; mostrarPagina(s); };
+        lista.appendChild(b);
+    }
+    if (fim < listaEps.length) {
+        let b = document.createElement('button');
+        b.className = 'nav-btn';
+        b.innerText = "PRÓXIMO ➡";
+        b.onclick = () => { paginaAtual++; mostrarPagina(s); };
+        lista.appendChild(b);
+    }
+    lista.querySelector('button').focus();
+}        
+//FUNÇÃO TOCAR
+function tocar(url) {
+            menu.style.display = 'none';
             if(hls) hls.destroy();
             hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
-            video.play();
-            interfaceDiv.classList.add('oculto');
-            nextOverlay.style.display = 'none';
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         }
 
-        video.onended = () => {
-            nextOverlay.style.display = 'block';
-            let count = 10;
-            countdownSpan.innerText = count;
-            timer = setInterval(() => {
-                count--;
-                countdownSpan.innerText = count;
-                if(count <= 0) { clearInterval(timer); btnNext.click(); }
-            }, 1000);
-        };
+// Este bloco cuida de MOSTRAR O TEMPO na tela
+video.ontimeupdate = () => {
+    let tempoElemento = document.getElementById('tempo');
+    if (!tempoElemento) return;
 
-        btnNext.onclick = () => {
-            clearInterval(timer);
-            if(lastBtn?.nextElementSibling) lastBtn.nextElementSibling.click();
-        };
+    let totalSegundos = Math.floor(video.currentTime);
+    let duracaoTotal = Math.floor(video.duration) || 0;
+    
+    let min = Math.floor(totalSegundos / 60);
+    let seg = totalSegundos % 60;
+    let tempoFormatado = (min < 10 ? "0" + min : min) + ":" + (seg < 10 ? "0" + seg : seg);
+    
+    let totalMin = Math.floor(duracaoTotal / 60);
+    let totalSeg = duracaoTotal % 60;
+    let duracaoFormatada = (totalMin < 10 ? "0" + totalMin : totalMin) + ":" + (totalSeg < 10 ? "0" + totalSeg : totalSeg);
+
+    tempoElemento.innerText = tempoFormatado + " / " + duracaoFormatada;
+};
+// Função auxiliar para deixar o TEMPO BONITO (00:00)
+function formatarTempo(segundos) {
+    let min = Math.floor(segundos / 60);
+    let seg = segundos % 60;
+    return (min < 10 ? "0" + min : min) + ":" + (seg < 10 ? "0" + seg : seg);
+}
+
+// COMANDOS DO CONTROLE E TECLADO
+document.addEventListener('keydown', (e) => {
+    // 1. Pegamos todos os botões visíveis dentro da lista
+    const botoes = Array.from(document.querySelectorAll('#lista button'));
+    const index = botoes.indexOf(document.activeElement);
+
+    // 2. Se o MENU estiver ABERTO:
+    if (menu.style.display !== 'none') {
+        // Seta para baixo: foca o próximo botão
+        if (e.keyCode === 40 && index < botoes.length - 1) {
+            e.preventDefault();
+            botoes[index + 1].focus();
+        }
+        // Seta para cima: foca o botão anterior
+        if (e.keyCode === 38 && index > 0) {
+            e.preventDefault();
+            botoes[index - 1].focus();
+        }
+        
+        // Enter no menu: executa a função do botão (clica nele)
+        if (e.keyCode === 13) {
+            e.preventDefault();
+            document.activeElement.click(); 
+        }
+    } 
+    // 3. Se o VÍDEO estiver rodando (Menu escondido):
+    else {
+        // Setas para avançar/retroceder 10 segundos
+        if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
+        if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
+        
+        // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
+        if (e.keyCode === 13) {
+          e.preventDefault();
+            if (video.paused) { 
+                video.play(); 
+                infobar.style.display = 'none'; 
+            } else { 
+                video.pause(); 
+                // O texto já está sendo atualizado pelo ontimeupdate, 
+                // então só precisamos garantir que o infobar apareça:
+                infobar.style.display = 'block'; 
+            }
+        }        
+        // Tecla 8 (Back): volta para o menu
+        if (e.keyCode === 8) { 
+            e.preventDefault();
+            menu.style.display = 'flex'; 
+            infobar.style.display = 'none'; 
+            video.pause(); 
+        }
+    }
+});
+// RENDERIZAR MENU
+        renderizarMenu();
     </script>
 </body>
 </html>
