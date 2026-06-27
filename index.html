@@ -96,7 +96,6 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     outline: none;
     transform: scale(1.05);
 }
-}
 </style>
 </head>
 <body>
@@ -171,10 +170,6 @@ function voltarParaMenu() {
         function renderizarEps(s) {
     serieAtual = s; // <--- ISSO É IMPORTANTE! Salva qual série você está vendo
  listaEps = [];
-    for (let i = (s.start || 1); i <= s.total; i++) {
-        listaEps.push(i);
-        let tempoSalvo = localStorage.getItem(chave);
-let duracaoTotal = video.duration; // Você precisaria salvar a duração junto
 
 // A trava dos 90%
 let porcentagemAssistida = (tempoSalvo / duracaoTotal) * 100;
@@ -299,8 +294,6 @@ video.ontimeupdate = () => {
     if (tempoRestante <= 10 && tempoRestante > 0 && !timerPulo) {
         mostrarContador();
     }
-};
-    
     // Atualiza a barrinha vermelha
     let porcentagem = (cur / dur) * 100;
     progresso.style.width = porcentagem + "%";
@@ -450,7 +443,6 @@ function apagarLetra() {
         };
         container.appendChild(btn);
     });
-}
 
 // Chame essa função quando carregar o menu
 criarTeclado();
