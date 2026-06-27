@@ -72,7 +72,7 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
       /* Container que vai organizar as teclas em grade */
 #teclado-virtual {
     display: grid;
-    grid-template-columns: repeat(4, 4fr); /* 9 colunas fixas */
+    grid-template-columns: repeat(9, 9fr); /* 9 colunas fixas */
     gap: 8px;
     padding: 10px;
     background: #111;
@@ -117,7 +117,11 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <div id="infobar">
     <div id="barra-progresso" onclick="buscarNoVideo(event)">
         <div id="progresso-atual"></div>
-    </div>
+    <div id="aviso-prox-container" style="display: none; text-align: center; margin-top: 20px;">
+    <p style="font-size: 18px; margin-bottom: 10px;">PRÓXIMO VÍDEO EM <span id="contador">10</span>s</p>
+    <button id="btn-pular" onclick="pularEpisodio()" style="padding: 10px 20px; cursor: pointer;">PULAR</button>
+    <button id="btn-cancelar" onclick="cancelarPulo()" style="padding: 10px 20px; cursor: pointer;">CANCELAR</button>
+</div>
     <span id="tempo">00:00 / 00:00</span>
 </div>
 
@@ -247,8 +251,39 @@ function tocar(url) {
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         }
-
-// Este bloco cuida de MOSTRAR O TEMPO na tela
+// MOSTRAR CONTADOR PLAY
+function mostrarContador() {
+    document.getElementById('aviso-prox-container').style.display = 'block';
+    infobar.style.display = 'block'; // Garante que o infobar apareça
+    
+    timerPulo = setInterval(() => {
+        segundosRestantes--;
+        document.getElementById('contador').innerText = segundosRestantes;
+        
+        if (segundosRestantes <= 0) {
+            pularEpisodio();
+        }
+    }, 1000);
+}
+//PULAR EPISÓDIO PLAY
+function pularEpisodio() {
+    clearInterval(timerPulo);
+    let indexAtual = listaEps.indexOf(episodioAtual); // Você precisa salvar qual o ep atual
+    if (indexAtual < listaEps.length - 1) {
+        let proximoEp = listaEps[indexAtual + 1];
+        // Gere a URL e chame tocar() aqui
+    }
+}
+//CANCELAR PULO PLAY
+function cancelarPulo() {
+    clearInterval(timerPulo);
+    document.getElementById('aviso-prox-container').style.display = 'none';
+    timerPulo = null;
+    segundosRestantes = 10;
+}
+        // Este bloco cuida de MOSTRAR O TEMPO na tela
+            let timerPulo = null;
+let segundosRestantes = 10;
 video.ontimeupdate = () => {
     let tempoElemento = document.getElementById('tempo');
     let progresso = document.getElementById('progresso-atual');
@@ -258,6 +293,13 @@ video.ontimeupdate = () => {
     
     // Atualiza o texto
     tempoElemento.innerText = formatarTempo(cur) + " / " + formatarTempo(dur);
+    let tempoRestante = video.duration - video.currentTime;
+    
+    // Se faltam 10 segundos para acabar e o timer ainda não rodou
+    if (tempoRestante <= 10 && tempoRestante > 0 && !timerPulo) {
+        mostrarContador();
+    }
+};
     
     // Atualiza a barrinha vermelha
     let porcentagem = (cur / dur) * 100;
