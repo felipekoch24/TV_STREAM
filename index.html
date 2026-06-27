@@ -70,7 +70,6 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <div id="infobar">
         <span id="tempo">00:00 / 00:00</span>
         <div id="aviso-prox" style="color: #ff3e3e; margin-top: 10px;"></div>
-<button id="btn-voltar-video" onclick="voltarParaMenu()">MENU</button>
     </div>
 
     <script>
@@ -135,12 +134,12 @@ function mostrarPagina(s) {
     btnVoltar.onclick = () => renderizarMenu();
     lista.appendChild(btnVoltar);
     // MUDAR NÚMERO DA PAGINAÇÃO, NOS 3 IGUAIS
-    let inicio = paginaAtual * 7;
-    let fim = inicio + 7;
+    let inicio = paginaAtual * 6;
+    let fim = inicio + 6;
     let paginacao = listaEps.slice(inicio, fim);
-
+// AQUI O NUMERO TAMBÉM TEM QUE SER IGUAL ALI EM CIMA//
     paginacao.forEach(i => {
-        let n = (i < 7 && !s.start) ? "0"+i : i;
+        let n = (i < 6 && !s.start) ? "0"+i : i;
         let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${s.pasta}/${n}.mp4/index.m3u8`;
         let btn = document.createElement('button');
         btn.innerHTML = `<img src="${s.imagem}"> <span>Episódio ${i}</span>`;
@@ -225,13 +224,13 @@ document.addEventListener('keydown', (e) => {
 
     // 2. Se o MENU estiver ABERTO:
     if (menu.style.display !== 'none') {
-        // Seta para baixo: foca o próximo botão
-        if (e.keyCode === 40 && index < botoes.length - 1) {
+        // SETA DIREITA : foca o próximo botão
+        if (e.keyCode === 39 && index < botoes.length - 1) {
             e.preventDefault();
             botoes[index + 1].focus();
         }
-        // Seta para cima: foca o botão anterior
-        if (e.keyCode === 38 && index > 0) {
+        // SETA ESQUERDA: foca o botão anterior
+        if (e.keyCode === 37 && index > 0) {
             e.preventDefault();
             botoes[index - 1].focus();
         }
@@ -245,24 +244,30 @@ document.addEventListener('keydown', (e) => {
     // 3. Se o VÍDEO estiver rodando (Menu escondido):
     else {
         // Setas para avançar/retroceder 10 segundos
-        if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
-        if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
+        if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; } // REGRIDE SETA ESQUERDA
+        if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; } // AVANÇA SETA DIREITA
         
-        // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
-        if (e.keyCode === 13) {
-            e.preventDefault();
-            if (video.paused) { 
-                video.play(); 
-                infobar.style.display = 'none'; 
-                document.getElementById('btn-voltar-video').style.display = 'none'; // Esconde ao dar Play
-            } else { 
-                video.pause(); 
-                infobar.style.display = 'block'; 
-                document.getElementById('btn-voltar-video').style.display = 'block'; // Mostra ao pausar
-// ADICIONE ESTA LINHA ABAIXO:
-                document.getElementById('btn-voltar-video').focus(); 
-            }
+        // SETA PARA BAIXO: Volta para o menu (Invisível e limpo)
+    if (e.keyCode === 40) { // SETA PRA BAIXO
+        e.preventDefault();
+        video.pause();
+        infobar.style.display = 'none';
+        menu.style.display = 'flex';
+        lista.querySelector('button').focus(); // Foca no primeiro botão do menu
+    }
+    
+    // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
+    if (e.keyCode === 13) {
+        e.preventDefault();
+        if (video.paused) { 
+            video.play(); 
+            infobar.style.display = 'none'; 
+        } else { 
+            video.pause(); 
+            infobar.style.display = 'block'; 
         }
+    }
+       
     
         // Tecla 8 (Back): volta para o menu
         if (e.keyCode === 8) { 
