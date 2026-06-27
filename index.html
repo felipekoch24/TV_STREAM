@@ -53,24 +53,34 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     display: none; /* Ele começa escondido */
     z-index: 200;
 }
-       //ESTILO DO TECLADO VIRTUAL//
-       #teclado-virtual { 
-    margin-top: 20px; 
-    display: grid; 
-    grid-template-columns: repeat(6, 1fr); /* 9 colunas fica perfeito na TV */ //AQUI DA PRA MUDAR, MUDA TECLADO VIRTUAL//
-    gap: 8px; 
+      /* Container que vai organizar as teclas em grade */
+#teclado-virtual {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr); /* 9 colunas fixas */
+    gap: 8px;
     padding: 10px;
+    background: #111;
+    border-radius: 8px;
+    width: 600px; /* Largura fixa para não ficar espichado */
+    margin: 20px auto; /* Centralizado */
 }
-       //ESTILO DOS BOTÃO DO TECLADO VIRTUAL//
-#teclado-virtual button { 
-    height: 50px; 
-    font-size: 18px; 
-    background: #222; 
-    border: 1px solid #444; 
-    color: white; 
+
+#teclado-virtual button {
+    height: 50px;
+    font-size: 18px;
+    background: #222;
+    border: 1px solid #444;
+    color: white;
     cursor: pointer;
+    border-radius: 4px;
 }
-#teclado-virtual button:focus { background: #ff3e3e; outline: none; }
+
+#teclado-virtual button:focus {
+    background: #ff3e3e;
+    outline: none;
+    transform: scale(1.05);
+}
+}
 </style>
 </head>
 <body>
