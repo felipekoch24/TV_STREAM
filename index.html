@@ -53,8 +53,24 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     display: none; /* Ele começa escondido */
     z-index: 200;
 }
-
-    button:focus { background: #fff; color: #000; outline: none; border: 4px solid #ff3e3e; transform: scale(1.05); }
+       //ESTILO DO TECLADO VIRTUAL//
+       #teclado-virtual { 
+    margin-top: 20px; 
+    display: grid; 
+    grid-template-columns: repeat(9, 1fr); /* 9 colunas fica perfeito na TV */ //AQUI DA PRA MUDAR, MUDA TECLADO VIRTUAL//
+    gap: 8px; 
+    padding: 10px;
+}
+       //ESTILO DOS BOTÃO DO TECLADO VIRTUAL//
+#teclado-virtual button { 
+    height: 50px; 
+    font-size: 18px; 
+    background: #222; 
+    border: 1px solid #444; 
+    color: white; 
+    cursor: pointer;
+}
+#teclado-virtual button:focus { background: #ff3e3e; outline: none; }
 </style>
 </head>
 <body>
@@ -63,6 +79,7 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <div id="menu">
 <div id="barra-busca" style="padding: 10px;">
     <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
+    <div id="teclado-virtual"></div> 
 </div>
         <h2 id="titulo">SELECIONE A SÉRIE</h2>
         <div id="lista"></div>
@@ -83,7 +100,7 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
 // VARIÁVEIS DE PAGINAÇÃO
         let paginaAtual = 0;
         let listaEps = [];
-// SERIES E IMAGENS
+// SERIES E IMAGENS LINKS M3U8 PLAYER IMPORTANTE
         const series = [
             { nome: "ONE PIECE", pasta: "o/one-piece", total: 1167, start: 1003, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhXXtSj1cyByIvAKRZn785DjftR22PUThzsKc39UeCZw&s=10" },
             { nome: "PANTERA COR DE ROSA", pasta: "a/a-pantera-cor-de-rosa", total: 129, imagem: "https://m.media-amazon.com/images/S/pv-target-images/7b54ff2289c071c0b5701db9869587c75459ccb6df78cbbc21e99efbd0c300b5.jpg" },
@@ -151,6 +168,7 @@ function filtrarSeries() {
     let termo = document.getElementById('campo-procura').value.toLowerCase();
     let botoes = document.querySelectorAll('#menu button'); // Seus botões de série
     
+    //VERIFICADOR
     botoes.forEach(btn => {
         // Verifica se o texto do botão contém o que você digitou
         if (btn.innerText.toLowerCase().includes(termo)) {
@@ -224,12 +242,12 @@ document.addEventListener('keydown', (e) => {
 
     // 2. Se o MENU estiver ABERTO:
     if (menu.style.display !== 'none') {
-        // SETA DIREITA : foca o próximo botão
+        // SETA DIREITA : PROXIMO EPISODIO NA PAGINAÇÃO, IR PRA FRENTE
         if (e.keyCode === 39 && index < botoes.length - 1) {
             e.preventDefault();
             botoes[index + 1].focus();
         }
-        // SETA ESQUERDA: foca o botão anterior
+        // SETA ESQUERDA: EPISÓDIO ANTERIOR NA PAGINAÇÃO, IR PRA TRÁS
         if (e.keyCode === 37 && index > 0) {
             e.preventDefault();
             botoes[index - 1].focus();
@@ -241,7 +259,7 @@ document.addEventListener('keydown', (e) => {
             document.activeElement.click(); 
         }
     } 
-    // 3. Se o VÍDEO estiver rodando (Menu escondido):
+    // 3. Se o VÍDEO estiver rodando (MENU ESCONDIDO:
     else {
         // Setas para avançar/retroceder 10 segundos
         if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; } // REGRIDE SETA ESQUERDA
@@ -278,6 +296,36 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+    //FUNÇÃO ADICIONAR LETRA
+    function addLetra(letra) {
+    let input = document.getElementById('campo-procura');
+    input.value += letra;
+    filtrarSeries(); // Isso já filtra na hora que clica
+}
+//FUNÇÃO APAGAR LETRAS
+function apagarLetra() {
+    let input = document.getElementById('campo-procura');
+    input.value = input.value.slice(0, -1);
+    filtrarSeries();
+}
+// ESSA FUNÇÃO CHAMA E CRIA O TECLADO ESTILO YOUCINE
+    function criarTeclado() {
+    const container = document.getElementById('teclado-virtual');
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ⌫"; // Aqui você tem todas!
+    
+    letras.split('').forEach(l => {
+        let btn = document.createElement('button');
+        btn.innerText = l;
+        btn.onclick = () => {
+            if (l === '⌫') apagarLetra();
+            else addLetra(l);
+        };
+        container.appendChild(btn);
+    });
+}
+
+// Chame essa função quando carregar o menu
+criarTeclado();
 // RENDERIZAR MENU
         renderizarMenu();
     </script>
