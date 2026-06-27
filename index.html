@@ -108,6 +108,10 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <div id="teclado-virtual"></div> 
 </div>
         <h2 id="titulo">SELECIONE A SÉRIE</h2>
+        <h2 id="titulo">CONTINUAR ASSISTINDO</h2>
+<div id="lista-continuar" style="display: flex; gap: 15px; margin-bottom: 40px;"></div>
+
+<h2 id="titulo">TODAS AS SÉRIES</h2>
         <div id="lista"></div>
     </div>
     <div id="infobar">
@@ -161,10 +165,20 @@ function voltarParaMenu() {
 
 // FUNÇÃO RENDERIZAR EPS
         function renderizarEps(s) {
-    listaEps = [];
+    serieAtual = s; // <--- ISSO É IMPORTANTE! Salva qual série você está vendo
+ listaEps = [];
     for (let i = (s.start || 1); i <= s.total; i++) {
         listaEps.push(i);
-    }
+        let tempoSalvo = localStorage.getItem(chave);
+let duracaoTotal = video.duration; // Você precisaria salvar a duração junto
+
+// A trava dos 90%
+let porcentagemAssistida = (tempoSalvo / duracaoTotal) * 100;
+
+if (tempoSalvo > 10 && porcentagemAssistida < 90) {
+    // Só cria o botão se ainda não chegou no final (menos de 90%)
+    // ... cria o botão ...
+}
     paginaAtual = 0;
     mostrarPagina(s);
 }
@@ -250,6 +264,16 @@ video.ontimeupdate = () => {
     progresso.style.width = porcentagem + "%";
 };
 
+    // Salva o progresso no localStorage (lembra do vídeo atual)
+   let urlAtual = video.src;
+    let imgAtual = serieAtual ? serieAtual.imagem : ""; // Pega a imagem da série atual
+    let nomeAtual = serieAtual ? serieAtual.nome : "Desconhecido";
+
+    localStorage.setItem('progresso_' + urlAtual, video.currentTime);
+    localStorage.setItem('img_' + urlAtual, imgAtual);
+    localStorage.setItem('nome_' + urlAtual, nomeAtual);
+};
+
 // Função para clicar na barra e pular o vídeo (estilo MX)
 function buscarNoVideo(e) {
     let barra = document.getElementById('barra-progresso');
@@ -327,6 +351,37 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+       //CONTINUAR ASSISTINDO
+        function renderizarContinuarAssistindo() {
+    const listaContinuar = document.getElementById('lista-continuar');
+    listaContinuar.innerHTML = ""; 
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let chave = localStorage.key(i);
+        
+        if (chave.startsWith('progresso_')) {
+            let url = chave.replace('progresso_', '');
+            let tempo = localStorage.getItem(chave);
+            let img = localStorage.getItem('img_' + url);
+            let nome = localStorage.getItem('nome_' + url);
+
+            // A trava dos 90% para não mostrar o que já acabou
+            if (tempo > 10 && (tempo / (video.duration || 1)) < 0.9) {
+                let btn = document.createElement('button');
+                
+                // Monta o botão com a imagem e o nome
+                btn.innerHTML = `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover;"> 
+                                 <span>${nome}</span>`;
+                
+                btn.onclick = () => {
+                    tocar(url);
+                    setTimeout(() => { video.currentTime = tempo; }, 500);
+                };
+                listaContinuar.appendChild(btn);
+            }
+        }
+    }
+}
     //FUNÇÃO ADICIONAR LETRA
     function addLetra(letra) {
     let input = document.getElementById('campo-procura');
@@ -359,6 +414,9 @@ function apagarLetra() {
 criarTeclado();
 // RENDERIZAR MENU
         renderizarMenu();
+        // Adicione esta linha:
+    renderizarContinuarAssistindo(); 
+}
     </script>
 </body>
 </html>
