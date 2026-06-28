@@ -117,25 +117,7 @@
             justify-content: center !important; 
         }
         .nav-btn img { display: none !important; }
-        #btn-voltar-video {
-            position: absolute; 
-            top: 20px; 
-            right: 20px;
-            z-index: 600; 
-            padding: 12px 20px;
-            background: rgba(0, 0, 0, 0.75); 
-            color: white;
-            border: 2px solid #fff; 
-            border-radius: 6px;
-            font-size: 18px;
-            cursor: pointer; 
-            display: none;
-            outline: none;
-        }
-        #btn-voltar-video:focus { 
-            background: #fff; 
-            color: #000; 
-        }
+       
         #infobar {
             position: absolute;
             bottom: 0;
@@ -186,8 +168,7 @@
 </head>
 <body>
     <video id="video"></video>
-    <button id="btn-voltar-video" onclick="voltarParaMenu()">⬅ VOLTAR</button>
-
+   
     <div id="menu">
         <div id="barra-busca">
             <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME DA SÉRIE..." oninput="filtrarSeries()">
@@ -222,7 +203,6 @@
         const lista = document.getElementById('lista');
         const menu = document.getElementById('menu');
         const infobar = document.getElementById('infobar');
-        const btnVoltarVideo = document.getElementById('btn-voltar-video');
         let hls = null;
         let serieAtual = null;
         let tempAtual = null;
@@ -253,7 +233,6 @@
         function voltarParaMenu() {
             video.pause();
             infobar.style.display = 'none';
-            btnVoltarVideo.style.display = 'none';
             menu.style.display = 'flex';
             cancelarPulo();
             const primeiroBotao = lista.querySelector('button');
@@ -360,7 +339,6 @@
         function tocarVideo(url, numeroEp) {
             episodioAtual = numeroEp;
             menu.style.display = 'none';
-            btnVoltarVideo.style.display = 'block';
 
             if (hls) hls.destroy();
             hls = new Hls();
