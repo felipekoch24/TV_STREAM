@@ -126,6 +126,64 @@
             let termo = document.getElementById('campo-procura').value.toLowerCase();
             document.querySelectorAll('#lista button').forEach(btn => btn.style.display = btn.innerText.toLowerCase().includes(termo) ? 'block' : 'none');
         }
+         // 4.6 COMANDOS DO CONTROLE E TECLADO PRA FUNCIONAR FIRE STICK
+         document.addEventListener('keydown', (e) => { //Este é o bloco mais importante para TV. Ele "escuta" o que você aperta no controle:
+             // 1. Pegamos todos os botões visíveis dentro da lista
+             const botoes = Array.from(document.querySelectorAll('#lista button'));
+             const index = botoes.indexOf(document.activeElement);
+         
+             // 2. Se o MENU estiver ABERTO:
+             if (menu.style.display !== 'none') {
+                 // SETA DIREITA : PROXIMO EPISODIO NA PAGINAÇÃO, IR PRA FRENTE
+                 if (e.keyCode === 39 && index < botoes.length - 1) {
+                     e.preventDefault();
+                     botoes[index + 1].focus();
+                 }
+                 // SETA ESQUERDA: EPISÓDIO ANTERIOR NA PAGINAÇÃO, IR PRA TRÁS
+                 if (e.keyCode === 37 && index > 0) {
+                     e.preventDefault();
+                     botoes[index - 1].focus();
+                 }
+                 // Enter no menu: executa a função do botão (clica nele)
+                 if (e.keyCode === 13) {
+                     e.preventDefault();
+                     document.activeElement.click(); 
+                 }
+             } 
+             // 3. Se o VÍDEO estiver rodando (MENU ESCONDIDO:
+             else {
+                 // Setas para avançar/retroceder 10 segundos
+                 if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; } // REGRIDE SETA ESQUERDA
+                 if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; } // AVANÇA SETA DIREITA
+                 // SETA PARA BAIXO: Volta para o menu (Invisível e limpo)
+             if (e.keyCode === 40) { // SETA PRA BAIXO
+                 e.preventDefault();
+                 video.pause();
+                 infobar.style.display = 'none';
+                 menu.style.display = 'flex';
+                 lista.querySelector('button').focus(); // Foca no primeiro botão do menu
+             }
+             // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
+             if (e.keyCode === 13) {
+                 e.preventDefault();
+                 if (video.paused) { 
+                     video.play(); 
+                     infobar.style.display = 'none'; 
+                 } else { 
+                     video.pause(); 
+                     infobar.style.display = 'block'; 
+                 }
+             }
+                 // Tecla 8 (Back): volta para o menu
+                 if (e.keyCode === 8) { 
+                     e.preventDefault();
+                     menu.style.display = 'flex'; 
+                     infobar.style.display = 'none'; 
+                     video.pause(); 
+                 }
+             }
+         });
+
 
         // Funções básicas de player mantidas...
         video.ontimeupdate = () => {
