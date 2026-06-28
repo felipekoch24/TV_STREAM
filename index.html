@@ -72,36 +72,31 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
       /* Container que vai organizar as teclas em grade */
 #teclado-virtual {
     display: grid;
-    grid-template-columns: repeat(9, 9fr); /* 9 colunas fixas */
-    gap: 8px;
-    padding: 10px;
-    background: #111;
-    border-radius: 8px;
-    width: 600px; /* Largura fixa para não ficar espichado */
-    margin: 20px auto; /* Centralizado */
+    grid-template-columns: repeat(9, 1fr); /* 9 colunas fica ótimo na TV */
+    gap: 10px;
+    margin-top: 20px;
+}
 }
 /* TECLADO VIRTUAL */
 #teclado-virtual button {
-    height: 50px;
-    font-size: 18px;
-    background: #222;
-    border: 1px solid #444;
+    padding: 15px;
+    font-size: 1.2em;
+    background: #333;
     color: white;
+    border: none;
     cursor: pointer;
-    border-radius: 4px;
 }
 
 #teclado-virtual button:focus {
-    background: #ff3e3e;
-    outline: none;
-    transform: scale(1.05);
+    background: #e50914; /* Cor de destaque (vermelho Netflix) quando focado */
+    transform: scale(1.1); /* Dá um efeito de "crescer" no controle remoto */
 }
 </style>
 </head>
 <body>
 
     <video id="video"></video>
-
+// ORGANIZADOR DE LAYOUT DO MENU//
 <div id="menu">
     <div id="barra-busca" style="padding: 10px;">
         <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
@@ -131,23 +126,42 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <span id="tempo">00:00 / 00:00</span>
 </div>
     <script>
-        const video = document.getElementById('video');
-        const lista = document.getElementById('lista');
-        const menu = document.getElementById('menu');
-        const infobar = document.getElementById('infobar');
-        const aviso = document.getElementById('aviso-prox');
-        let hls = new Hls();
-        let serieAtual = null;
+      // ============================================
+// CONFIGURAÇÃO DOS DADOS (JSON EXTERNO)
+// ============================================
+let series = []; // Começa vazio, vai ser preenchido pelo JSON
+
+async function carregarSeries() {
+    try {
+        // O "fetch" vai buscar o arquivo que você subiu no GitHub
+        const resposta = await fetch('série.json'); 
+        series = await resposta.json();
+        
+        console.log("Séries carregadas com sucesso!");
+        renderizarMenu(); // Só desenha o menu depois que os dados chegarem
+    } catch (erro) {
+        console.error("Erro ao carregar o JSON:", erro);
+        // Aqui você pode colocar um aviso visual se o arquivo não carregar
+    }
+}
+        // ============================================
+// VARIÁVEIS DO PLAYER
+// ============================================
+const video = document.getElementById('video');
+const lista = document.getElementById('lista');
+const menu = document.getElementById('menu');
+const infobar = document.getElementById('infobar');
+let hls = new Hls();
+let serieAtual = null;
+
 // VARIÁVEIS DE PAGINAÇÃO
-        let paginaAtual = 0;
-        let listaEps = [];
-// SERIES E IMAGENS LINKS M3U8 PLAYER IMPORTANTE
-        const series = [
-            { nome: "ONE PIECE", pasta: "o/one-piece", total: 1167, start: 1003, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhXXtSj1cyByIvAKRZn785DjftR22PUThzsKc39UeCZw&s=10" },
-            { nome: "PANTERA COR DE ROSA", pasta: "a/a-pantera-cor-de-rosa", total: 129, imagem: "https://m.media-amazon.com/images/S/pv-target-images/7b54ff2289c071c0b5701db9869587c75459ccb6df78cbbc21e99efbd0c300b5.jpg" },
-            { nome: "TINTIM", pasta: "a/as-aventuras-de-tintim-dublado", total: 39, imagem: "https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br" },
-            { nome: "INVENCIVEL", pasta: "i/invencivel-4-dublado", total: 8, imagem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1yjoJoCpnAlKp4TkBQ4uKBpbj_cnhm88Ftd4DSfaC6YI8WNMsWLxDGkE&s=10" }
-        ];
+let paginaAtual = 0;
+let listaEps = [];
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+carregarSeries(); // Chama a função para buscar o JSON ao abrir
 //VOLTAR PARA MENU
 function voltarParaMenu() {
     video.pause();
@@ -173,17 +187,24 @@ function voltarParaMenu() {
         }
 
 // FUNÇÃO RENDERIZAR EPS
-        function renderizarEps(s) {
-    serieAtual = s; // <--- ISSO É IMPORTANTE! Salva qual série você está vendo
- listaEps = [];
+function renderizarEps(s) {
+    serieAtual = s; 
+    listaEps = [];
+    
+    // Preenche a lista com os episódios disponíveis baseados no JSON
+    for (let i = 1; i <= s.total; i++) {
+        listaEps.push(i);
+    }
 
-// A trava dos 90%
-let porcentagemAssistida = (tempoSalvo / duracaoTotal) * 100;
+    // Pega o tempo salvo do localStorage (se existir)
+    // Usamos '|| 0' para garantir que, se não existir, ele comece em 0
+    let tempoSalvo = localStorage.getItem('progresso_' + s.nome) || 0;
+    let duracaoTotal = 3600; // Aqui você precisaria salvar a duração real, ou definir um padrão
 
-if (tempoSalvo > 10 && porcentagemAssistida < 90) {
-    // Só cria o botão se ainda não chegou no final (menos de 90%)
-    // ... cria o botão ...
-}
+    let porcentagemAssistida = (tempoSalvo / duracaoTotal) * 100;
+
+    // Se quiser mostrar o botão de continuar, aqui seria o lugar de injetar no HTML
+    
     paginaAtual = 0;
     mostrarPagina(s);
 }
@@ -203,8 +224,10 @@ function mostrarPagina(s) {
     let paginacao = listaEps.slice(inicio, fim);
 // AQUI O NUMERO TAMBÉM TEM QUE SER IGUAL ALI EM CIMA//
     paginacao.forEach(i => {
-        let n = (i < 6 && !s.start) ? "0"+i : i;
-        let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${s.pasta}/${n}.mp4/index.m3u8`;
+        // Dentro do seu paginacao.forEach(i => { ...
+// Isso garante que se o episódio for 5, vira 05. Se for 120, continua 120.
+let numeroEp = i.toString().padStart(2, '0'); 
+let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${s.pasta}/${numeroEp}.mp4/index.m3u8`;
         let btn = document.createElement('button');
         btn.innerHTML = `<img src="${s.imagem}"> <span>Episódio ${i}</span>`;
         btn.onclick = () => tocar(url);
@@ -245,13 +268,20 @@ function filtrarSeries() {
 }        
 //FUNÇÃO TOCAR
 function tocar(url) {
-            menu.style.display = 'none';
-            if(hls) hls.destroy();
-            hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        }
+    // Extrai o número do arquivo de forma segura
+    let match = url.match(/\/(\d+)\.mp4/);
+    episodioAtual = match ? parseInt(match[1]) : 0;
+
+    // Limpa a tela e o player antigo
+    menu.style.display = 'none';
+    if(hls) hls.destroy();
+
+    // Inicia o novo vídeo
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+}
 // MOSTRAR CONTADOR PLAY
 function mostrarContador() {
     document.getElementById('aviso-prox-container').style.display = 'block';
@@ -282,7 +312,7 @@ function cancelarPulo() {
     timerPulo = null;
     segundosRestantes = 10;
 }
-        // Este bloco cuida de MOSTRAR O TEMPO na tela
+// Este bloco cuida de MOSTRAR O TEMPO na tela
             let timerPulo = null;
 let segundosRestantes = 10;
 video.ontimeupdate = () => {
@@ -291,11 +321,9 @@ video.ontimeupdate = () => {
     
     let cur = video.currentTime;
     let dur = video.duration || 0;
-    
-    // Atualiza o texto
+     // Atualiza o texto
     tempoElemento.innerText = formatarTempo(cur) + " / " + formatarTempo(dur);
     let tempoRestante = video.duration - video.currentTime;
-    
     // Se faltam 10 segundos para acabar e o timer ainda não rodou
     if (tempoRestante <= 10 && tempoRestante > 0 && !timerPulo) {
         mostrarContador();
@@ -304,8 +332,7 @@ video.ontimeupdate = () => {
     let porcentagem = (cur / dur) * 100;
     progresso.style.width = porcentagem + "%";
 };
-
-    // Salva o progresso no localStorage (lembra do vídeo atual)
+// Salva o progresso no localStorage (lembra do vídeo atual)
    let urlAtual = video.src;
     let imgAtual = serieAtual ? serieAtual.imagem : ""; // Pega a imagem da série atual
     let nomeAtual = serieAtual ? serieAtual.nome : "Desconhecido";
