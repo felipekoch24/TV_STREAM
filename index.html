@@ -460,11 +460,16 @@
                     const btn = document.createElement('button');
                     btn.style.width = "200px";
                     btn.style.height = "280px";
-                    btn.innerHTML = `
-                        <img src="${imagem}" style="width:160px; height:160px;" alt="${nome}">
-                        <span>${nome}</span>
-                        <small style="color:#ffcc00;">Retomando em ${formatarTempo(tempo)}</small>
-                    `;
+                   btn.innerHTML = `
+    <img 
+        src="${imagem}" 
+        style="width:160px; height:160px; object-fit: cover; border-radius: 4px;" 
+        alt="${nome}"
+        onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'"
+    >
+    <span>${nome}</span>
+    <small style="color:#ffcc00;">Retomando em ${formatarTempo(tempo)}</small>
+`;
                     btn.onclick = () => {
                         tocarVideo(url, episodioAtual);
                         setTimeout(() => video.currentTime = tempo, 1200);
@@ -514,41 +519,120 @@
         // --------------------------
         // CONTROLE REMOTO / TECLADO
         // --------------------------
-        document.addEventListener('keydown', (e) => {
-            const botoes = Array.from(document.querySelectorAll('#lista button:not([style*="display: none"])'));
-            const indiceAtivo = botoes.indexOf(document.activeElement);
+   // ==============================
+// CONTROLE DE TECLAS E NAVEGAÇÃO
+// ==============================
+document.addEventListener('keydown', (e) => {
 
-            if (menu.style.display !== 'none') {
-                if (e.keyCode === 39 && indiceAtivo < botoes.length - 1) {
-                    e.preventDefault();
-                    botoes[indiceAtivo + 1].focus();
-                }
-                if (e.keyCode === 37 && indiceAtivo > 0) {
-                    e.preventDefault();
-                    botoes[indiceAtivo - 1].focus();
-                }
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    document.activeElement.click();
-                }
-                if (e.keyCode === 8) {
-                    e.preventDefault();
-                    if (paginaEpisodio > 0 || tempAtual) voltarParaMenu();
-                }
+    // --- VARIÁVEIS AUXILIARES ---
+    const botoes = Array.from(document.querySelectorAll('#lista button:not([style*="display: none"])'));
+    const indiceAtivo = botoes.indexOf(document.activeElement);
+    const colunasPorLinha = window.innerWidth > 800 ? 4 : 2; // Quantos botões aparecem por linha
+
+    // Botões que aparecem quando vai acabar o episódio
+    const btnPular = document.getElementById('btn-pular');
+    const btnCancelar = document.getElementById('btn-cancelar');
+    const avisoVisivel = document.getElementById('aviso-prox-container').style.display === 'block';
+
+
+    // ======================================
+    // 1. QUANDO ESTIVER NO MENU (LISTA DE SÉRIES/EPISÓDIOS)
+    // ======================================
+    if (menu.style.display !== 'none') {
+
+        // Seta DIREITA → Vai para o próximo botão na mesma linha
+        if (e.keyCode === 39 && indiceAtivo < botoes.length - 1) {
+            e.preventDefault();
+            botoes[indiceAtivo + 1].focus();
+        }
+
+        // Seta ESQUERDA → Volta para o botão anterior na mesma linha
+        if (e.keyCode === 37 && indiceAtivo > 0) {
+            e.preventDefault();
+            botoes[indiceAtivo - 1].focus();
+        }
+
+        // Seta BAIXO → Desce para a linha de baixo (assim chega no botão "Próximo" / "Anterior")
+        if (e.keyCode === 40 && indiceAtivo + colunasPorLinha < botoes.length) {
+            e.preventDefault();
+            botoes[indiceAtivo + colunasPorLinha].focus();
+        }
+
+        // Seta CIMA → Sobe para a linha de cima
+        if (e.keyCode === 38 && indiceAtivo - colunasPorLinha >= 0) {
+            e.preventDefault();
+            botoes[indiceAtivo - colunasPorLinha].focus();
+        }
+
+        // Tecla ENTER → Confirma / Clica no botão que está selecionado
+        if (e.keyCode === 13) {
+            e.preventDefault();
+            document.activeElement.click();
+        }
+
+        // Tecla VOLTAR (Backspace) → Volta uma tela
+        if (e.keyCode === 8) {
+            e.preventDefault();
+            if (paginaEpisodio > 0) {
+                mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1); // Volta página de episódios
+            } else if (tempAtual) {
+                renderizarTemporadas(serieAtual); // Volta para a lista de temporadas
             } else {
-                if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
-                if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
-                if (e.keyCode === 38) { e.preventDefault(); infobar.style.display = 'block'; }
-                if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    video.paused ? video.play() : video.pause();
-                    infobar.style.display = video.paused ? 'block' : 'none';
-                }
-                if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
+                voltarParaMenu(); // Volta para a lista principal de séries
             }
-        });
+        }
 
+    } 
+    // ======================================
+    // 2. QUANDO ESTIVER DENTRO DO VÍDEO REPRODUZINDO
+    // ======================================
+    else {
+
+        // --- SE O AVISO DE "PRÓXIMO EPISÓDIO" ESTIVER APARECENDO ---
+        if (avisoVisivel) {
+
+            // Seta CIMA → Alterna entre os botões "Pular" e "Cancelar"
+            if (e.keyCode === 38) {
+                e.preventDefault();
+                if (document.activeElement === btnPular) {
+                    btnCancelar.focus(); // Se está no Pular, vai para Cancelar
+                } else {
+                    btnPular.focus(); // Se está no Cancelar, vai para Pular
+                }
+            }
+
+            // Tecla ENTER → Executa a ação do botão que estiver selecionado
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                if (document.activeElement === btnPular) pularEpisodio();
+                if (document.activeElement === btnCancelar) cancelarPulo();
+            }
+
+        } 
+        // --- SE NÃO TIVER NENHUM AVISO APARECENDO ---
+        else {
+            // Seta CIMA → Mostra a barra de tempo e informações do vídeo
+            if (e.keyCode === 38) {
+                e.preventDefault();
+                infobar.style.display = 'block';
+            }
+
+            // Tecla ENTER → Dá Play ou Pausa no vídeo
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                video.paused ? video.play() : video.pause();
+                infobar.style.display = video.paused ? 'block' : 'none';
+            }
+        }
+
+        // --- FUNÇÕES QUE SEMPRE FUNCIONAM DENTRO DO VÍDEO ---
+        if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }   // ⬅️ Volta 10 segundos no vídeo
+        if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }   // ➡️ Avança 10 segundos no vídeo
+        if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }          // ⬇️ Seta para BAIXO → Sai do vídeo e volta ao menu
+        if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }           // ⌫ Tecla Voltar → Também sai do vídeo
+
+    }
+});
         // --------------------------
         // INICIALIZAÇÃO
         // --------------------------
