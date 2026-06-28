@@ -134,7 +134,7 @@ let series = []; // Começa vazio, vai ser preenchido pelo JSON
 async function carregarSeries() {
     try {
         // O "fetch" vai buscar o arquivo que você subiu no GitHub
-        const resposta = await fetch('série.json'); 
+        const resposta = await fetch('series1.json'); 
         series = await resposta.json();
         
         console.log("Séries carregadas com sucesso!");
