@@ -342,22 +342,77 @@
         // --------------------------
         // REPRODUÇÃO DE VÍDEO
         // --------------------------
-        function tocarVideo(url, numeroEp) {
-            episodioAtual = numeroEp;
-            menu.style.display = 'none';
+    function tocarVideo(url, numeroEp) {
+    episodioAtual = numeroEp;
+    menu.style.display = 'none';
 
-            if (hls) hls.destroy();
-            hls = new Hls();
+    if (hls) hls.destroy();
 
-            hls.loadSource(url);
-            hls.attachMedia(video);
+    if (Hls.isSupported()) {
+        hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 90,
+            maxBufferLength: 30,
+            maxMaxBufferLength: 600,
+            maxBufferSize: 60 * 1000 * 1000,
+            xhrSetup: function(xhr) {
+                xhr.withCredentials = false;
+                xhr.setRequestHeader('Origin', window.location.origin);
+                xhr.setRequestHeader('Referer', window.location.href);
+            },
+            manifestLoadingTimeOut: 20000,
+            manifestLoadingMaxRetry: 6,
+            manifestLoadingRetryDelay: 800,
+            levelLoadingTimeOut: 20000,
+            levelLoadingMaxRetry: 6,
+            levelLoadingRetryDelay: 800,
+            fragLoadingTimeOut: 20000,
+            fragLoadingMaxRetry: 8,
+            fragLoadingRetryDelay: 800
+        });
 
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-            hls.on(Hls.Events.ERROR, (_, erro) => {
-                console.error("Erro no vídeo:", erro);
-                alert("❌ Não foi possível reproduzir este episódio");
-            });
-        }
+        hls.loadSource(url);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(e => console.log("Autoplay bloqueado:", e));
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        console.log("Erro de rede, tentando novamente...");
+                        hls.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        console.log("Erro de mídia, recuperando...");
+                        hls.recoverMediaError();
+                        break;
+                    default:
+                        tentarReproduzirNativo(url);
+                        break;
+                }
+            }
+        });
+
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        tentarReproduzirNativo(url);
+    } else {
+        alert("❌ Formato não suportado");
+    }
+}
+
+// ✅ ESSA FUNÇÃO FICA AQUI, FORA DA OUTRA
+function tentarReproduzirNativo(url) {
+    video.src = url;
+    video.load();
+    video.play().catch(() => {
+        alert("❌ Não foi possível reproduzir este episódio");
+        voltarParaMenu();
+    });
+}
 
         // --------------------------
         // CONTROLE DE PROGRESSO
