@@ -101,29 +101,35 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
 <body>
 
     <video id="video"></video>
-    <div id="menu">
-<div id="barra-busca" style="padding: 10px;">
-    <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
-    <div id="teclado-virtual"></div> 
-</div>
-        <h2 id="titulo">SELECIONE A SÉRIE</h2>
-        <h2 id="titulo">CONTINUAR ASSISTINDO</h2>
-<div id="lista-continuar" style="display: flex; gap: 15px; margin-bottom: 40px;"></div>
 
-<h2 id="titulo">TODAS AS SÉRIES</h2>
-        <div id="lista"></div>
+<div id="menu">
+    <div id="barra-busca" style="padding: 10px;">
+        <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
+        <div id="teclado-virtual"></div> 
     </div>
-    <div id="infobar">
+
+    <h2 id="titulo-selecione">SELECIONE A SÉRIE</h2>
+    
+    <h2 id="titulo-continuar">CONTINUAR ASSISTINDO</h2>
+    <div id="lista-continuar" style="display: flex; gap: 15px; margin-bottom: 40px;"></div>
+
+    <h2 id="titulo-todas">TODAS AS SÉRIES</h2>
+    <div id="lista"></div>
+</div>
+
+<div id="infobar">
     <div id="barra-progresso" onclick="buscarNoVideo(event)">
         <div id="progresso-atual"></div>
+    </div>
+    
     <div id="aviso-prox-container" style="display: none; text-align: center; margin-top: 20px;">
-    <p style="font-size: 18px; margin-bottom: 10px;">PRÓXIMO VÍDEO EM <span id="contador">10</span>s</p>
-    <button id="btn-pular" onclick="pularEpisodio()" style="padding: 10px 20px; cursor: pointer;">PULAR</button>
-    <button id="btn-cancelar" onclick="cancelarPulo()" style="padding: 10px 20px; cursor: pointer;">CANCELAR</button>
-</div>
+        <p style="font-size: 18px; margin-bottom: 10px;">PRÓXIMO VÍDEO EM <span id="contador">10</span>s</p>
+        <button id="btn-pular" onclick="pularEpisodio()" style="padding: 10px 20px; cursor: pointer;">PULAR</button>
+        <button id="btn-cancelar" onclick="cancelarPulo()" style="padding: 10px 20px; cursor: pointer;">CANCELAR</button>
+    </div>
+    
     <span id="tempo">00:00 / 00:00</span>
 </div>
-
     <script>
         const video = document.getElementById('video');
         const lista = document.getElementById('lista');
