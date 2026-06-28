@@ -312,7 +312,7 @@ function cancelarPulo() {
     timerPulo = null;
     segundosRestantes = 10;
 }
-// Este bloco cuida de MOSTRAR O TEMPO na tela
+// Este bloco cuida de MOSTRAR O TEMPO NA TELA , VIDEO.ONTIME
             let timerPulo = null;
 let segundosRestantes = 10;
 video.ontimeupdate = () => {
@@ -321,25 +321,28 @@ video.ontimeupdate = () => {
     
     let cur = video.currentTime;
     let dur = video.duration || 0;
-     // Atualiza o texto
+    
+    // Atualiza o texto
     tempoElemento.innerText = formatarTempo(cur) + " / " + formatarTempo(dur);
-    let tempoRestante = video.duration - video.currentTime;
+    let tempoRestante = dur - cur;
+    
     // Se faltam 10 segundos para acabar e o timer ainda não rodou
     if (tempoRestante <= 10 && tempoRestante > 0 && !timerPulo) {
         mostrarContador();
     }
-    // Atualiza a barrinha vermelha
+    
+    // Atualiza a barrinha
     let porcentagem = (cur / dur) * 100;
     progresso.style.width = porcentagem + "%";
-};
-// Salva o progresso no localStorage (lembra do vídeo atual)
-   let urlAtual = video.src;
-    let imgAtual = serieAtual ? serieAtual.imagem : ""; // Pega a imagem da série atual
-    let nomeAtual = serieAtual ? serieAtual.nome : "Desconhecido";
 
-    localStorage.setItem('progresso_' + urlAtual, video.currentTime);
-    localStorage.setItem('img_' + urlAtual, imgAtual);
-    localStorage.setItem('nome_' + urlAtual, nomeAtual);
+    // Salva o progresso no localStorage
+    // (Note que agora está DENTRO do evento, não solto no script)
+    if (serieAtual) {
+    localStorage.setItem('progresso_' + video.currentSrc, cur);
+    localStorage.setItem('duracao_' + video.currentSrc, dur); // SALVE A DURAÇÃO AQUI!
+    localStorage.setItem('img_' + video.currentSrc, serieAtual.imagem);
+    localStorage.setItem('nome_' + video.currentSrc, serieAtual.nome);
+}
 };
 
 // Função para clicar na barra e pular o vídeo (estilo MX)
@@ -420,7 +423,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
        //CONTINUAR ASSISTINDO
-        function renderizarContinuarAssistindo() {
+       function renderizarContinuarAssistindo() {
     const listaContinuar = document.getElementById('lista-continuar');
     listaContinuar.innerHTML = ""; 
 
@@ -429,21 +432,20 @@ document.addEventListener('keydown', (e) => {
         
         if (chave.startsWith('progresso_')) {
             let url = chave.replace('progresso_', '');
-            let tempo = localStorage.getItem(chave);
+            let tempo = parseFloat(localStorage.getItem(chave));
+            let duracao = parseFloat(localStorage.getItem('duracao_' + url)) || 1; // Pega do storage
             let img = localStorage.getItem('img_' + url);
             let nome = localStorage.getItem('nome_' + url);
 
-            // A trava dos 90% para não mostrar o que já acabou
-            if (tempo > 10 && (tempo / (video.duration || 1)) < 0.9) {
+            // A trava dos 90% (0.9)
+            if (tempo > 10 && (tempo / duracao) < 0.9) {
                 let btn = document.createElement('button');
-                
-                // Monta o botão com a imagem e o nome
-                btn.innerHTML = `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover;"> 
-                                 <span>${nome}</span>`;
+                btn.innerHTML = `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover;"> <span>${nome}</span>`;
                 
                 btn.onclick = () => {
                     tocar(url);
-                    setTimeout(() => { video.currentTime = tempo; }, 500);
+                    // Damos um tempo para o HLS carregar o vídeo antes de pular para o tempo
+                    setTimeout(() => { video.currentTime = tempo; }, 1000);
                 };
                 listaContinuar.appendChild(btn);
             }
