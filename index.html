@@ -47,28 +47,34 @@
             border-radius: 6px;
             margin-bottom: 15px;
         }
-        #teclado-virtual {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 8px;
-            margin-bottom: 25px;
-        }
-        #teclado-virtual button {
-            padding: 12px;
-            font-size: 18px;
-            background: #222;
-            border: none;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        #teclado-virtual button:focus,
-        #teclado-virtual button:hover {
-            background: #e50914;
-            transform: scale(1.08);
-            outline: none;
-        }
+        /* Teclado menor e oculto por padrão */
+#teclado-virtual {
+    display: none; /* Começa escondido */
+    grid-template-columns: repeat(9, 1fr);
+    gap: 5px; /* Espaço menor entre as teclas */
+    margin-bottom: 15px;
+    max-width: 700px; /* Largura máxima para não ficar enorme */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#teclado-virtual button {
+    padding: 8px; /* Menos altura */
+    font-size: 16px; /* Letra menor */
+    background: #222;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#teclado-virtual button:focus,
+#teclado-virtual button:hover {
+    background: #e50914;
+    transform: scale(1.05);
+    outline: none;
+}
         h2 {
             font-size: 24px;
             margin: 15px 0;
@@ -171,7 +177,7 @@
    
     <div id="menu">
         <div id="barra-busca">
-            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME DA SÉRIE..." oninput="filtrarSeries()">
+            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME DA SÉRIE..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
             <div id="teclado-virtual"></div>
         </div>
 
