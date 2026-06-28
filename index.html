@@ -345,7 +345,7 @@ function mostrarContador() {
     
     timerPulo = setInterval(() => {
         segundosRestantes--;
-        document.getElementById('contador').innerText = segundosRestantes;
+        document.getElementById('contador').innerText = Math.round(segundosRestantes);
         
         if (segundosRestantes <= 0) {
             pularEpisodio();
