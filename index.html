@@ -125,46 +125,46 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     <span id="tempo">00:00 / 00:00</span>
 </div>
     <script>
-      // ============================================
-// CONFIGURAÇÃO DOS DADOS (JSON EXTERNO)
-// ============================================
-let series = []; // Começa vazio, vai ser preenchido pelo JSON
 
-//CARREGA O .JSON
-        async function carregarSeries() {
-    try {
-        // O "fetch" vai buscar o arquivo que você subiu no GitHub
-        const resposta = await fetch('series1.json'); 
-        series = await resposta.json();
-        
-        console.log("Séries carregadas com sucesso!");
-        renderizarMenu(); // Só desenha o menu depois que os dados chegarem
-    } catch (erro) {
-        console.error("Erro ao carregar o JSON:", erro);
-        // Aqui você pode colocar um aviso visual se o arquivo não carregar
-    }
-}
-        // ============================================
-// VARIÁVEIS DO PLAYER
 // ============================================
+// 1. VARIÁVEIS GLOBAIS
+// ============================================
+let series = [];
 const video = document.getElementById('video');
 const lista = document.getElementById('lista');
 const menu = document.getElementById('menu');
 const infobar = document.getElementById('infobar');
 let hls = new Hls();
 let serieAtual = null;
-let tempAtual = null; // Adicione isso no topo do seu script
+let tempAtual = null;
 let paginaEpisodio = 0;
 let timerPulo = null;
 let segundosRestantes = 10;
 let episodioAtual = 0;
+// ============================================
+// 2. CARREGAMENTO DE DADOS
+// ============================================
+async function carregarSeries() {
+    try {
+        const resposta = await fetch('series1.json'); 
+        series = await resposta.json();
+        console.log("Séries carregadas com sucesso!");
+        
+        // SÓ RODA DEPOIS QUE CARREGAR
+        renderizarMenu();
+        renderizarContinuarAssistindo();
+    } catch (erro) {
+        console.error("Erro ao carregar o JSON:", erro);
+        lista.innerHTML = "<h2 style='color:red'>Erro ao carregar séries. Verifique o arquivo series1.json</h2>";
+    }
+}
 
-// VARIÁVEIS DE PAGINAÇÃO
+//2.1 VARIÁVEIS DE PAGINAÇÃO
 let paginaAtual = 0;
 let listaEps = [];
 
 // ============================================
-// INICIALIZAÇÃO
+// 2.2 INICIALIZAÇÃO
 // ============================================
 carregarSeries(); // Chama a função para buscar o JSON ao abrir
 //VOLTAR PARA MENU
@@ -174,85 +174,73 @@ function voltarParaMenu() {
     document.getElementById('btn-voltar-video').style.display = 'none';
     menu.style.display = 'flex';
 }
-// RENDERIZAR MENU
-      function renderizarMenu() {
-    lista.innerHTML = ""; // Limpa todo o conteúdo que estava dentro da div chamada "lista". Isso é essencial para não "empilhar" séries cada vez que você abre o menu.//
-    series.forEach(s => { //Inicia um loop que percorre cada objeto (série) dentro da sua lista series. O s representa a série que está sendo processada no momento.//
-        let btn = document.createElement('button');// Cria um novo elemento HTML do tipo botão no navegador. Ele ainda não está na tela, está apenas na "memória" do script.//
-        
-        // Aqui garantimos que a imagem seja carregada
-        let img = document.createElement('img');// Cria uma tag de imagem (<img>) para exibir o pôster da série.//
-        img.src = s.img; // Define o endereço (URL) da imagem que será carregada, pegando a informação do campo img dentro do seu JSON.
-        img.onerror = () => { img.src = 'https://via.placeholder.com/250?text=Sem+Imagem'; }; // Fallback se o link falhar
-        
-        let span = document.createElement('span'); //Cria uma tag <span> para conter o texto (o nome da série).// Coloca o nome da série (vindo do JSON) dentro desse span.//
-        span.innerText = s.nome; // Coloca o nome da série (vindo do JSON) dentro desse span.//
-        
-        btn.appendChild(img); //"Cola" a imagem dentro do botão.//
-        btn.appendChild(span);// "Cola" o texto do nome abaixo da imagem, também dentro do botão.//
-        btn.onclick = () => renderizarEps(s);// Define o que acontece ao clicar no botão: ele chama a função renderizarEps passando aquela série específica (s) como alvo.//
-        lista.appendChild(btn);// coloca o botão pronto (com imagem e texto) dentro da div "lista" na tela do seu site//.
+ // ============================================
+// 3. FUNÇÕES DE RENDERIZAÇÃO
+// ============================================
+function renderizarMenu() {
+    lista.innerHTML = "";
+    series.forEach(s => {
+        let btn = document.createElement('button');
+        btn.innerHTML = `<img src="${s.img}" onerror="this.src='https://via.placeholder.com/250'"><span>${s.nome}</span>`;
+        btn.onclick = () => renderizarEps(s);
+        lista.appendChild(btn);
     });
-    lista.querySelector('button')?.focus(); // Muito importante para TV: Ele seleciona automaticamente o primeiro botão que foi criado e aplica o foco nele. Isso permite que você use o controle remoto imediatamente para navegar sem precisar clicar no primeiro item.//
+    lista.querySelector('button')?.focus();
 }
 
-// FUNÇÃO RENDERIZAR EPS (Escolha de Temporadas)
-function renderizarEps(s) { // Aqui eu recebo a série (s) que você escolheu lá no menu principal
-    serieAtual = s; // Guarda na memória qual série estamos vendo agora, pra não esquecer
-    lista.innerHTML = ''; // Joga no lixo tudo o que estava na tela antes
-    lista.style.display = 'flex'; // Garante que a tela esteja pronta pra enfileirar botões
 
-    let titulo = document.createElement('h2'); // Cria uma placa de título...
-    titulo.innerText = s.nome; // ...e escreve o nome da série nessa placa
-    lista.appendChild(titulo); // Prega a placa lá no topo da tela
-// Agora, vamos olhar dentro do pacotinho "temporadas" que veio lá do seu JSON
-    s.temporadas.forEach((temp) => { // Para cada temporada (temp) que existir...
-        let btn = document.createElement('button'); // Cria um botão novo
+// 3.1 FUNÇÃO RENDERIZAR EPS (Escolha de Temporadas)
+function renderizarEps(s) {
+    serieAtual = s;
+    lista.innerHTML = '';
+    let titulo = document.createElement('h2');
+    titulo.innerText = s.nome;
+    lista.appendChild(titulo);
+
+    s.temporadas.forEach((temp) => {
+        let btn = document.createElement('button');
         btn.innerHTML = `<span>Temporada ${temp.n}</span>`;
-        btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s); // Escreve nele: "Temporada 1", "Temporada 2"...
-        lista.appendChild(btn); // Joga o botão na tela
+        btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s);
+        lista.appendChild(btn);
     });
 
-    let btnVoltar = document.createElement('button'); // Por fim, cria o botão de "Voltar" pra você não ficar preso aqui
-    btnVoltar.innerText = "⬅ VOLTAR"; // Escreve o texto
-    btnVoltar.onclick = () => renderizarMenu(); // Se clicar, manda chamar o menu inicial de novo
-    lista.appendChild(btnVoltar); // Joga o botão de voltar na tela
+    let btnVoltar = document.createElement('button');
+    btnVoltar.innerText = "⬅ VOLTAR";
+    btnVoltar.onclick = () => renderizarMenu();
+    lista.appendChild(btnVoltar);
 }
 
-// FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
+// 3.2 FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
 // VARIÁVEL PARA CONTROLAR A PÁGINA DENTRO DA TEMPORADA
 let paginaEpisodio = 0;
-function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) { // O "pagina" aqui serve para saber se estamos na página 0, 1, 2...
-   // AQUI O CÓDIGO SALVA AS INFORMAÇÕES GLOBAIS
+function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
     tempAtual = temp; 
     serieAtual = serie;
-    lista.innerHTML = ''; // Limpa a tela antes de começar
-    paginaEpisodio = pagina; // Guarda em que página estamos
+    lista.innerHTML = '';
+    paginaEpisodio = pagina;
     
-    // Botão Voltar
     let btnVoltar = document.createElement('button');
-    btnVoltar.className = 'nav-btn'; // Use a classe de botão grande
+    btnVoltar.className = 'nav-btn';
     btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
     btnVoltar.onclick = () => renderizarEps(serie);
     lista.appendChild(btnVoltar);
-// Lógica da MATEMÁTICA da página:
-    let start = temp.start || 1; // Se não tiver número inicial, começa no 1
-    let totalEps = temp.total; // Quantos episódios a temporada tem no total
-    let inicio = paginaEpisodio * 6; // Se página for 0, começa no 0. Se página for 1, começa no 6.
-    let fim = Math.min(inicio + 6, totalEps); // Pega 6 episódios, mas não deixa passar do total
-// O FOR é o cara que vai criar os botões, um por um
+
+    let start = temp.start || 1;
+    let totalEps = temp.total;
+    let inicio = paginaEpisodio * 6;
+    let fim = Math.min(inicio + 6, totalEps);
+
     for (let i = inicio; i < fim; i++) {
-        let epNum = start + i; // Calcula o número real do episódio
-        let epFormatado = epNum.toString().padStart(2, '0'); // Garante que 5 vire "05"
+        let epNum = start + i;
+        let epFormatado = epNum.toString().padStart(2, '0');
         let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
         
         let btn = document.createElement('button');
-        // Adicionando a imagem da série aqui:
         btn.innerHTML = `<img src="${serie.img}"> <span>Episódio ${epNum}</span>`;
-        btn.onclick = () => tocar(url); // Quando clica, toca o vídeo
-        lista.appendChild(btn); // Joga esse card na tela
+        btn.onclick = () => tocar(url);
+        lista.appendChild(btn);
     }
-
+}
 
     // Botões de Navegação da Paginação
     if (paginaEpisodio > 0) { // Se você está na página 1, 2, 3... significa que existe uma página atrás.
@@ -271,7 +259,7 @@ function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) { // O "pagina" aq
         lista.appendChild(btnProx); // Joga na tela
     }
 }
-// FUNÇÃO FILTRAR SÉRIES PRA ABA PESQUISAR
+// 3.3 FUNÇÃO FILTRAR SÉRIES PRA ABA PESQUISAR
 function filtrarSeries() {
     let termo = document.getElementById('campo-procura').value.toLowerCase();
     let botoes = document.querySelectorAll('#menu button'); // Seus botões de série
@@ -286,7 +274,7 @@ function filtrarSeries() {
         }
     });
 
-    // Botões de Navegação (Anterior/Próximo)
+    // 3.4 Botões de Navegação (Anterior/Próximo)
     if (paginaAtual > 0) { // Verifica se a página atual é maior que 0 (ou seja, se existe uma página antes da atual)
         let b = document.createElement('button'); // Cria o botão
         b.className = 'nav-btn'; // Aplica o estilo CSS de botão pequeno
@@ -304,23 +292,20 @@ function filtrarSeries() {
     }
     lista.querySelector('button').focus(); // Isso é essencial para que você possa usar o controle da TV logo de cara
 }        
-//FUNÇÃO TOCAR
+// ============================================
+// 4. FUNÇÕES DE PLAYER E UTILITÁRIOS
+// ============================================
 function tocar(url) {
-    // Extrai o número do arquivo de forma segura
-    let match = url.match(/\/(\d+)\.mp4/);  // 1. O "match" é um caçador: ele procura no link do vídeo um número que termina em .mp4
-    episodioAtual = match ? parseInt(match[1]) : 0; // Isso serve para o sistema saber qual episódio é o atual (ex: 05)
-
-    // Limpa a tela e o player antigo
+    let match = url.match(/\/(\d+)\.mp4/);
+    episodioAtual = match ? parseInt(match[1]) : 0;
     menu.style.display = 'none';
-    if(hls) hls.destroy(); // O 'hls.destroy()' é crucial para não deixar o vídeo anterior rodando em segundo plano
-
-    // Inicia o novo vídeo
+    if(hls) hls.destroy();
     hls = new Hls();
     hls.loadSource(url);
-    hls.attachMedia(video);// Conecta esse leitor à sua tela de <video>
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); // Assim que o arquivo estiver pronto, começa a passar
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
 }
-// MOSTRAR CONTADOR PLAY
+// 4.1 MOSTRAR CONTADOR PLAY
 function mostrarContador() { // Mostra na tela o container que diz "PRÓXIMO VÍDEO EM X SEGUNDOS"
     document.getElementById('aviso-prox-container').style.display = 'block';
     infobar.style.display = 'block'; // Garante que o infobar apareça
@@ -334,7 +319,7 @@ function mostrarContador() { // Mostra na tela o container que diz "PRÓXIMO VÍ
         }
     }, 1000);
 }
-//PULAR EPISÓDIO PLAY
+//4.2 PULAR EPISÓDIO PLAY
 function pularEpisodio() {
     clearInterval(timerPulo);
     timerPulo = null;
@@ -352,7 +337,7 @@ function pularEpisodio() {
     
     tocar(url);
 }
-//CANCELAR PULO PLAY
+//4.3 CANCELAR PULO PLAY
 function cancelarPulo() {
     clearInterval(timerPulo);
     document.getElementById('aviso-prox-container').style.display = 'none';
@@ -360,39 +345,25 @@ function cancelarPulo() {
     segundosRestantes = 10;
 }
 // Este bloco cuida de MOSTRAR O TEMPO NA TELA , VIDEO.ONTIME
-            let timerPulo = null;
-let segundosRestantes = 10;
-video.ontimeupdate = () => {
+    video.ontimeupdate = () => {
     let tempoElemento = document.getElementById('tempo');
     let progresso = document.getElementById('progresso-atual');
-    
     let cur = video.currentTime;
     let dur = video.duration || 0;
     
-    // Atualiza o texto
     tempoElemento.innerText = formatarTempo(cur) + " / " + formatarTempo(dur);
-    let tempoRestante = dur - cur;
-    
-    // Se faltam 10 segundos para acabar e o timer ainda não rodou
-    if (tempoRestante <= 10 && tempoRestante > 0 && !timerPulo) {
-        mostrarContador();
-    }
-    
-    // Atualiza a barrinha
-    let porcentagem = (cur / dur) * 100;
-    progresso.style.width = porcentagem + "%";
+    progresso.style.width = ((cur / dur) * 100) + "%";
 
-    // Salva o progresso no localStorage
-    // (Note que agora está DENTRO do evento, não solto no script)
+    if (dur - cur <= 10 && dur - cur > 0 && !timerPulo) mostrarContador();
+
     if (serieAtual) {
-    localStorage.setItem('progresso_' + video.currentSrc, cur);
-    localStorage.setItem('duracao_' + video.currentSrc, dur); // SALVE A DURAÇÃO AQUI!
-    localStorage.setItem('img_' + video.currentSrc, serieAtual.imagem);
-    localStorage.setItem('nome_' + video.currentSrc, serieAtual.nome);
-}
+        localStorage.setItem('progresso_' + video.currentSrc, cur);
+        localStorage.setItem('duracao_' + video.currentSrc, dur);
+        localStorage.setItem('img_' + video.currentSrc, serieAtual.img);
+        localStorage.setItem('nome_' + video.currentSrc, serieAtual.nome);
+    }
 };
-
-// Função para clicar na barra e pular o vídeo (estilo MX)
+// 4.4 Função para clicar na barra e pular o vídeo (estilo MX)
 function buscarNoVideo(e) {
     let barra = document.getElementById('barra-progresso');
     let clickX = e.offsetX;
@@ -400,14 +371,14 @@ function buscarNoVideo(e) {
     let novaPosicao = (clickX / larguraTotal) * video.duration;
     video.currentTime = novaPosicao;
 }
-// Função auxiliar para deixar o TEMPO BONITO (00:00)
+// 4.5 Função auxiliar para deixar o TEMPO BONITO (00:00)
 function formatarTempo(segundos) {
     let min = Math.floor(segundos / 60);
-    let seg = segundos % 60;
+    let seg = Math.floor(segundos % 60);
     return (min < 10 ? "0" + min : min) + ":" + (seg < 10 ? "0" + seg : seg);
 }
 
-// COMANDOS DO CONTROLE E TECLADO
+// 4.6 COMANDOS DO CONTROLE E TECLADO PRA FUNCIONAR FIRE STICK
 document.addEventListener('keydown', (e) => { //Este é o bloco mais importante para TV. Ele "escuta" o que você aperta no controle:
     // 1. Pegamos todos os botões visíveis dentro da lista
     const botoes = Array.from(document.querySelectorAll('#lista button'));
@@ -464,7 +435,7 @@ document.addEventListener('keydown', (e) => { //Este é o bloco mais importante 
         }
     }
 });
-       //CONTINUAR ASSISTINDO
+       //4.7 CONTINUAR ASSISTINDO
        function renderizarContinuarAssistindo() {
     const listaContinuar = document.getElementById('lista-continuar'); //Localiza a caixa na tela onde os botões de "Continuar Assistindo" vão aparecer.
     listaContinuar.innerHTML = "";  // Limpa essa caixa antes de começar, para não duplicar botões toda vez que você abrir o menu.
@@ -494,7 +465,7 @@ document.addEventListener('keydown', (e) => { //Este é o bloco mais importante 
         }
     }
 }         
-    // PARTE TECLADO VIRTUAL
+    // 4.8 PARTE TECLADO VIRTUAL
 // FUNÇÃO ADICIONAR LETRA TECLADO
 function addLetra(letra) { // O Digitador
     let input = document.getElementById('campo-procura'); // Localiza a caixa de texto onde o nome da série aparece.
@@ -502,14 +473,14 @@ function addLetra(letra) { // O Digitador
     filtrarSeries(); ////A parte mais importante. Assim que você adiciona uma letra, ele chama a função de busca imediatamente para esconder as séries que não combinam com o novo termo.
 }
 
-// FUNÇÃO APAGAR LETRAS TECLADO
+// 4.9 FUNÇÃO APAGAR LETRAS TECLADO
 function apagarLetra() { // O Corretor
     let input = document.getElementById('campo-procura');
     input.value = input.value.slice(0, -1); //Isso é uma função de corte. O slice(0, -1) diz ao computador: "pegue o texto do começo até o penúltimo caractere". Ou seja, ele remove a última letra da string.
     filtrarSeries(); //Chama a busca de novo para atualizar a lista, já que você apagou uma letra.
 }
 
-// CRIA O TECLADO
+// 5 CRIA O TECLADO
 function criarTeclado() {// O Gerador
     const container = document.getElementById('teclado-virtual');
     const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫";// Define todos os botões que o teclado vai ter.
