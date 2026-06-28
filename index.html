@@ -171,21 +171,26 @@ function voltarParaMenu() {
     menu.style.display = 'flex';
 }
 // RENDERIZAR MENU
-        function renderizarMenu() {
-            lista.innerHTML = ""; 
-            series.forEach(s => {
-                let btn = document.createElement('button');
-                let img = document.createElement('img');
-img.src = s.img; // O seu JSON usa a chave "img"
-                let span = document.createElement('span');
-                span.innerText = s.nome;
-                btn.appendChild(img);
-                btn.appendChild(span);
-                btn.onclick = () => renderizarEps(s);
-                lista.appendChild(btn);
-            });
-            lista.querySelector('button').focus();
-        }
+      function renderizarMenu() {
+    lista.innerHTML = ""; 
+    series.forEach(s => {
+        let btn = document.createElement('button');
+        
+        // Aqui garantimos que a imagem seja carregada
+        let img = document.createElement('img');
+        img.src = s.img; 
+        img.onerror = () => { img.src = 'https://via.placeholder.com/250?text=Sem+Imagem'; }; // Fallback se o link falhar
+        
+        let span = document.createElement('span');
+        span.innerText = s.nome;
+        
+        btn.appendChild(img);
+        btn.appendChild(span);
+        btn.onclick = () => renderizarEps(s);
+        lista.appendChild(btn);
+    });
+    lista.querySelector('button')?.focus();
+}
 
 // FUNÇÃO RENDERIZAR EPS (Escolha de Temporadas)
 function renderizarEps(s) {
@@ -213,18 +218,17 @@ function renderizarEps(s) {
 // FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
 // VARIÁVEL PARA CONTROLAR A PÁGINA DENTRO DA TEMPORADA
 let paginaEpisodio = 0;
-
 function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
     lista.innerHTML = ''; 
     paginaEpisodio = pagina;
     
     // Botão Voltar
     let btnVoltar = document.createElement('button');
+    btnVoltar.className = 'nav-btn'; // Use a classe de botão grande
     btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
     btnVoltar.onclick = () => renderizarEps(serie);
     lista.appendChild(btnVoltar);
 
-    // Lógica da Paginação (6 episódios por página)
     let start = temp.start || 1;
     let totalEps = temp.total;
     let inicio = paginaEpisodio * 6;
@@ -236,10 +240,14 @@ function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
         let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
         
         let btn = document.createElement('button');
-        btn.innerHTML = `<span>Episódio ${epNum}</span>`;
+        // Adicionando a imagem da série aqui:
+        btn.innerHTML = `<img src="${serie.img}"> <span>Episódio ${epNum}</span>`;
         btn.onclick = () => tocar(url);
         lista.appendChild(btn);
     }
+    // ... restante da paginação ...
+}
+
 
     // Botões de Navegação da Paginação
     if (paginaEpisodio > 0) {
