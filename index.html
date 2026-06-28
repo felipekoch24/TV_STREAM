@@ -1,205 +1,561 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>TV PLAYER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> TV Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-        video { width: 100vw; height: 100vh; }
-        #menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; padding: 40px; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; }
-        #lista { display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; }
-        button { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 280px; height: 380px; padding: 15px; background: #111; color: #fff; border: 3px solid #333; font-size: 22px; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
-        button img { width: 250px !important; height: 250px !important; object-fit: cover; margin-bottom: 15px; border-radius: 4px; display: block; }
-        .nav-btn { width: 280px !important; height: 100px !important; justify-content: center !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            background: #000; 
+            color: #fff; 
+            font-family: Arial, sans-serif; 
+            overflow: hidden;
+            user-select: none;
+        }
+        video { 
+            width: 100vw; 
+            height: 100vh; 
+            object-fit: contain;
+            background: #000;
+        }
+        #menu { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: #000; 
+            padding: 30px; 
+            z-index: 100; 
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto;
+            gap: 20px;
+        }
+        #barra-busca {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #campo-procura {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 20px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        #teclado-virtual {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        #teclado-virtual button {
+            padding: 12px;
+            font-size: 18px;
+            background: #222;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #teclado-virtual button:focus,
+        #teclado-virtual button:hover {
+            background: #e50914;
+            transform: scale(1.08);
+            outline: none;
+        }
+        h2 {
+            font-size: 24px;
+            margin: 15px 0;
+            color: #ffcc00;
+        }
+        #lista, #lista-continuar { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 25px; 
+        }
+        button { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            width: 260px; 
+            height: 360px; 
+            padding: 12px; 
+            background: #111; 
+            color: #fff; 
+            border: 3px solid #333; 
+            font-size: 20px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            border-radius: 6px;
+            outline: none;
+        }
+        button:focus,
+        button:hover {
+            border-color: #e50914;
+            transform: scale(1.05);
+        }
+        button img { 
+            width: 220px; 
+            height: 220px; 
+            object-fit: cover; 
+            margin-bottom: 12px; 
+            border-radius: 4px; 
+            display: block;
+            background: #222;
+        }
+        .nav-btn { 
+            width: 260px !important; 
+            height: 80px !important; 
+            justify-content: center !important; 
+        }
         .nav-btn img { display: none !important; }
-        #infobar { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); color: #fff; padding: 20px; display: none; z-index: 500; font-size: 20px; box-sizing: border-box; }
-        #barra-progresso { width: 100%; height: 6px; background: #444; margin-bottom: 10px; cursor: pointer; }
-        #progresso-atual { height: 100%; background: #ff3e3e; width: 0%; }
-        #teclado-virtual { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; margin-top: 20px; }
-        #teclado-virtual button { padding: 15px; font-size: 1.2em; background: #333; color: white; border: none; cursor: pointer; }
-        #teclado-virtual button:focus { background: #e50914; transform: scale(1.1); }
+        #btn-voltar-video {
+            position: absolute; 
+            top: 20px; 
+            right: 20px;
+            z-index: 600; 
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.75); 
+            color: white;
+            border: 2px solid #fff; 
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer; 
+            display: none;
+            outline: none;
+        }
+        #btn-voltar-video:focus { 
+            background: #fff; 
+            color: #000; 
+        }
+        #infobar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.92), transparent);
+            color: #fff;
+            padding: 25px;
+            display: none;
+            z-index: 500;
+            font-size: 20px;
+        }
+        #barra-progresso {
+            width: 100%;
+            height: 8px;
+            background: #444;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        #progresso-atual {
+            height: 100%;
+            background: #ff3e3e;
+            width: 0%;
+            border-radius: 4px;
+        }
+        #aviso-prox-container {
+            text-align: center; 
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 6px;
+        }
+        #aviso-prox-container p {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        #aviso-prox-container button {
+            display: inline-block;
+            width: auto;
+            height: auto;
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <video id="video"></video>
+    <button id="btn-voltar-video" onclick="voltarParaMenu()">⬅ VOLTAR</button>
+
     <div id="menu">
-        <div id="barra-busca" style="padding: 10px;">
-            <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
+        <div id="barra-busca">
+            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME DA SÉRIE..." oninput="filtrarSeries()">
             <div id="teclado-virtual"></div>
         </div>
-        <h2 id="titulo-selecione">CONTINUAR ASSISTINDO</h2>
-        <div id="lista-continuar" style="display: flex; gap: 15px; margin-bottom: 40px;"></div>
-        <h2 id="titulo-todas">TODAS AS SÉRIES</h2>
+
+        <h2 id="titulo-continuar">▶ CONTINUAR ASSISTINDO</h2>
+        <div id="lista-continuar"></div>
+
+        <h2 id="titulo-todas">📺 TODAS AS SÉRIES</h2>
         <div id="lista"></div>
     </div>
+
     <div id="infobar">
-        <div id="barra-progresso" onclick="buscarNoVideo(event)"><div id="progresso-atual"></div></div>
-        <div id="aviso-prox-container" style="display: none; text-align: center; margin-top: 20px;">
-            <p>PRÓXIMO VÍDEO EM <span id="contador">10</span>s</p>
-            <button onclick="pularEpisodio()">PULAR</button>
-            <button onclick="cancelarPulo()">CANCELAR</button>
+        <div id="barra-progresso" onclick="buscarNoVideo(event)">
+            <div id="progresso-atual"></div>
         </div>
         <span id="tempo">00:00 / 00:00</span>
+        <div id="aviso-prox-container" style="display: none;">
+            <p>PRÓXIMO EPISÓDIO EM <span id="contador">10</span>s</p>
+            <button id="btn-pular" onclick="pularEpisodio()">⏭ PULAR AGORA</button>
+            <button id="btn-cancelar" onclick="cancelarPulo()">❌ CANCELAR</button>
+        </div>
     </div>
 
     <script>
+        // --------------------------
+        // VARIÁVEIS GLOBAIS
+        // --------------------------
         let series = [];
         const video = document.getElementById('video');
         const lista = document.getElementById('lista');
         const menu = document.getElementById('menu');
         const infobar = document.getElementById('infobar');
-        let hls = new Hls();
-        let serieAtual = null, tempAtual = null, timerPulo = null, episodioAtual = 0, segundosRestantes = 10;
+        const btnVoltarVideo = document.getElementById('btn-voltar-video');
+        let hls = null;
+        let serieAtual = null;
+        let tempAtual = null;
+        let paginaEpisodio = 0;
+        let timerPulo = null;
+        let segundosRestantes = 10;
+        let episodioAtual = 0;
 
+        // --------------------------
+        // CARREGAR DADOS
+        // --------------------------
         async function carregarSeries() {
             try {
-                const res = await fetch('series1.json');
-                series = await res.json();
+                const resposta = await fetch('series1.json');
+                if (!resposta.ok) throw new Error('Arquivo JSON não encontrado');
+                series = await resposta.json();
                 renderizarMenu();
                 renderizarContinuarAssistindo();
-            } catch (e) { console.error("Erro ao carregar JSON:", e); }
+            } catch (erro) {
+                console.error("Erro ao carregar séries:", erro);
+                lista.innerHTML = `<h2 style="color:red; text-align:center; width:100%;">❌ Erro: Verifique o arquivo series1.json</h2>`;
+            }
         }
 
+        // --------------------------
+        // FUNÇÕES DE NAVEGAÇÃO
+        // --------------------------
+        function voltarParaMenu() {
+            video.pause();
+            infobar.style.display = 'none';
+            btnVoltarVideo.style.display = 'none';
+            menu.style.display = 'flex';
+            cancelarPulo();
+            const primeiroBotao = lista.querySelector('button');
+            if (primeiroBotao) primeiroBotao.focus();
+        }
+
+        // --------------------------
+        // RENDERIZAÇÃO DE TELAS
+        // --------------------------
         function renderizarMenu() {
             lista.innerHTML = "";
+            if (!series.length) return;
+
             series.forEach(s => {
-                let btn = document.createElement('button');
-                btn.innerHTML = `<img src="${s.img}" onerror="this.src='https://via.placeholder.com/250'"><span>${s.nome}</span>`;
-                btn.onclick = () => renderizarEps(s);
+                const btn = document.createElement('button');
+                btn.innerHTML = `
+                    <img src="${s.img}" alt="${s.nome}" 
+                         onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
+                    <span>${s.nome}</span>
+                `;
+                btn.onclick = () => renderizarTemporadas(s);
                 lista.appendChild(btn);
             });
+            lista.querySelector('button')?.focus();
         }
 
-        function renderizarEps(s) {
-            serieAtual = s;
-            lista.innerHTML = `<h2>${s.nome}</h2>`;
-            s.temporadas.forEach(temp => {
-                let btn = document.createElement('button');
-                btn.innerHTML = `<span>Temporada ${temp.n}</span>`;
-                btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s);
+        function renderizarTemporadas(serie) {
+            serieAtual = serie;
+            lista.innerHTML = "";
+
+            const titulo = document.createElement('h2');
+            titulo.innerText = serie.nome;
+            titulo.style.width = "100%";
+            lista.appendChild(titulo);
+
+            serie.temporadas.forEach(temp => {
+                const btn = document.createElement('button');
+                btn.className = "nav-btn";
+                btn.innerText = `📆 Temporada ${temp.n}`;
+                btn.onclick = () => mostrarEpisodios(temp, serie);
                 lista.appendChild(btn);
             });
-            let btnVoltar = document.createElement('button');
+
+            const btnVoltar = document.createElement('button');
+            btnVoltar.className = "nav-btn";
             btnVoltar.innerText = "⬅ VOLTAR";
             btnVoltar.onclick = renderizarMenu;
             lista.appendChild(btnVoltar);
+            btnVoltar.focus();
         }
 
-        function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
-            tempAtual = temp; serieAtual = serie;
-            lista.innerHTML = `<button class="nav-btn" onclick="renderizarEps(serieAtual)">⬅ VOLTAR ÀS TEMPORADAS</button>`;
-            let start = temp.start || 1, totalEps = temp.total, inicio = pagina * 6, fim = Math.min(inicio + 6, totalEps);
+        function mostrarEpisodios(temp, serie, pagina = 0) {
+            tempAtual = temp;
+            serieAtual = serie;
+            paginaEpisodio = pagina;
+            lista.innerHTML = "";
+
+            const btnVoltar = document.createElement('button');
+            btnVoltar.className = "nav-btn";
+            btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
+            btnVoltar.onclick = () => renderizarTemporadas(serie);
+            lista.appendChild(btnVoltar);
+
+            const inicio = paginaEpisodio * 6;
+            const fim = Math.min(inicio + 6, temp.total);
+            const numeroInicial = temp.start || 1;
 
             for (let i = inicio; i < fim; i++) {
-                let epNum = start + i, epFmt = epNum.toString().padStart(2, '0');
-                let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFmt}.mp4/index.m3u8`;
-                let btn = document.createElement('button');
-                btn.innerHTML = `<img src="${serie.img}"> <span>Episódio ${epNum}</span>`;
-                btn.onclick = () => tocar(url);
+                const numeroEp = numeroInicial + i;
+                const epFormatado = String(numeroEp).padStart(2, '0');
+                const url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
+
+                const btn = document.createElement('button');
+                btn.innerHTML = `
+                    <img src="${serie.img}" alt="Episódio ${numeroEp}">
+                    <span>Episódio ${numeroEp}</span>
+                `;
+                btn.onclick = () => tocarVideo(url, numeroEp);
                 lista.appendChild(btn);
             }
-            if (pagina > 0) {
-                let btnAnt = document.createElement('button'); btnAnt.className = 'nav-btn'; btnAnt.innerText = "⬅ ANTERIOR";
-                btnAnt.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, pagina - 1);
-                lista.appendChild(btnAnt);
+
+            if (paginaEpisodio > 0) {
+                const btnAnterior = document.createElement('button');
+                btnAnterior.className = "nav-btn";
+                btnAnterior.innerText = "⬅ ANTERIOR";
+                btnAnterior.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio - 1);
+                lista.appendChild(btnAnterior);
             }
-            if (fim < totalEps) {
-                let btnProx = document.createElement('button'); btnProx.className = 'nav-btn'; btnProx.innerText = "PRÓXIMO ➡";
-                btnProx.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, pagina + 1);
-                lista.appendChild(btnProx);
+
+            if (fim < temp.total) {
+                const btnProximo = document.createElement('button');
+                btnProximo.className = "nav-btn";
+                btnProximo.innerText = "PRÓXIMO ➡";
+                btnProximo.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio + 1);
+                lista.appendChild(btnProximo);
             }
+
+            btnVoltar.focus();
         }
 
-        function tocar(url) {
-            let match = url.match(/\/(\d+)\.mp4/);
-            episodioAtual = match ? parseInt(match[1]) : 0;
+        // --------------------------
+        // REPRODUÇÃO DE VÍDEO
+        // --------------------------
+        function tocarVideo(url, numeroEp) {
+            episodioAtual = numeroEp;
             menu.style.display = 'none';
-            if(hls) hls.destroy();
+            btnVoltarVideo.style.display = 'block';
+
+            if (hls) hls.destroy();
             hls = new Hls();
+
             hls.loadSource(url);
             hls.attachMedia(video);
+
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.on(Hls.Events.ERROR, (_, erro) => {
+                console.error("Erro no vídeo:", erro);
+                alert("❌ Não foi possível reproduzir este episódio");
+            });
         }
 
-        function filtrarSeries() {
-            let termo = document.getElementById('campo-procura').value.toLowerCase();
-            document.querySelectorAll('#lista button').forEach(btn => btn.style.display = btn.innerText.toLowerCase().includes(termo) ? 'block' : 'none');
-        }
-         // 4.6 COMANDOS DO CONTROLE E TECLADO PRA FUNCIONAR FIRE STICK
-         document.addEventListener('keydown', (e) => { //Este é o bloco mais importante para TV. Ele "escuta" o que você aperta no controle:
-             // 1. Pegamos todos os botões visíveis dentro da lista
-             const botoes = Array.from(document.querySelectorAll('#lista button'));
-             const index = botoes.indexOf(document.activeElement);
-         
-             // 2. Se o MENU estiver ABERTO:
-             if (menu.style.display !== 'none') {
-                 // SETA DIREITA : PROXIMO EPISODIO NA PAGINAÇÃO, IR PRA FRENTE
-                 if (e.keyCode === 39 && index < botoes.length - 1) {
-                     e.preventDefault();
-                     botoes[index + 1].focus();
-                 }
-                 // SETA ESQUERDA: EPISÓDIO ANTERIOR NA PAGINAÇÃO, IR PRA TRÁS
-                 if (e.keyCode === 37 && index > 0) {
-                     e.preventDefault();
-                     botoes[index - 1].focus();
-                 }
-                 // Enter no menu: executa a função do botão (clica nele)
-                 if (e.keyCode === 13) {
-                     e.preventDefault();
-                     document.activeElement.click(); 
-                 }
-             } 
-             // 3. Se o VÍDEO estiver rodando (MENU ESCONDIDO:
-             else {
-                 // Setas para avançar/retroceder 10 segundos
-                 if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; } // REGRIDE SETA ESQUERDA
-                 if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; } // AVANÇA SETA DIREITA
-                 // SETA PARA BAIXO: Volta para o menu (Invisível e limpo)
-             if (e.keyCode === 40) { // SETA PRA BAIXO
-                 e.preventDefault();
-                 video.pause();
-                 infobar.style.display = 'none';
-                 menu.style.display = 'flex';
-                 lista.querySelector('button').focus(); // Foca no primeiro botão do menu
-             }
-             // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
-             if (e.keyCode === 13) {
-                 e.preventDefault();
-                 if (video.paused) { 
-                     video.play(); 
-                     infobar.style.display = 'none'; 
-                 } else { 
-                     video.pause(); 
-                     infobar.style.display = 'block'; 
-                 }
-             }
-                 // Tecla 8 (Back): volta para o menu
-                 if (e.keyCode === 8) { 
-                     e.preventDefault();
-                     menu.style.display = 'flex'; 
-                     infobar.style.display = 'none'; 
-                     video.pause(); 
-                 }
-             }
-         });
-
-
-        // Funções básicas de player mantidas...
+        // --------------------------
+        // CONTROLE DE PROGRESSO
+        // --------------------------
         video.ontimeupdate = () => {
-            let cur = video.currentTime, dur = video.duration || 0;
-            document.getElementById('progresso-atual').style.width = ((cur / dur) * 100) + "%";
-            document.getElementById('tempo').innerText = formatarTempo(cur) + " / " + formatarTempo(dur);
+            const tempoAtual = video.currentTime;
+            const duracao = video.duration || 0;
+            document.getElementById('tempo').innerText = `${formatarTempo(tempoAtual)} / ${formatarTempo(duracao)}`;
+            document.getElementById('progresso-atual').style.width = duracao ? `${(tempoAtual / duracao) * 100}%` : "0%";
+
+            if (duracao - tempoAtual <= 10 && duracao - tempoAtual > 0 && !timerPulo) {
+                iniciarContadorProximo();
+            }
+
+            if (serieAtual && duracao > 10) {
+                localStorage.setItem(`progresso_${video.currentSrc}`, tempoAtual);
+                localStorage.setItem(`duracao_${video.currentSrc}`, duracao);
+                localStorage.setItem(`img_${video.currentSrc}`, serieAtual.img);
+                localStorage.setItem(`nome_${video.currentSrc}`, `${serieAtual.nome} - Ep ${episodioAtual}`);
+            }
         };
 
-        function formatarTempo(s) { let m = Math.floor(s/60); let seg = Math.floor(s%60); return (m<10?"0"+m:m) + ":" + (seg<10?"0"+seg:seg); }
-        
-        function renderizarContinuarAssistindo() { /* Sua lógica original */ }
-        function criarTeclado() { /* Sua lógica original */ }
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60);
+            const seg = Math.floor(segundos % 60);
+            return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+        }
 
-        // Inicialização
-        carregarSeries();
-        criarTeclado();
+        function buscarNoVideo(e) {
+            if (!video.duration) return;
+            const posicao = (e.offsetX / e.target.offsetWidth) * video.duration;
+            video.currentTime = posicao;
+        }
+
+        // --------------------------
+        // PRÓXIMO EPISÓDIO AUTOMÁTICO
+        // --------------------------
+        function iniciarContadorProximo() {
+            segundosRestantes = 10;
+            document.getElementById('contador').innerText = segundosRestantes;
+            document.getElementById('aviso-prox-container').style.display = 'block';
+            infobar.style.display = 'block';
+
+            timerPulo = setInterval(() => {
+                segundosRestantes--;
+                document.getElementById('contador').innerText = segundosRestantes;
+                if (segundosRestantes <= 0) pularEpisodio();
+            }, 1000);
+        }
+
+        function pularEpisodio() {
+            cancelarPulo();
+            const proximoEp = episodioAtual + 1;
+            const epFormatado = String(proximoEp).padStart(2, '0');
+            const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${epFormatado}.mp4/index.m3u8`;
+            tocarVideo(novaUrl, proximoEp);
+        }
+
+        function cancelarPulo() {
+            clearInterval(timerPulo);
+            timerPulo = null;
+            document.getElementById('aviso-prox-container').style.display = 'none';
+            segundosRestantes = 10;
+        }
+
+        // --------------------------
+        // CONTINUAR ASSISTINDO
+        // --------------------------
+        function renderizarContinuarAssistindo() {
+            const container = document.getElementById('lista-continuar');
+            container.innerHTML = "";
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const chave = localStorage.key(i);
+                if (!chave.startsWith('progresso_')) continue;
+
+                const url = chave.replace('progresso_', '');
+                const tempo = parseFloat(localStorage.getItem(chave));
+                const duracao = parseFloat(localStorage.getItem(`duracao_${url}`)) || 1;
+                const imagem = localStorage.getItem(`img_${url}`);
+                const nome = localStorage.getItem(`nome_${url}`);
+
+                if (tempo > 10 && (tempo / duracao) < 0.92) {
+                    const btn = document.createElement('button');
+                    btn.style.width = "200px";
+                    btn.style.height = "280px";
+                    btn.innerHTML = `
+                        <img src="${imagem}" style="width:160px; height:160px;" alt="${nome}">
+                        <span>${nome}</span>
+                        <small style="color:#ffcc00;">Retomando em ${formatarTempo(tempo)}</small>
+                    `;
+                    btn.onclick = () => {
+                        tocarVideo(url, episodioAtual);
+                        setTimeout(() => video.currentTime = tempo, 1200);
+                    };
+                    container.appendChild(btn);
+                }
+            }
+        }
+
+        // --------------------------
+        // BUSCA E TECLADO
+        // --------------------------
+        function filtrarSeries() {
+            const termo = document.getElementById('campo-procura').value.toLowerCase().trim();
+            const botoes = lista.querySelectorAll('button');
+
+            botoes.forEach(btn => {
+                const visivel = btn.innerText.toLowerCase().includes(termo);
+                btn.style.display = visivel ? "flex" : "none";
+            });
+
+            const primeiroVisivel = Array.from(botoes).find(b => b.style.display !== "none");
+            if (primeiroVisivel) primeiroVisivel.focus();
+        }
+
+        function criarTeclado() {
+            const container = document.getElementById('teclado-virtual');
+            const teclas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫";
+            container.innerHTML = "";
+
+            teclas.split('').forEach(t => {
+                const btn = document.createElement('button');
+                btn.innerText = t;
+                btn.onclick = () => {
+                    const campo = document.getElementById('campo-procura');
+                    if (t === '⌫') {
+                        campo.value = campo.value.slice(0, -1);
+                    } else {
+                        campo.value += t;
+                    }
+                    filtrarSeries();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // --------------------------
+        // CONTROLE REMOTO / TECLADO
+        // --------------------------
+        document.addEventListener('keydown', (e) => {
+            const botoes = Array.from(document.querySelectorAll('#lista button:not([style*="display: none"])'));
+            const indiceAtivo = botoes.indexOf(document.activeElement);
+
+            if (menu.style.display !== 'none') {
+                if (e.keyCode === 39 && indiceAtivo < botoes.length - 1) {
+                    e.preventDefault();
+                    botoes[indiceAtivo + 1].focus();
+                }
+                if (e.keyCode === 37 && indiceAtivo > 0) {
+                    e.preventDefault();
+                    botoes[indiceAtivo - 1].focus();
+                }
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    document.activeElement.click();
+                }
+                if (e.keyCode === 8) {
+                    e.preventDefault();
+                    if (paginaEpisodio > 0 || tempAtual) voltarParaMenu();
+                }
+            } else {
+                if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
+                if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
+                if (e.keyCode === 38) { e.preventDefault(); infobar.style.display = 'block'; }
+                if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    video.paused ? video.play() : video.pause();
+                    infobar.style.display = video.paused ? 'block' : 'none';
+                }
+                if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
+            }
+        });
+
+        // --------------------------
+        // INICIALIZAÇÃO
+        // --------------------------
+        window.onload = () => {
+            criarTeclado();
+            carregarSeries();
+        };
     </script>
 </body>
 </html>
