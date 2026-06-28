@@ -172,47 +172,47 @@ function voltarParaMenu() {
 }
 // RENDERIZAR MENU
       function renderizarMenu() {
-    lista.innerHTML = ""; 
-    series.forEach(s => {
-        let btn = document.createElement('button');
+    lista.innerHTML = ""; // Limpa todo o conteúdo que estava dentro da div chamada "lista". Isso é essencial para não "empilhar" séries cada vez que você abre o menu.//
+    series.forEach(s => { //Inicia um loop que percorre cada objeto (série) dentro da sua lista series. O s representa a série que está sendo processada no momento.//
+        let btn = document.createElement('button');// Cria um novo elemento HTML do tipo botão no navegador. Ele ainda não está na tela, está apenas na "memória" do script.//
         
         // Aqui garantimos que a imagem seja carregada
-        let img = document.createElement('img');
-        img.src = s.img; 
+        let img = document.createElement('img');// Cria uma tag de imagem (<img>) para exibir o pôster da série.//
+        img.src = s.img; // Define o endereço (URL) da imagem que será carregada, pegando a informação do campo img dentro do seu JSON.
         img.onerror = () => { img.src = 'https://via.placeholder.com/250?text=Sem+Imagem'; }; // Fallback se o link falhar
         
-        let span = document.createElement('span');
-        span.innerText = s.nome;
+        let span = document.createElement('span'); //Cria uma tag <span> para conter o texto (o nome da série).// Coloca o nome da série (vindo do JSON) dentro desse span.//
+        span.innerText = s.nome; // Coloca o nome da série (vindo do JSON) dentro desse span.//
         
-        btn.appendChild(img);
-        btn.appendChild(span);
-        btn.onclick = () => renderizarEps(s);
-        lista.appendChild(btn);
+        btn.appendChild(img); //"Cola" a imagem dentro do botão.//
+        btn.appendChild(span);// "Cola" o texto do nome abaixo da imagem, também dentro do botão.//
+        btn.onclick = () => renderizarEps(s);// Define o que acontece ao clicar no botão: ele chama a função renderizarEps passando aquela série específica (s) como alvo.//
+        lista.appendChild(btn);// coloca o botão pronto (com imagem e texto) dentro da div "lista" na tela do seu site//.
     });
-    lista.querySelector('button')?.focus();
+    lista.querySelector('button')?.focus(); // Muito importante para TV: Ele seleciona automaticamente o primeiro botão que foi criado e aplica o foco nele. Isso permite que você use o controle remoto imediatamente para navegar sem precisar clicar no primeiro item.//
 }
 
 // FUNÇÃO RENDERIZAR EPS (Escolha de Temporadas)
-function renderizarEps(s) {
-    serieAtual = s; 
-    lista.innerHTML = ''; 
-    lista.style.display = 'flex'; 
+function renderizarEps(s) { // Aqui eu recebo a série (s) que você escolheu lá no menu principal
+    serieAtual = s; // Guarda na memória qual série estamos vendo agora, pra não esquecer
+    lista.innerHTML = ''; // Joga no lixo tudo o que estava na tela antes
+    lista.style.display = 'flex'; // Garante que a tela esteja pronta pra enfileirar botões
 
-    let titulo = document.createElement('h2');
-    titulo.innerText = s.nome;
-    lista.appendChild(titulo);
-
-    s.temporadas.forEach((temp) => {
-        let btn = document.createElement('button');
+    let titulo = document.createElement('h2'); // Cria uma placa de título...
+    titulo.innerText = s.nome; // ...e escreve o nome da série nessa placa
+    lista.appendChild(titulo); // Prega a placa lá no topo da tela
+// Agora, vamos olhar dentro do pacotinho "temporadas" que veio lá do seu JSON
+    s.temporadas.forEach((temp) => { // Para cada temporada (temp) que existir...
+        let btn = document.createElement('button'); // Cria um botão novo
         btn.innerHTML = `<span>Temporada ${temp.n}</span>`;
-        btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s);
-        lista.appendChild(btn);
+        btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s); // Escreve nele: "Temporada 1", "Temporada 2"...
+        lista.appendChild(btn); // Joga o botão na tela
     });
 
-    let btnVoltar = document.createElement('button');
-    btnVoltar.innerText = "⬅ VOLTAR";
-    btnVoltar.onclick = () => renderizarMenu();
-    lista.appendChild(btnVoltar);
+    let btnVoltar = document.createElement('button'); // Por fim, cria o botão de "Voltar" pra você não ficar preso aqui
+    btnVoltar.innerText = "⬅ VOLTAR"; // Escreve o texto
+    btnVoltar.onclick = () => renderizarMenu(); // Se clicar, manda chamar o menu inicial de novo
+    lista.appendChild(btnVoltar); // Joga o botão de voltar na tela
 }
 
 // FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
@@ -245,8 +245,6 @@ function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
         btn.onclick = () => tocar(url);
         lista.appendChild(btn);
     }
-    // ... restante da paginação ...
-}
 
 
     // Botões de Navegação da Paginação
