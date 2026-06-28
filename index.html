@@ -76,7 +76,6 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
     gap: 10px;
     margin-top: 20px;
 }
-}
 /* TECLADO VIRTUAL */
 #teclado-virtual button {
     padding: 15px;
@@ -155,6 +154,10 @@ const infobar = document.getElementById('infobar');
 let hls = new Hls();
 let serieAtual = null;
 let tempAtual = null; // Adicione isso no topo do seu script
+let paginaEpisodio = 0;
+let timerPulo = null;
+let segundosRestantes = 10;
+let episodioAtual = 0;
 
 // VARIÁVEIS DE PAGINAÇÃO
 let paginaAtual = 0;
@@ -292,7 +295,7 @@ function filtrarSeries() {
         lista.appendChild(b); // Coloca o botão na lista
 
     }
-    if (fim < listaEps.length) { / Verifica se o último episódio exibido (fim) é menor que o total de episódios (listaEps.length)
+    if (fim < listaEps.length) { // Verifica se o último episódio exibido (fim) é menor que o total de episódios (listaEps.length)
         let b = document.createElement('button'); // Cria o botão
         b.className = 'nav-btn';
         b.innerText = "PRÓXIMO ➡";
