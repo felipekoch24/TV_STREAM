@@ -96,7 +96,7 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
 <body>
 
     <video id="video"></video>
-// ORGANIZADOR DE LAYOUT DO MENU//
+
 <div id="menu">
     <div id="barra-busca" style="padding: 10px;">
         <input type="text" id="campo-procura" placeholder="DIGITE O NOME..." oninput="filtrarSeries()">
@@ -211,18 +211,26 @@ function renderizarEps(s) {
 }
 
 // FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
-function mostrarEpisodiosDaTemporada(temp, serie) {
+// VARIÁVEL PARA CONTROLAR A PÁGINA DENTRO DA TEMPORADA
+let paginaEpisodio = 0;
+
+function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
     lista.innerHTML = ''; 
+    paginaEpisodio = pagina;
     
-    // Botão para voltar para a lista de temporadas
+    // Botão Voltar
     let btnVoltar = document.createElement('button');
     btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
     btnVoltar.onclick = () => renderizarEps(serie);
     lista.appendChild(btnVoltar);
 
-    let start = temp.start || 1; 
+    // Lógica da Paginação (6 episódios por página)
+    let start = temp.start || 1;
+    let totalEps = temp.total;
+    let inicio = paginaEpisodio * 6;
+    let fim = Math.min(inicio + 6, totalEps);
 
-    for (let i = 0; i < temp.total; i++) {
+    for (let i = inicio; i < fim; i++) {
         let epNum = start + i;
         let epFormatado = epNum.toString().padStart(2, '0');
         let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
@@ -231,6 +239,21 @@ function mostrarEpisodiosDaTemporada(temp, serie) {
         btn.innerHTML = `<span>Episódio ${epNum}</span>`;
         btn.onclick = () => tocar(url);
         lista.appendChild(btn);
+    }
+
+    // Botões de Navegação da Paginação
+    if (paginaEpisodio > 0) {
+        let btnAnt = document.createElement('button');
+        btnAnt.innerText = "⬅ ANTERIOR";
+        btnAnt.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, paginaEpisodio - 1);
+        lista.appendChild(btnAnt);
+    }
+    
+    if (fim < totalEps) {
+        let btnProx = document.createElement('button');
+        btnProx.innerText = "PRÓXIMO ➡";
+        btnProx.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, paginaEpisodio + 1);
+        lista.appendChild(btnProx);
     }
 }
 // MOSTRAR PAGINA
@@ -477,23 +500,26 @@ document.addEventListener('keydown', (e) => {
         }
     }
 }
-    //FUNÇÃO ADICIONAR LETRA
-    function addLetra(letra) {
+// FUNÇÃO ADICIONAR LETRA
+function addLetra(letra) {
     let input = document.getElementById('campo-procura');
     input.value += letra;
-    filtrarSeries(); // Isso já filtra na hora que clica
+    filtrarSeries(); 
 }
-//FUNÇÃO APAGAR LETRAS
+
+// FUNÇÃO APAGAR LETRAS
 function apagarLetra() {
     let input = document.getElementById('campo-procura');
     input.value = input.value.slice(0, -1);
     filtrarSeries();
 }
-// ESSA FUNÇÃO CHAMA E CRIA O TECLADO ESTILO YOUCINE
-    function criarTeclado() {
+
+// CRIA O TECLADO
+function criarTeclado() {
     const container = document.getElementById('teclado-virtual');
-    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ⌫"; // Aqui você tem todas!
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ⌫";
     
+    container.innerHTML = ""; // Limpa antes de criar
     letras.split('').forEach(l => {
         let btn = document.createElement('button');
         btn.innerText = l;
@@ -503,9 +529,12 @@ function apagarLetra() {
         };
         container.appendChild(btn);
     });
+}
 
-// Chame essa função quando carregar o menu
+// --- CHAMADAS DE INICIALIZAÇÃO ---
+// Estas funções rodam assim que o script é carregado
 criarTeclado();
+// Não chame renderizarMenu aqui, o carregarSeries() já o chama após buscar o JSON
 // RENDERIZAR MENU
         renderizarMenu();
         // Adicione esta linha:
