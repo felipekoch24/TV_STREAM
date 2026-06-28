@@ -154,6 +154,7 @@ const menu = document.getElementById('menu');
 const infobar = document.getElementById('infobar');
 let hls = new Hls();
 let serieAtual = null;
+let tempAtual = null; // Adicione isso no topo do seu script
 
 // VARIÁVEIS DE PAGINAÇÃO
 let paginaAtual = 0;
@@ -218,9 +219,12 @@ function renderizarEps(s) { // Aqui eu recebo a série (s) que você escolheu l�
 // FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
 // VARIÁVEL PARA CONTROLAR A PÁGINA DENTRO DA TEMPORADA
 let paginaEpisodio = 0;
-function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
-    lista.innerHTML = ''; 
-    paginaEpisodio = pagina;
+function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) { // O "pagina" aqui serve para saber se estamos na página 0, 1, 2...
+   // AQUI O CÓDIGO SALVA AS INFORMAÇÕES GLOBAIS
+    tempAtual = temp; 
+    serieAtual = serie;
+    lista.innerHTML = ''; // Limpa a tela antes de começar
+    paginaEpisodio = pagina; // Guarda em que página estamos
     
     // Botão Voltar
     let btnVoltar = document.createElement('button');
@@ -228,124 +232,101 @@ function mostrarEpisodiosDaTemporada(temp, serie, pagina = 0) {
     btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
     btnVoltar.onclick = () => renderizarEps(serie);
     lista.appendChild(btnVoltar);
-
-    let start = temp.start || 1;
-    let totalEps = temp.total;
-    let inicio = paginaEpisodio * 6;
-    let fim = Math.min(inicio + 6, totalEps);
-
+// Lógica da MATEMÁTICA da página:
+    let start = temp.start || 1; // Se não tiver número inicial, começa no 1
+    let totalEps = temp.total; // Quantos episódios a temporada tem no total
+    let inicio = paginaEpisodio * 6; // Se página for 0, começa no 0. Se página for 1, começa no 6.
+    let fim = Math.min(inicio + 6, totalEps); // Pega 6 episódios, mas não deixa passar do total
+// O FOR é o cara que vai criar os botões, um por um
     for (let i = inicio; i < fim; i++) {
-        let epNum = start + i;
-        let epFormatado = epNum.toString().padStart(2, '0');
+        let epNum = start + i; // Calcula o número real do episódio
+        let epFormatado = epNum.toString().padStart(2, '0'); // Garante que 5 vire "05"
         let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
         
         let btn = document.createElement('button');
         // Adicionando a imagem da série aqui:
         btn.innerHTML = `<img src="${serie.img}"> <span>Episódio ${epNum}</span>`;
-        btn.onclick = () => tocar(url);
-        lista.appendChild(btn);
+        btn.onclick = () => tocar(url); // Quando clica, toca o vídeo
+        lista.appendChild(btn); // Joga esse card na tela
     }
 
 
     // Botões de Navegação da Paginação
-    if (paginaEpisodio > 0) {
-        let btnAnt = document.createElement('button');
-        btnAnt.innerText = "⬅ ANTERIOR";
-        btnAnt.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, paginaEpisodio - 1);
-        lista.appendChild(btnAnt);
+    if (paginaEpisodio > 0) { // Se você está na página 1, 2, 3... significa que existe uma página atrás.
+        let btnAnt = document.createElement('button'); // Cria o botão
+        btnAnt.className = 'nav-btn';
+        btnAnt.innerText = "⬅ ANTERIOR"; 
+        btnAnt.onclick = () => mostrarEpisodiosDaTemporada(tempAtual, serieAtual, paginaEpisodio - 1); // MÁGICA: Ao clicar, chama a mesma função, mas subtrai 1 da página atual
+        lista.appendChild(btnAnt);// Joga na tela
     }
-    
-    if (fim < totalEps) {
-        let btnProx = document.createElement('button');
+    // BLOCO 2: O botão "PRÓXIMO"
+    if (fim < totalEps) { // Se o último episódio que estamos vendo (fim) for menor que o total...
+        let btnProx = document.createElement('button'); // ...é porque ainda tem mais episódios lá na frente.
+        btnProx.className = 'nav-btn';
         btnProx.innerText = "PRÓXIMO ➡";
-        btnProx.onclick = () => mostrarEpisodiosDaTemporada(temp, serie, paginaEpisodio + 1);
-        lista.appendChild(btnProx);
+        btnProx.onclick = () => mostrarEpisodiosDaTemporada(tempAtual, serieAtual, paginaEpisodio + 1); // MÁGICA: Ao clicar, chama a mesma função, mas soma 1 na página atual
+        lista.appendChild(btnProx); // Joga na tela
     }
 }
-// MOSTRAR PAGINA
-function mostrarPagina(s) {
-    lista.innerHTML = '';
-    
-    // Botão VOLTAR
-    let btnVoltar = document.createElement('button');
-    btnVoltar.className = 'nav-btn';
-    btnVoltar.innerText = "⬅ VOLTAR AO MENU";
-    btnVoltar.onclick = () => renderizarMenu();
-    lista.appendChild(btnVoltar);
-    // MUDAR NÚMERO DA PAGINAÇÃO, NOS 3 IGUAIS
-    let inicio = paginaAtual * 6;
-    let fim = inicio + 6;
-    let paginacao = listaEps.slice(inicio, fim);
-// AQUI O NUMERO TAMBÉM TEM QUE SER IGUAL ALI EM CIMA//
-    paginacao.forEach(i => {
-        // Dentro do seu paginacao.forEach(i => { ...
-// Isso garante que se o episódio for 5, vira 05. Se for 120, continua 120.
-let numeroEp = i.toString().padStart(2, '0'); 
-let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${s.pasta}/${numeroEp}.mp4/index.m3u8`;
-        let btn = document.createElement('button');
-        btn.innerHTML = `<img src="${s.imagem}"> <span>Episódio ${i}</span>`;
-        btn.onclick = () => tocar(url);
-        lista.appendChild(btn);
-    });
 // FUNÇÃO FILTRAR SÉRIES PRA ABA PESQUISAR
 function filtrarSeries() {
     let termo = document.getElementById('campo-procura').value.toLowerCase();
     let botoes = document.querySelectorAll('#menu button'); // Seus botões de série
     
     //VERIFICADOR
-    botoes.forEach(btn => {
+    botoes.forEach(btn => { 
         // Verifica se o texto do botão contém o que você digitou
-        if (btn.innerText.toLowerCase().includes(termo)) {
-            btn.style.display = 'block';
+        if (btn.innerText.toLowerCase().includes(termo)) { // .toLowerCase() transforma tudo em minúsculo para a busca não dar erro de digitação (ex: "Naruto" == "naruto")
+            btn.style.display = 'block'; // SE SIM (Achou): Mostra o botão na tela 
         } else {
-            btn.style.display = 'none';
+            btn.style.display = 'none'; // SE NÃO (Não achou): Esconde o botão (display: none faz ele desaparecer)
         }
     });
-}
 
     // Botões de Navegação (Anterior/Próximo)
-    if (paginaAtual > 0) {
-        let b = document.createElement('button');
-        b.className = 'nav-btn';
-        b.innerText = "⬅ ANTERIOR";
-        b.onclick = () => { paginaAtual--; mostrarPagina(s); };
-        lista.appendChild(b);
+    if (paginaAtual > 0) { // Verifica se a página atual é maior que 0 (ou seja, se existe uma página antes da atual)
+        let b = document.createElement('button'); // Cria o botão
+        b.className = 'nav-btn'; // Aplica o estilo CSS de botão pequeno
+        b.innerText = "⬅ ANTERIOR"; // Escreve o texto
+        b.onclick = () => { paginaAtual--; mostrarPagina(s); }; // AÇÃO: Se clicar, diminui 1 da página e chama a função de novo para redesenhar a tela
+        lista.appendChild(b); // Coloca o botão na lista
+
     }
-    if (fim < listaEps.length) {
-        let b = document.createElement('button');
+    if (fim < listaEps.length) { / Verifica se o último episódio exibido (fim) é menor que o total de episódios (listaEps.length)
+        let b = document.createElement('button'); // Cria o botão
         b.className = 'nav-btn';
         b.innerText = "PRÓXIMO ➡";
-        b.onclick = () => { paginaAtual++; mostrarPagina(s); };
-        lista.appendChild(b);
+        b.onclick = () => { paginaAtual++; mostrarPagina(s); }; // AÇÃO: Se clicar, aumenta 1 na página e chama a função de novo
+        lista.appendChild(b); // Coloca o botão na lista
     }
-    lista.querySelector('button').focus();
+    lista.querySelector('button').focus(); // Isso é essencial para que você possa usar o controle da TV logo de cara
 }        
 //FUNÇÃO TOCAR
 function tocar(url) {
     // Extrai o número do arquivo de forma segura
-    let match = url.match(/\/(\d+)\.mp4/);
-    episodioAtual = match ? parseInt(match[1]) : 0;
+    let match = url.match(/\/(\d+)\.mp4/);  // 1. O "match" é um caçador: ele procura no link do vídeo um número que termina em .mp4
+    episodioAtual = match ? parseInt(match[1]) : 0; // Isso serve para o sistema saber qual episódio é o atual (ex: 05)
 
     // Limpa a tela e o player antigo
     menu.style.display = 'none';
-    if(hls) hls.destroy();
+    if(hls) hls.destroy(); // O 'hls.destroy()' é crucial para não deixar o vídeo anterior rodando em segundo plano
 
     // Inicia o novo vídeo
     hls = new Hls();
     hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    hls.attachMedia(video);// Conecta esse leitor à sua tela de <video>
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play()); // Assim que o arquivo estiver pronto, começa a passar
 }
 // MOSTRAR CONTADOR PLAY
-function mostrarContador() {
+function mostrarContador() { // Mostra na tela o container que diz "PRÓXIMO VÍDEO EM X SEGUNDOS"
     document.getElementById('aviso-prox-container').style.display = 'block';
     infobar.style.display = 'block'; // Garante que o infobar apareça
     
-    timerPulo = setInterval(() => {
-        segundosRestantes--;
-        document.getElementById('contador').innerText = Math.round(segundosRestantes);
+    timerPulo = setInterval(() => { // O 'setInterval' é um relógio interno que roda uma função a cada 1000 milissegundos (1 segundo)
+        segundosRestantes--; // Diminui 1 segundo do contador
+        document.getElementById('contador').innerText = Math.round(segundosRestantes); // Atualiza o texto na tela, arredondando o número para ficar bonito (sem decimais)
         
-        if (segundosRestantes <= 0) {
+        if (segundosRestantes <= 0) { // Quando o relógio chega em zero, ele chama a função que pula para o próximo vídeo
             pularEpisodio();
         }
     }, 1000);
@@ -353,11 +334,20 @@ function mostrarContador() {
 //PULAR EPISÓDIO PLAY
 function pularEpisodio() {
     clearInterval(timerPulo);
-    let indexAtual = listaEps.indexOf(episodioAtual); // Você precisa salvar qual o ep atual
-    if (indexAtual < listaEps.length - 1) {
-        let proximoEp = listaEps[indexAtual + 1];
-        // Gere a URL e chame tocar() aqui
-    }
+    timerPulo = null;
+    segundosRestantes = 10;
+    document.getElementById('aviso-prox-container').style.display = 'none';
+
+    // Aqui você pega o número do episódio atual e soma 1
+    let proximoNum = episodioAtual + 1;
+    
+    // O pulo do gato: chamamos a função 'tocar' montando a URL manualmente
+    // Precisamos garantir que a pasta e a estrutura sejam mantidas
+    // Dica: 'serieAtual' e 'tempAtual' precisam estar definidas globalmente!
+    let epFormatado = proximoNum.toString().padStart(2, '0');
+    let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${epFormatado}.mp4/index.m3u8`;
+    
+    tocar(url);
 }
 //CANCELAR PULO PLAY
 function cancelarPulo() {
@@ -415,7 +405,7 @@ function formatarTempo(segundos) {
 }
 
 // COMANDOS DO CONTROLE E TECLADO
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', (e) => { //Este é o bloco mais importante para TV. Ele "escuta" o que você aperta no controle:
     // 1. Pegamos todos os botões visíveis dentro da lista
     const botoes = Array.from(document.querySelectorAll('#lista button'));
     const index = botoes.indexOf(document.activeElement);
@@ -432,7 +422,6 @@ document.addEventListener('keydown', (e) => {
             e.preventDefault();
             botoes[index - 1].focus();
         }
-        
         // Enter no menu: executa a função do botão (clica nele)
         if (e.keyCode === 13) {
             e.preventDefault();
@@ -444,7 +433,6 @@ document.addEventListener('keydown', (e) => {
         // Setas para avançar/retroceder 10 segundos
         if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; } // REGRIDE SETA ESQUERDA
         if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; } // AVANÇA SETA DIREITA
-        
         // SETA PARA BAIXO: Volta para o menu (Invisível e limpo)
     if (e.keyCode === 40) { // SETA PRA BAIXO
         e.preventDefault();
@@ -453,7 +441,6 @@ document.addEventListener('keydown', (e) => {
         menu.style.display = 'flex';
         lista.querySelector('button').focus(); // Foca no primeiro botão do menu
     }
-    
     // Enter no vídeo: PLAY/PAUSE e mostra/esconde o tempo
     if (e.keyCode === 13) {
         e.preventDefault();
@@ -465,8 +452,6 @@ document.addEventListener('keydown', (e) => {
             infobar.style.display = 'block'; 
         }
     }
-       
-    
         // Tecla 8 (Back): volta para o menu
         if (e.keyCode === 8) { 
             e.preventDefault();
@@ -478,15 +463,15 @@ document.addEventListener('keydown', (e) => {
 });
        //CONTINUAR ASSISTINDO
        function renderizarContinuarAssistindo() {
-    const listaContinuar = document.getElementById('lista-continuar');
-    listaContinuar.innerHTML = ""; 
+    const listaContinuar = document.getElementById('lista-continuar'); //Localiza a caixa na tela onde os botões de "Continuar Assistindo" vão aparecer.
+    listaContinuar.innerHTML = "";  // Limpa essa caixa antes de começar, para não duplicar botões toda vez que você abrir o menu.
 
-    for (let i = 0; i < localStorage.length; i++) {
+    for (let i = 0; i < localStorage.length; i++) { // Esse é o "garimpeiro". Ele percorre toda a memória do navegador procurando por qualquer chave que você salvou lá.
         let chave = localStorage.key(i);
         
-        if (chave.startsWith('progresso_')) {
-            let url = chave.replace('progresso_', '');
-            let tempo = parseFloat(localStorage.getItem(chave));
+        if (chave.startsWith('progresso_')) { // Aqui ele filtra: "Eu só quero as chaves que começam com o nome progresso_". Ele ignora todo o resto.
+            let url = chave.replace('progresso_', ''); // Ele pega o nome da chave e remove o prefixo progresso_ para recuperar a URL original do vídeo.
+            let tempo = parseFloat(localStorage.getItem(chave)); // Ele vai buscar os dados salvos: em que segundo você parou (tempo) e qual o tamanho total do vídeo (duracao).
             let duracao = parseFloat(localStorage.getItem('duracao_' + url)) || 1; // Pega do storage
             let img = localStorage.getItem('img_' + url);
             let nome = localStorage.getItem('nome_' + url);
@@ -505,32 +490,33 @@ document.addEventListener('keydown', (e) => {
             }
         }
     }
-}
-// FUNÇÃO ADICIONAR LETRA
-function addLetra(letra) {
-    let input = document.getElementById('campo-procura');
-    input.value += letra;
-    filtrarSeries(); 
+}         
+    // PARTE TECLADO VIRTUAL
+// FUNÇÃO ADICIONAR LETRA TECLADO
+function addLetra(letra) { // O Digitador
+    let input = document.getElementById('campo-procura'); // Localiza a caixa de texto onde o nome da série aparece.
+    input.value += letra; // Pega o que já está escrito lá e "soma" (concatena) a nova letra que você apertou.
+    filtrarSeries(); ////A parte mais importante. Assim que você adiciona uma letra, ele chama a função de busca imediatamente para esconder as séries que não combinam com o novo termo.
 }
 
-// FUNÇÃO APAGAR LETRAS
-function apagarLetra() {
+// FUNÇÃO APAGAR LETRAS TECLADO
+function apagarLetra() { // O Corretor
     let input = document.getElementById('campo-procura');
-    input.value = input.value.slice(0, -1);
-    filtrarSeries();
+    input.value = input.value.slice(0, -1); //Isso é uma função de corte. O slice(0, -1) diz ao computador: "pegue o texto do começo até o penúltimo caractere". Ou seja, ele remove a última letra da string.
+    filtrarSeries(); //Chama a busca de novo para atualizar a lista, já que você apagou uma letra.
 }
 
 // CRIA O TECLADO
-function criarTeclado() {
+function criarTeclado() {// O Gerador
     const container = document.getElementById('teclado-virtual');
-    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ⌫";
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫";// Define todos os botões que o teclado vai ter.
     
     container.innerHTML = ""; // Limpa antes de criar
-    letras.split('').forEach(l => {
+    letras.split('').forEach(l => { // Ele pega essa string longa de letras e quebra em pedacinhos individuais. Para cada pedacinho, ele cria um botão físico na tela.
         let btn = document.createElement('button');
         btn.innerText = l;
         btn.onclick = () => {
-            if (l === '⌫') apagarLetra();
+            if (l === '⌫') apagarLetra(); // Ele diferencia o que é uma letra normal (que precisa ser adicionada) do comando de apagar (que precisa executar a função apagarLetra).
             else addLetra(l);
         };
         container.appendChild(btn);
@@ -545,7 +531,6 @@ criarTeclado();
         renderizarMenu();
         // Adicione esta linha:
     renderizarContinuarAssistindo(); 
-}
     </script>
 </body>
 </html>
