@@ -131,7 +131,8 @@ pointer-events: auto; /* Garante que o mouse/controle consiga clicar */}
 // ============================================
 let series = []; // Começa vazio, vai ser preenchido pelo JSON
 
-async function carregarSeries() {
+//CARREGA O .JSON
+        async function carregarSeries() {
     try {
         // O "fetch" vai buscar o arquivo que você subiu no GitHub
         const resposta = await fetch('series1.json'); 
@@ -175,7 +176,7 @@ function voltarParaMenu() {
             series.forEach(s => {
                 let btn = document.createElement('button');
                 let img = document.createElement('img');
-                img.src = s.imagem;
+img.src = s.img; // O seu JSON usa a chave "img"
                 let span = document.createElement('span');
                 span.innerText = s.nome;
                 btn.appendChild(img);
@@ -186,27 +187,51 @@ function voltarParaMenu() {
             lista.querySelector('button').focus();
         }
 
-// FUNÇÃO RENDERIZAR EPS
+// FUNÇÃO RENDERIZAR EPS (Escolha de Temporadas)
 function renderizarEps(s) {
     serieAtual = s; 
-    listaEps = [];
+    lista.innerHTML = ''; 
+    lista.style.display = 'flex'; 
+
+    let titulo = document.createElement('h2');
+    titulo.innerText = s.nome;
+    lista.appendChild(titulo);
+
+    s.temporadas.forEach((temp) => {
+        let btn = document.createElement('button');
+        btn.innerHTML = `<span>Temporada ${temp.n}</span>`;
+        btn.onclick = () => mostrarEpisodiosDaTemporada(temp, s);
+        lista.appendChild(btn);
+    });
+
+    let btnVoltar = document.createElement('button');
+    btnVoltar.innerText = "⬅ VOLTAR";
+    btnVoltar.onclick = () => renderizarMenu();
+    lista.appendChild(btnVoltar);
+}
+
+// FUNÇÃO LISTAR EPISÓDIOS (Dentro da Temporada)
+function mostrarEpisodiosDaTemporada(temp, serie) {
+    lista.innerHTML = ''; 
     
-    // Preenche a lista com os episódios disponíveis baseados no JSON
-    for (let i = 1; i <= s.total; i++) {
-        listaEps.push(i);
+    // Botão para voltar para a lista de temporadas
+    let btnVoltar = document.createElement('button');
+    btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
+    btnVoltar.onclick = () => renderizarEps(serie);
+    lista.appendChild(btnVoltar);
+
+    let start = temp.start || 1; 
+
+    for (let i = 0; i < temp.total; i++) {
+        let epNum = start + i;
+        let epFormatado = epNum.toString().padStart(2, '0');
+        let url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
+        
+        let btn = document.createElement('button');
+        btn.innerHTML = `<span>Episódio ${epNum}</span>`;
+        btn.onclick = () => tocar(url);
+        lista.appendChild(btn);
     }
-
-    // Pega o tempo salvo do localStorage (se existir)
-    // Usamos '|| 0' para garantir que, se não existir, ele comece em 0
-    let tempoSalvo = localStorage.getItem('progresso_' + s.nome) || 0;
-    let duracaoTotal = 3600; // Aqui você precisaria salvar a duração real, ou definir um padrão
-
-    let porcentagemAssistida = (tempoSalvo / duracaoTotal) * 100;
-
-    // Se quiser mostrar o botão de continuar, aqui seria o lugar de injetar no HTML
-    
-    paginaAtual = 0;
-    mostrarPagina(s);
 }
 // MOSTRAR PAGINA
 function mostrarPagina(s) {
