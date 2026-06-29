@@ -26,16 +26,16 @@
             top: 0; left: 0; 
             width: 100%; height: 100%; 
             background: #000; 
-            padding: 30px; 
+            padding: 20px; 
             z-index: 100; 
             display: flex; 
             flex-direction: column; 
             overflow-y: auto;
-            gap: 20px;
+            gap: 25px;
         }
         #barra-busca {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         #campo-procura {
             width: 100%;
@@ -45,13 +45,12 @@
             border: 2px solid #333;
             color: #fff;
             border-radius: 6px;
-            margin-bottom: 15px;
         }
         #teclado-virtual {
             display: none;
             grid-template-columns: repeat(9, 1fr);
             gap: 5px;
-            margin-bottom: 15px;
+            margin: 10px 0;
             max-width: 700px;
             margin-left: auto;
             margin-right: auto;
@@ -72,28 +71,40 @@
             transform: scale(1.05);
             outline: none;
         }
-        h2 {
-            font-size: 24px;
-            margin: 15px 0;
-            color: #ffcc00;
+
+        /* 📌 SEPARAR AS DUAS SEÇÕES */
+        .secao {
+            width: 100%;
+            border: 2px solid #222;
+            border-radius: 8px;
+            padding: 15px;
+            background: #0a0a0a;
         }
+        h2 {
+            font-size: 22px;
+            margin: 0 0 15px 0;
+            color: #ffcc00;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+
         #lista, #lista-continuar { 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 25px; 
+            gap: 20px;
         }
         button { 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: flex-start;
-            width: 260px; 
-            height: 360px; 
-            padding: 12px; 
+            width: 220px; 
+            height: 300px; 
+            padding: 10px; 
             background: #111; 
             color: #fff; 
             border: 3px solid #333; 
-            font-size: 20px; 
+            font-size: 18px; 
             font-weight: bold; 
             cursor: pointer; 
             transition: all 0.2s;
@@ -106,17 +117,17 @@
             transform: scale(1.05);
         }
         button img { 
-            width: 220px; 
+            width: 180px; 
             height: 220px; 
             object-fit: cover; 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
             border-radius: 4px; 
             display: block;
             background: #222;
         }
         .nav-btn { 
-            width: 260px !important; 
-            height: 80px !important; 
+            width: 220px !important; 
+            height: 70px !important; 
             justify-content: center !important; 
         }
         .nav-btn img { display: none !important; }
@@ -168,13 +179,10 @@
             margin: 0 10px;
             font-size: 18px;
         }
-        #lista-continuar button {
-            width: 200px;
-            height: 280px;
-        }
-        #lista-continuar button img {
-            width: 160px;
-            height: 160px;
+        .tempo-parado {
+            font-size: 14px;
+            color: #ffcc00;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -183,15 +191,21 @@
    
     <div id="menu">
         <div id="barra-busca">
-            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME DA SÉRIE..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
+            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
             <div id="teclado-virtual"></div>
         </div>
 
-        <h2 id="titulo-continuar">▶ CONTINUAR ASSISTINDO</h2>
-        <div id="lista-continuar"></div>
+        <!-- 📌 PRIMEIRA CAIXA: CONTINUAR ASSISTINDO -->
+        <div class="secao">
+            <h2>▶ CONTINUAR ASSISTINDO</h2>
+            <div id="lista-continuar"></div>
+        </div>
 
-        <h2 id="titulo-todas">📺 TODAS AS SÉRIES</h2>
-        <div id="lista"></div>
+        <!-- 📌 SEGUNDA CAIXA: ANIMES E SÉRIES -->
+        <div class="secao">
+            <h2>📺 ANIMES / SÉRIES</h2>
+            <div id="lista"></div>
+        </div>
     </div>
 
     <div id="infobar">
@@ -226,6 +240,8 @@
                 const resposta = await fetch('series1.json');
                 if (!resposta.ok) throw new Error('Arquivo JSON não encontrado');
                 series = await resposta.json();
+                // 📌 ORDENAR ALFABETICAMENTE
+                series.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
                 renderizarMenu();
                 renderizarContinuarAssistindo();
             } catch (erro) {
@@ -315,7 +331,7 @@
                     <img src="${serie.img}" alt="Episódio ${numeroEp}">
                     <span>Episódio ${numeroEp}</span>
                 `;
-                btn.onclick = () => tocarVideo(url, numeroEp);
+                btn.onclick = () => tocarVideo(url, numeroEp, 0);
                 lista.appendChild(btn);
             }
 
@@ -338,13 +354,17 @@
             btnVoltar.focus();
         }
 
+        // ✅ FUNÇÃO CORRIGIDA PARA ABRIR DO PONTO SALVO
         function tocarVideo(url, numeroEp, tempoInicio = 0) {
             if (!url) return;
             episodioAtual = numeroEp;
             menu.style.display = 'none';
-            infobar.style.display = 'none'; // Começa com barra escondida
+            infobar.style.display = 'none';
 
-            if (hls) hls.destroy();
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
 
             if (Hls.isSupported()) {
                 hls = new Hls({
@@ -374,7 +394,9 @@
                 hls.attachMedia(video);
 
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    if (tempoInicio > 0) video.currentTime = tempoInicio;
+                    if (tempoInicio > 0 && !isNaN(tempoInicio)) {
+                        video.currentTime = tempoInicio;
+                    }
                     video.play().catch(e => console.log("Autoplay bloqueado:", e));
                 });
 
@@ -407,7 +429,9 @@
             video.src = url;
             video.load();
             video.onloadedmetadata = () => {
-                if (tempoInicio > 0) video.currentTime = tempoInicio;
+                if (tempoInicio > 0 && !isNaN(tempoInicio)) {
+                    video.currentTime = tempoInicio;
+                }
                 video.play().catch(() => {
                     alert("❌ Não foi possível reproduzir este episódio");
                     voltarParaMenu();
@@ -436,6 +460,7 @@
         };
 
         function formatarTempo(segundos) {
+            if (isNaN(segundos)) return "00:00";
             const min = Math.floor(segundos / 60);
             const seg = Math.floor(segundos % 60);
             return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
@@ -465,7 +490,7 @@
             const proximoEp = episodioAtual + 1;
             const epFormatado = String(proximoEp).padStart(2, '0');
             const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${epFormatado}.mp4/index.m3u8`;
-            tocarVideo(novaUrl, proximoEp);
+            tocarVideo(novaUrl, proximoEp, 0);
         }
 
         function cancelarPulo() {
@@ -475,23 +500,27 @@
             segundosRestantes = 10;
         }
 
+        // ✅ CONTINUAR ASSISTINDO CORRIGIDO
         function renderizarContinuarAssistindo() {
             listaContinuar.innerHTML = "";
             for (let i = 0; i < localStorage.length; i++) {
                 const chave = localStorage.key(i);
                 if (!chave.startsWith('progresso_')) continue;
+
                 const url = chave.replace('progresso_', '');
                 const tempo = parseFloat(localStorage.getItem(chave)) || 0;
                 const duracao = parseFloat(localStorage.getItem(`duracao_${url}`)) || 1;
                 const imagem = localStorage.getItem(`img_${url}`) || 'https://via.placeholder.com/250?text=Sem+Imagem';
                 const nome = localStorage.getItem(`nome_${url}`) || 'Episódio';
+
                 if (tempo > 10 && duracao > 0 && (tempo / duracao) < 0.92) {
                     const btn = document.createElement('button');
                     btn.innerHTML = `
                         <img src="${imagem}" alt="${nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
                         <span>${nome}</span>
-                        <small style="color:#ffcc00;">Retomando em ${formatarTempo(tempo)}</small>
+                        <div class="tempo-parado">Retomando em ${formatarTempo(tempo)}</div>
                     `;
+                    // ✅ AGORA PASSA O TEMPO CORRETAMENTE
                     btn.onclick = () => tocarVideo(url, 0, tempo);
                     listaContinuar.appendChild(btn);
                 }
@@ -530,7 +559,7 @@
             document.getElementById('teclado-virtual').style.display = 'grid';
         }
 
-        // 🎮 CONTROLES AJUSTADOS CONFORME PEDIDO
+        // 🎮 CONTROLES
         document.addEventListener('keydown', (e) => {
             const botoesContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
             const botoesGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
@@ -542,7 +571,6 @@
             const btnCancelar = document.getElementById('btn-cancelar');
             const avisoVisivel = document.getElementById('aviso-prox-container').style.display === 'block';
 
-            // 📌 QUANDO ESTÁ NO MENU
             if (menu.style.display !== 'none') {
                 if (e.keyCode === 39 && indiceAtivo < todosBotoes.length - 1) {
                     e.preventDefault();
@@ -570,23 +598,17 @@
                     else if (tempAtual) renderizarTemporadas(serieAtual);
                     else voltarParaMenu();
                 }
-            }
-
-            // 📌 QUANDO ESTÁ DENTRO DO VÍDEO
-            else {
+            } else {
                 if (avisoVisivel) {
-                    // Seta CIMA: alterna entre Pular e Cancelar
                     if (e.keyCode === 38) {
                         e.preventDefault();
                         document.activeElement === btnPular ? btnCancelar.focus() : btnPular.focus();
                     }
-                    // Enter: confirma o botão selecionado
                     if (e.keyCode === 13) {
                         e.preventDefault();
                         document.activeElement === btnPular ? pularEpisodio() : cancelarPulo();
                     }
                 } else {
-                    // Enter: pausa → mostra barra | play → esconde barra
                     if (e.keyCode === 13) {
                         e.preventDefault();
                         if (video.paused) {
@@ -598,12 +620,7 @@
                         }
                     }
                 }
-
-                // Seta BAIXO: volta para o menu
-                if (e.keyCode === 40) {
-                    e.preventDefault();
-                    voltarParaMenu();
-                }
+                if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
                 if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
                 if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
                 if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
