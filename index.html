@@ -72,7 +72,6 @@
             outline: none;
         }
 
-        /* 📌 SEPARAR AS DUAS SEÇÕES */
         .secao {
             width: 100%;
             border: 2px solid #222;
@@ -195,13 +194,11 @@
             <div id="teclado-virtual"></div>
         </div>
 
-        <!-- 📌 PRIMEIRA CAIXA: CONTINUAR ASSISTINDO -->
         <div class="secao">
             <h2>▶ CONTINUAR ASSISTINDO</h2>
             <div id="lista-continuar"></div>
         </div>
 
-        <!-- 📌 SEGUNDA CAIXA: ANIMES E SÉRIES -->
         <div class="secao">
             <h2>📺 ANIMES / SÉRIES</h2>
             <div id="lista"></div>
@@ -240,7 +237,6 @@
                 const resposta = await fetch('series1.json');
                 if (!resposta.ok) throw new Error('Arquivo JSON não encontrado');
                 series = await resposta.json();
-                // 📌 ORDENAR ALFABETICAMENTE
                 series.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
                 renderizarMenu();
                 renderizarContinuarAssistindo();
@@ -264,14 +260,9 @@
         function renderizarMenu() {
             lista.innerHTML = "";
             if (!series.length) return;
-
             series.forEach(s => {
                 const btn = document.createElement('button');
-                btn.innerHTML = `
-                    <img src="${s.img}" alt="${s.nome}" 
-                         onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
-                    <span>${s.nome}</span>
-                `;
+                btn.innerHTML = `<img src="${s.img}" alt="${s.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'"><span>${s.nome}</span>`;
                 btn.onclick = () => renderizarTemporadas(s);
                 lista.appendChild(btn);
             });
@@ -280,12 +271,10 @@
         function renderizarTemporadas(serie) {
             serieAtual = serie;
             lista.innerHTML = "";
-
             const titulo = document.createElement('h2');
             titulo.innerText = serie.nome;
             titulo.style.width = "100%";
             lista.appendChild(titulo);
-
             serie.temporadas.forEach(temp => {
                 const btn = document.createElement('button');
                 btn.className = "nav-btn";
@@ -293,14 +282,10 @@
                 btn.onclick = () => mostrarEpisodios(temp, serie);
                 lista.appendChild(btn);
             });
-
             const btnVoltar = document.createElement('button');
             btnVoltar.className = "nav-btn";
             btnVoltar.innerText = "⬅ VOLTAR";
-            btnVoltar.onclick = () => {
-                renderizarMenu();
-                renderizarContinuarAssistindo();
-            };
+            btnVoltar.onclick = () => { renderizarMenu(); renderizarContinuarAssistindo(); };
             lista.appendChild(btnVoltar);
             btnVoltar.focus();
         }
@@ -310,31 +295,23 @@
             serieAtual = serie;
             paginaEpisodio = pagina;
             lista.innerHTML = "";
-
             const btnVoltar = document.createElement('button');
             btnVoltar.className = "nav-btn";
             btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
             btnVoltar.onclick = () => renderizarTemporadas(serie);
             lista.appendChild(btnVoltar);
-
             const inicio = paginaEpisodio * 6;
             const fim = Math.min(inicio + 6, temp.total);
             const numeroInicial = temp.start || 1;
-
             for (let i = inicio; i < fim; i++) {
                 const numeroEp = numeroInicial + i;
                 const epFormatado = String(numeroEp).padStart(2, '0');
                 const url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
-
                 const btn = document.createElement('button');
-                btn.innerHTML = `
-                    <img src="${serie.img}" alt="Episódio ${numeroEp}">
-                    <span>Episódio ${numeroEp}</span>
-                `;
+                btn.innerHTML = `<img src="${serie.img}" alt="Episódio ${numeroEp}"><span>Episódio ${numeroEp}</span>`;
                 btn.onclick = () => tocarVideo(url, numeroEp, 0);
                 lista.appendChild(btn);
             }
-
             if (paginaEpisodio > 0) {
                 const btnAnterior = document.createElement('button');
                 btnAnterior.className = "nav-btn";
@@ -342,7 +319,6 @@
                 btnAnterior.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio - 1);
                 lista.appendChild(btnAnterior);
             }
-
             if (fim < temp.total) {
                 const btnProximo = document.createElement('button');
                 btnProximo.className = "nav-btn";
@@ -350,75 +326,36 @@
                 btnProximo.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio + 1);
                 lista.appendChild(btnProximo);
             }
-
             btnVoltar.focus();
         }
 
-        // ✅ FUNÇÃO CORRIGIDA: ORDEM DOS PARÂMETROS AJUSTADA
+        // ✅ FUNÇÃO CORRIGIDA: ORDEM DOS PARÂMETROS E APLICAÇÃO DO TEMPO
         function tocarVideo(url, numeroEp, tempoInicio = 0) {
             if (!url) return;
             episodioAtual = numeroEp;
             menu.style.display = 'none';
             infobar.style.display = 'none';
-
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
+            if (hls) { hls.destroy(); hls = null; }
 
             if (Hls.isSupported()) {
                 hls = new Hls({
-                    enableWorker: true,
-                    lowLatencyMode: false,
-                    backBufferLength: 90,
-                    maxBufferLength: 30,
-                    maxMaxBufferLength: 600,
+                    enableWorker: true, lowLatencyMode: false,
+                    backBufferLength: 90, maxBufferLength: 30, maxMaxBufferLength: 600,
                     maxBufferSize: 60 * 1000 * 1000,
-                    xhrSetup: function(xhr) {
-                        xhr.withCredentials = false;
-                        xhr.setRequestHeader('Origin', window.location.origin);
-                        xhr.setRequestHeader('Referer', window.location.href);
-                    },
-                    manifestLoadingTimeOut: 20000,
-                    manifestLoadingMaxRetry: 6,
-                    manifestLoadingRetryDelay: 800,
-                    levelLoadingTimeOut: 20000,
-                    levelLoadingMaxRetry: 6,
-                    levelLoadingRetryDelay: 800,
-                    fragLoadingTimeOut: 20000,
-                    fragLoadingMaxRetry: 8,
-                    fragLoadingRetryDelay: 800
+                    xhrSetup: xhr => { xhr.withCredentials = false; xhr.setRequestHeader('Origin', window.location.origin); },
+                    manifestLoadingTimeOut: 20000, manifestLoadingMaxRetry: 6, manifestLoadingRetryDelay: 800,
+                    levelLoadingTimeOut: 20000, levelLoadingMaxRetry: 6, levelLoadingRetryDelay: 800,
+                    fragLoadingTimeOut: 20000, fragLoadingMaxRetry: 8, fragLoadingRetryDelay: 800
                 });
-
                 hls.loadSource(url);
                 hls.attachMedia(video);
-
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    // ✅ Agora aplica corretamente o tempo salvo
-                    if (tempoInicio > 0 && !isNaN(tempoInicio) && isFinite(tempoInicio)) {
+                    if (tempoInicio > 0 && isFinite(tempoInicio) && tempoInicio < video.duration) {
                         video.currentTime = tempoInicio;
                     }
                     video.play().catch(e => console.log("Autoplay bloqueado:", e));
                 });
-
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        switch(data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log("Erro de rede, tentando novamente...");
-                                hls.startLoad();
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                console.log("Erro de mídia, recuperando...");
-                                hls.recoverMediaError();
-                                break;
-                            default:
-                                tentarReproduzirNativo(url, tempoInicio);
-                                break;
-                        }
-                    }
-                });
-
+                hls.on(Hls.Events.ERROR, (e, d) => { if (d.fatal) { if (d.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad(); else if (d.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError(); else tentarReproduzirNativo(url, tempoInicio); } });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 tentarReproduzirNativo(url, tempoInicio);
             } else {
@@ -430,13 +367,10 @@
             video.src = url;
             video.load();
             video.onloadedmetadata = () => {
-                if (tempoInicio > 0 && !isNaN(tempoInicio) && isFinite(tempoInicio)) {
+                if (tempoInicio > 0 && isFinite(tempoInicio) && tempoInicio < video.duration) {
                     video.currentTime = tempoInicio;
                 }
-                video.play().catch(() => {
-                    alert("❌ Não foi possível reproduzir este episódio");
-                    voltarParaMenu();
-                });
+                video.play().catch(() => { alert("❌ Não foi possível reproduzir"); voltarParaMenu(); });
             };
         }
 
@@ -445,11 +379,7 @@
             const duracao = video.duration || 0;
             document.getElementById('tempo').innerText = `${formatarTempo(tempoAtual)} / ${formatarTempo(duracao)}`;
             document.getElementById('progresso-atual').style.width = duracao ? `${(tempoAtual / duracao) * 100}%` : "0%";
-
-            if (duracao - tempoAtual <= 10 && duracao - tempoAtual > 0 && !timerPulo) {
-                iniciarContadorProximo();
-            }
-
+            if (duracao - tempoAtual <= 10 && duracao - tempoAtual > 0 && !timerPulo) iniciarContadorProximo();
             if (video.currentSrc && duracao > 10) {
                 localStorage.setItem(`progresso_${video.currentSrc}`, tempoAtual);
                 localStorage.setItem(`duracao_${video.currentSrc}`, duracao);
@@ -460,87 +390,51 @@
             }
         };
 
-        function formatarTempo(segundos) {
-            if (isNaN(segundos) || !isFinite(segundos)) return "00:00";
-            const min = Math.floor(segundos / 60);
-            const seg = Math.floor(segundos % 60);
-            return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+        function formatarTempo(seg) {
+            if (!isFinite(seg)) return "00:00";
+            const m = Math.floor(seg / 60);
+            const s = Math.floor(seg % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        function buscarNoVideo(e) {
-            if (!video.duration) return;
-            const posicao = (e.offsetX / e.target.offsetWidth) * video.duration;
-            video.currentTime = posicao;
-        }
-
+        function buscarNoVideo(e) { if (!video.duration) return; video.currentTime = (e.offsetX / e.target.offsetWidth) * video.duration; }
         function iniciarContadorProximo() {
-            segundosRestantes = 10;
-            document.getElementById('contador').innerText = segundosRestantes;
-            document.getElementById('aviso-prox-container').style.display = 'block';
-            infobar.style.display = 'block';
-            document.getElementById('btn-pular').focus();
-            timerPulo = setInterval(() => {
-                segundosRestantes--;
-                document.getElementById('contador').innerText = segundosRestantes;
-                if (segundosRestantes <= 0) pularEpisodio();
-            }, 1000);
+            segundosRestantes = 10; document.getElementById('contador').innerText = segundosRestantes;
+            document.getElementById('aviso-prox-container').style.display = 'block'; infobar.style.display = 'block';
+            timerPulo = setInterval(() => { segundosRestantes--; document.getElementById('contador').innerText = segundosRestantes; if (segundosRestantes <= 0) pularEpisodio(); }, 1000);
         }
-
         function pularEpisodio() {
-            cancelarPulo();
-            const proximoEp = episodioAtual + 1;
-            const epFormatado = String(proximoEp).padStart(2, '0');
-            const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${epFormatado}.mp4/index.m3u8`;
-            tocarVideo(novaUrl, proximoEp, 0);
+            cancelarPulo(); const prox = episodioAtual + 1; const ep = String(prox).padStart(2, '0');
+            const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${ep}.mp4/index.m3u8`;
+            tocarVideo(novaUrl, prox, 0);
         }
+        function cancelarPulo() { clearInterval(timerPulo); timerPulo = null; document.getElementById('aviso-prox-container').style.display = 'none'; }
 
-        function cancelarPulo() {
-            clearInterval(timerPulo);
-            timerPulo = null;
-            document.getElementById('aviso-prox-container').style.display = 'none';
-            segundosRestantes = 10;
-        }
-
-        // ✅ CONTINUAR ASSISTINDO CORRIGIDO E FUNCIONANDO
+        // ✅ CONTINUAR ASSISTINDO CORRIGIDO
         function renderizarContinuarAssistindo() {
             listaContinuar.innerHTML = "";
-            const historico = [];
-
+            const itens = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const chave = localStorage.key(i);
                 if (!chave.startsWith('progresso_')) continue;
-
                 const url = chave.replace('progresso_', '');
                 const tempo = parseFloat(localStorage.getItem(chave)) || 0;
                 const duracao = parseFloat(localStorage.getItem(`duracao_${url}`)) || 0;
-                const imagem = localStorage.getItem(`img_${url}`) || 'https://via.placeholder.com/250?text=Sem+Imagem';
+                const img = localStorage.getItem(`img_${url}`) || 'https://via.placeholder.com/250?text=Sem+Imagem';
                 const nome = localStorage.getItem(`nome_${url}`) || 'Episódio';
-
-                // Só mostra se tem mais de 10s assistido e não está quase no final
                 if (tempo > 10 && duracao > 0 && (tempo / duracao) < 0.92) {
-                    historico.push({ url, tempo, duracao, imagem, nome });
+                    itens.push({ url, tempo, duracao, img, nome });
                 }
             }
-
-            // Ordena do mais recente para o mais antigo
-            historico.sort((a, b) => b.tempo - a.tempo);
-
-            if (historico.length === 0) {
+            itens.sort((a, b) => b.tempo - a.tempo);
+            if (itens.length === 0) {
                 listaContinuar.innerHTML = `<p style="padding:20px; color:#aaa; text-align:center;">Nenhuma continuação por enquanto</p>`;
                 return;
             }
-
-            historico.forEach(item => {
-                const porcentagem = Math.round((item.tempo / item.duracao) * 100);
-                const tempoFormatado = formatarTempo(item.tempo);
-
+            itens.forEach(item => {
                 const btn = document.createElement('button');
-                btn.innerHTML = `
-                    <img src="${item.imagem}" alt="${item.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
-                    <span>${item.nome}</span>
-                    <div class="tempo-parado">Retomando em ${tempoFormatado} • ${porcentagem}%</div>
-                `;
-                // ✅ Agora passa os parâmetros na ordem correta: URL, número do ep (0 pq não precisa aqui), TEMPO
+                btn.innerHTML = `<img src="${item.img}" alt="${item.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'"><span>${item.nome}</span><div class="tempo-parado">Retomando em ${formatarTempo(item.tempo)}</div>`;
+                // ✅ AGORA PASSA OS PARÂMETROS NA ORDEM CERTA
                 btn.onclick = () => tocarVideo(item.url, 0, item.tempo);
                 listaContinuar.appendChild(btn);
             });
@@ -548,96 +442,42 @@
 
         function filtrarSeries() {
             const termo = document.getElementById('campo-procura').value.toLowerCase().trim();
-            const todosBotoes = document.querySelectorAll('#lista button, #lista-continuar button');
-            todosBotoes.forEach(btn => {
-                const visivel = btn.innerText.toLowerCase().includes(termo);
-                btn.style.display = visivel ? "flex" : "none";
+            document.querySelectorAll('#lista button, #lista-continuar button').forEach(btn => {
+                btn.style.display = btn.innerText.toLowerCase().includes(termo) ? "flex" : "none";
             });
-            const primeiroVisivel = Array.from(todosBotoes).find(b => b.style.display !== "none");
-            if (primeiroVisivel) primeiroVisivel.focus();
         }
-
         function criarTeclado() {
-            const container = document.getElementById('teclado-virtual');
-            const teclas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫";
-            container.innerHTML = "";
-            teclas.split('').forEach(t => {
-                const btn = document.createElement('button');
-                btn.innerText = t;
-                btn.onclick = () => {
-                    const campo = document.getElementById('campo-procura');
-                    if (t === '⌫') campo.value = campo.value.slice(0, -1);
-                    else campo.value += t;
-                    filtrarSeries();
-                };
-                container.appendChild(btn);
+            const c = document.getElementById('teclado-virtual');
+            c.innerHTML = "";
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫".split('').forEach(t => {
+                const b = document.createElement('button');
+                b.innerText = t;
+                b.onclick = () => { const campo = document.getElementById('campo-procura'); t === '⌫' ? campo.value = campo.value.slice(0, -1) : campo.value += t; filtrarSeries(); };
+                c.appendChild(b);
             });
         }
+        function mostrarTeclado() { document.getElementById('teclado-virtual').style.display = 'grid'; }
 
-        function mostrarTeclado() {
-            document.getElementById('teclado-virtual').style.display = 'grid';
-        }
-
-        // 🎮 CONTROLES
-        document.addEventListener('keydown', (e) => {
-            const botoesContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
-            const botoesGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
-            const todosBotoes = [...botoesContinuar, ...botoesGerais];
-            const indiceAtivo = todosBotoes.indexOf(document.activeElement);
-            const colunasPorLinha = window.innerWidth > 800 ? 4 : 2;
-
-            const btnPular = document.getElementById('btn-pular');
-            const btnCancelar = document.getElementById('btn-cancelar');
-            const avisoVisivel = document.getElementById('aviso-prox-container').style.display === 'block';
-
+        document.addEventListener('keydown', e => {
+            const bContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
+            const bGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
+            const todos = [...bContinuar, ...bGerais];
+            const idx = todos.indexOf(document.activeElement);
+            const col = window.innerWidth > 800 ? 4 : 2;
             if (menu.style.display !== 'none') {
-                if (e.keyCode === 39 && indiceAtivo < todosBotoes.length - 1) {
-                    e.preventDefault();
-                    todosBotoes[indiceAtivo + 1].focus();
-                }
-                if (e.keyCode === 37 && indiceAtivo > 0) {
-                    e.preventDefault();
-                    todosBotoes[indiceAtivo - 1].focus();
-                }
-                if (e.keyCode === 40 && indiceAtivo + colunasPorLinha < todosBotoes.length) {
-                    e.preventDefault();
-                    todosBotoes[indiceAtivo + colunasPorLinha].focus();
-                }
-                if (e.keyCode === 38 && indiceAtivo - colunasPorLinha >= 0) {
-                    e.preventDefault();
-                    todosBotoes[indiceAtivo - colunasPorLinha].focus();
-                }
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-                    document.activeElement.click();
-                }
-                if (e.keyCode === 8) {
-                    e.preventDefault();
-                    if (paginaEpisodio > 0) mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1);
-                    else if (tempAtual) renderizarTemporadas(serieAtual);
-                    else voltarParaMenu();
-                }
+                if (e.keyCode === 39 && idx < todos.length - 1) { e.preventDefault(); todos[idx + 1].focus(); }
+                if (e.keyCode === 37 && idx > 0) { e.preventDefault(); todos[idx - 1].focus(); }
+                if (e.keyCode === 40 && idx + col < todos.length) { e.preventDefault(); todos[idx + col].focus(); }
+                if (e.keyCode === 38 && idx - col >= 0) { e.preventDefault(); todos[idx - col].focus(); }
+                if (e.keyCode === 13) { e.preventDefault(); document.activeElement.click(); }
+                if (e.keyCode === 8) { e.preventDefault(); paginaEpisodio > 0 ? mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1) : tempAtual ? renderizarTemporadas(serieAtual) : voltarParaMenu(); }
             } else {
-                if (avisoVisivel) {
-                    if (e.keyCode === 38) {
-                        e.preventDefault();
-                        document.activeElement === btnPular ? btnCancelar.focus() : btnPular.focus();
-                    }
-                    if (e.keyCode === 13) {
-                        e.preventDefault();
-                        document.activeElement === btnPular ? pularEpisodio() : cancelarPulo();
-                    }
+                const aviso = document.getElementById('aviso-prox-container').style.display === 'block';
+                if (aviso) {
+                    if (e.keyCode === 38) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? document.getElementById('btn-cancelar').focus() : document.getElementById('btn-pular').focus(); }
+                    if (e.keyCode === 13) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? pularEpisodio() : cancelarPulo(); }
                 } else {
-                    if (e.keyCode === 13) {
-                        e.preventDefault();
-                        if (video.paused) {
-                            video.play();
-                            infobar.style.display = 'none';
-                        } else {
-                            video.pause();
-                            infobar.style.display = 'block';
-                        }
-                    }
+                    if (e.keyCode === 13) { e.preventDefault(); video.paused ? (video.play(), infobar.style.display = 'none') : (video.pause(), infobar.style.display = 'block'); }
                 }
                 if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
                 if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
@@ -646,10 +486,7 @@
             }
         });
 
-        window.onload = () => {
-            criarTeclado();
-            carregarSeries();
-        };
+        window.onload = () => { criarTeclado(); carregarSeries(); };
     </script>
 </body>
 </html>
