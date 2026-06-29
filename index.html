@@ -68,6 +68,8 @@
         const menu = document.getElementById('menu');
         const infobar = document.getElementById('infobar');
         let hls = null, serieAtual = null, tempAtual = null, paginaEpisodio = 0, timerPulo = null, episodioAtual = 0;
+
+        // ✅ JSON CORRIGIDO (sem erro de sintaxe)
         const JSON_SERIES = [
             {"nome":"Tintim","img":"https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br","temporadas":[{"n":1,"pasta":"a/as-aventuras-de-tintim-dublado","total":39}]},
             {"nome":"Yomi no Tsugai","img":"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=1200,height=675/catalog/crunchyroll/cf01037046bf9885e1ddbc3c1753610e.png","temporadas":[{"n":1,"pasta":"y/yomi-no-tsugai","total":12}]},
@@ -75,7 +77,7 @@
             {"nome":"Pantera","img":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKlP0fX0wkJMcFT5d2lKmz8j0iBPgHq7wIwBlLfBQbCA&s=10","temporadas":[{"n":1,"pasta":"a/a-pantera-cor-de-rosa","total":129}]},
             {"nome":"One Piece","img":"https://m.media-amazon.com/images/M/MV5BMTNjNGU4NTUtYmVjMy00YjRiLTkxMWUtNzZkMDNiYjZhNmViXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"o/one-piece","total":1167,"start":1003}]},
             {"nome":"Bungou Stray Dogs","img":"https://a.storyblok.com/f/178900/800x1130/4e261b5e56/4bfe95125aa26d6e09f76bee218eda301680100266_main.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"b/bungou-stray-dogs-3-dublado","total":12},{"n":4,"pasta":"b/bungou-stray-dogs-4-dublado","total":13},{"n":5,"pasta":"b/bungou-stray-dogs-5-dublado","total":11}]},
-            {"nome":"Dr. Stone","img":"https://media.fstatic.com/pAyamOs1LKoA1EdOtDqTeby9Y-c=/350x525/smart/filters:format(webp)/media/movies/covers/2025/12/154514l.jpg","temporadas":[{"n":4 - Parte 3,"pasta":"d/dr-stone-science-future-3-dublado","total":12}]},
+            {"nome":"Dr. Stone","img":"https://media.fstatic.com/pAyamOs1LKoA1EdOtDqTeby9Y-c=/350x525/smart/filters:format(webp)/media/movies/covers/2025/12/154514l.jpg","temporadas":[{"n":"4 - Parte 3","pasta":"d/dr-stone-science-future-3-dublado","total":12}]},
             {"nome":"Fairy Tail","img":"https://m.media-amazon.com/images/M/MV5BODlhNTQ3ZDgtMDJlMC00YzdmLWE3ZTMtOWNmMTZkN2I2MzI5XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"f/fairy-tail-dublado","total":72}]},
             {"nome":"Jujutsu Kaisen","img":"https://a.storyblok.com/f/178900/1003x1504/9047535fee/jujutsu-kaisen-season-3-teaser-visual-en.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"j/jujutsu-kaisen-3-dublado","total":12}]},
             {"nome":"Samurai Champloo","img":"https://animesdigital.org/wp-content/uploads/2024/08/assistir-samurai-champloo-dublado-dublado-todos-os-episodios-online-animes-online-213x300.jpg","temporadas":[{"n":1,"pasta":"animes/samurai-champloo-dublado","total":26}]},
@@ -135,7 +137,7 @@
             btnVoltar.focus();
         }
 
-        // ✅ CABEÇALHOS CORRIGIDOS PARA CONTORNAR BLOQUEIO
+        // ✅ CABEÇALHOS FORTES: imita o site original
         function tocarVideo(url, numeroEp, tempoInicio = 0) {
             if (!url) return; episodioAtual = numeroEp; menu.style.display = 'none'; infobar.style.display = 'none';
             if (hls) { hls.destroy(); hls = null; }
@@ -143,19 +145,22 @@
             if (Hls.isSupported()) {
                 hls = new Hls({
                     enableWorker: true, lowLatencyMode: false,
-                    backBufferLength: 180, maxBufferLength: 90, maxMaxBufferLength: 1800, maxBufferSize: 200 * 1024 * 1024,
-                    // IMITA ACESSO DO SITE ORIGINAL
+                    backBufferLength: 300, maxBufferLength: 150, maxMaxBufferLength: 3000, maxBufferSize: 300 * 1024 * 1024,
+                    // 🔒 CABEÇALHOS DO SITE QUE FUNCIONA
                     xhrSetup: function(xhr) {
                         xhr.withCredentials = false;
-                        xhr.setRequestHeader('Origin', 'https://mywallpaper-4k-image.net');
-                        xhr.setRequestHeader('Referer', 'https://mywallpaper-4k-image.net/');
-                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36');
+                        xhr.setRequestHeader('Origin', 'https://animesonlinecc.to');
+                        xhr.setRequestHeader('Referer', 'https://animesonlinecc.to/');
+                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36');
                         xhr.setRequestHeader('Accept', '*/*');
-                        xhr.setRequestHeader('Accept-Language', 'pt-BR,pt;q=0.9,en;q=0.8');
+                        xhr.setRequestHeader('Accept-Language', 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7');
+                        xhr.setRequestHeader('Sec-Fetch-Site', 'cross-site');
+                        xhr.setRequestHeader('Sec-Fetch-Mode', 'cors');
+                        xhr.setRequestHeader('Sec-Fetch-Dest', 'video');
                     },
-                    manifestLoadingTimeOut: 40000, manifestLoadingMaxRetry: 15, manifestLoadingRetryDelay: 1200,
-                    levelLoadingTimeOut: 40000, levelLoadingMaxRetry: 15, levelLoadingRetryDelay: 1200,
-                    fragLoadingTimeOut: 40000, fragLoadingMaxRetry: 20, fragLoadingRetryDelay: 1200
+                    manifestLoadingTimeOut: 60000, manifestLoadingMaxRetry: 20, manifestLoadingRetryDelay: 1500,
+                    levelLoadingTimeOut: 60000, levelLoadingMaxRetry: 20, levelLoadingRetryDelay: 1500,
+                    fragLoadingTimeOut: 60000, fragLoadingMaxRetry: 30, fragLoadingRetryDelay: 1500
                 });
 
                 hls.loadSource(url); hls.attachMedia(video);
@@ -166,8 +171,8 @@
 
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        console.log("Erro detectado, tentando novamente...", data);
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) setTimeout(() => hls.startLoad(), 1500);
+                        console.log("Tentando reconectar...", data.details);
+                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) setTimeout(() => hls.startLoad(), 1800);
                         else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
                         else tentarReproduzirNativo(url, tempoInicio);
                     }
