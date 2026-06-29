@@ -354,7 +354,7 @@
             btnVoltar.focus();
         }
 
-        // ✅ FUNÇÃO CORRIGIDA PARA ABRIR DO PONTO SALVO
+        // ✅ FUNÇÃO CORRIGIDA: ORDEM DOS PARÂMETROS AJUSTADA
         function tocarVideo(url, numeroEp, tempoInicio = 0) {
             if (!url) return;
             episodioAtual = numeroEp;
@@ -394,7 +394,8 @@
                 hls.attachMedia(video);
 
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    if (tempoInicio > 0 && !isNaN(tempoInicio)) {
+                    // ✅ Agora aplica corretamente o tempo salvo
+                    if (tempoInicio > 0 && !isNaN(tempoInicio) && isFinite(tempoInicio)) {
                         video.currentTime = tempoInicio;
                     }
                     video.play().catch(e => console.log("Autoplay bloqueado:", e));
@@ -429,7 +430,7 @@
             video.src = url;
             video.load();
             video.onloadedmetadata = () => {
-                if (tempoInicio > 0 && !isNaN(tempoInicio)) {
+                if (tempoInicio > 0 && !isNaN(tempoInicio) && isFinite(tempoInicio)) {
                     video.currentTime = tempoInicio;
                 }
                 video.play().catch(() => {
@@ -460,7 +461,7 @@
         };
 
         function formatarTempo(segundos) {
-            if (isNaN(segundos)) return "00:00";
+            if (isNaN(segundos) || !isFinite(segundos)) return "00:00";
             const min = Math.floor(segundos / 60);
             const seg = Math.floor(segundos % 60);
             return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
@@ -500,31 +501,49 @@
             segundosRestantes = 10;
         }
 
-        // ✅ CONTINUAR ASSISTINDO CORRIGIDO
+        // ✅ CONTINUAR ASSISTINDO CORRIGIDO E FUNCIONANDO
         function renderizarContinuarAssistindo() {
             listaContinuar.innerHTML = "";
+            const historico = [];
+
             for (let i = 0; i < localStorage.length; i++) {
                 const chave = localStorage.key(i);
                 if (!chave.startsWith('progresso_')) continue;
 
                 const url = chave.replace('progresso_', '');
                 const tempo = parseFloat(localStorage.getItem(chave)) || 0;
-                const duracao = parseFloat(localStorage.getItem(`duracao_${url}`)) || 1;
+                const duracao = parseFloat(localStorage.getItem(`duracao_${url}`)) || 0;
                 const imagem = localStorage.getItem(`img_${url}`) || 'https://via.placeholder.com/250?text=Sem+Imagem';
                 const nome = localStorage.getItem(`nome_${url}`) || 'Episódio';
 
+                // Só mostra se tem mais de 10s assistido e não está quase no final
                 if (tempo > 10 && duracao > 0 && (tempo / duracao) < 0.92) {
-                    const btn = document.createElement('button');
-                    btn.innerHTML = `
-                        <img src="${imagem}" alt="${nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
-                        <span>${nome}</span>
-                        <div class="tempo-parado">Retomando em ${formatarTempo(tempo)}</div>
-                    `;
-                    // ✅ AGORA PASSA O TEMPO CORRETAMENTE
-                    btn.onclick = () => tocarVideo(url, 0, tempo);
-                    listaContinuar.appendChild(btn);
+                    historico.push({ url, tempo, duracao, imagem, nome });
                 }
             }
+
+            // Ordena do mais recente para o mais antigo
+            historico.sort((a, b) => b.tempo - a.tempo);
+
+            if (historico.length === 0) {
+                listaContinuar.innerHTML = `<p style="padding:20px; color:#aaa; text-align:center;">Nenhuma continuação por enquanto</p>`;
+                return;
+            }
+
+            historico.forEach(item => {
+                const porcentagem = Math.round((item.tempo / item.duracao) * 100);
+                const tempoFormatado = formatarTempo(item.tempo);
+
+                const btn = document.createElement('button');
+                btn.innerHTML = `
+                    <img src="${item.imagem}" alt="${item.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'">
+                    <span>${item.nome}</span>
+                    <div class="tempo-parado">Retomando em ${tempoFormatado} • ${porcentagem}%</div>
+                `;
+                // ✅ Agora passa os parâmetros na ordem correta: URL, número do ep (0 pq não precisa aqui), TEMPO
+                btn.onclick = () => tocarVideo(item.url, 0, item.tempo);
+                listaContinuar.appendChild(btn);
+            });
         }
 
         function filtrarSeries() {
