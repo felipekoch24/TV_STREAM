@@ -3,234 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Stream - Perfis</title>
+    <title>TV Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-            background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), 
-                        url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            transition: background 0.5s ease;
-        }
-
-        .tela {
-            display: none;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .tela.ativa {
-            display: block;
-        }
-
-        h2 {
-            font-size: 28px;
-            margin-bottom: 30px;
-            color: #ffffff;
-        }
-
-        h3 {
-            font-size: 22px;
-            margin: 30px 0 20px;
-            color: #dddddd;
-        }
-
-        .voltar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .voltar:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .grid-avatares, .grid-fundos {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .avatar-opcao, .fundo-opcao {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 12px;
-            border: 3px solid transparent;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: #222;
-        }
-
-        .avatar-opcao:hover, .fundo-opcao:hover {
-            transform: scale(1.08);
-            border-color: #4a90e2;
-            box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
-        }
-
-        .formulario {
-            max-width: 400px;
-            margin: 80px auto 0;
-            background: rgba(0,0,0,0.6);
-            padding: 30px;
-            border-radius: 12px;
-        }
-
-        .formulario input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-
-        .formulario button {
-            width: 100%;
-            padding: 12px;
-            background: #4a90e2;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .formulario button:hover {
-            background: #357abd;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; user-select: none; }
+        video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
+        #menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; padding: 20px; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; gap: 25px; }
+        #barra-busca { width: 100%; margin-bottom: 10px; }
+        #campo-procura { width: 100%; padding: 12px 15px; font-size: 20px; background: #1a1a1a; border: 2px solid #333; color: #fff; border-radius: 6px; }
+        #teclado-virtual { display: none; grid-template-columns: repeat(9, 1fr); gap: 5px; margin: 10px 0; max-width: 700px; margin-left: auto; margin-right: auto; }
+        #teclado-virtual button { padding: 8px; font-size: 16px; background: #222; border: none; color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+        #teclado-virtual button:focus, #teclado-virtual button:hover { background: #e50914; transform: scale(1.05); outline: none; }
+        .secao { width: 100%; border: 2px solid #222; border-radius: 8px; padding: 15px; background: #0a0a0a; }
+        h2 { font-size: 22px; margin: 0 0 15px 0; color: #ffcc00; padding-bottom: 8px; border-bottom: 1px solid #333; }
+        #lista, #lista-continuar { display: flex; flex-wrap: wrap; gap: 20px; }
+        button { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 220px; height: 300px; padding: 10px; background: #111; color: #fff; border: 3px solid #333; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s; border-radius: 6px; outline: none; }
+        button:focus, button:hover { border-color: #e50914; transform: scale(1.05); }
+        button img { width: 180px; height: 220px; object-fit: cover; margin-bottom: 10px; border-radius: 4px; display: block; background: #222; }
+        .nav-btn { width: 220px !important; height: 70px !important; justify-content: center !important; }
+        .nav-btn img { display: none !important; }
+        #infobar { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.92), transparent); color: #fff; padding: 25px; display: none; z-index: 500; font-size: 20px; transition: opacity 0.2s ease; }
+        #barra-progresso { width: 100%; height: 8px; background: #444; margin-bottom: 15px; border-radius: 4px; cursor: pointer; overflow: hidden; }
+        #progresso-atual { height: 100%; background: #ff3e3e; width: 0%; border-radius: 4px; }
+        #aviso-prox-container { text-align: center; margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.6); border-radius: 6px; }
+        #aviso-prox-container p { margin-bottom: 15px; font-size: 20px; }
+        #aviso-prox-container button { display: inline-block; width: auto; height: auto; padding: 10px 20px; margin: 0 10px; font-size: 18px; }
+        .tempo-parado { font-size: 14px; color: #ffcc00; margin-top: 5px; }
     </style>
 </head>
 <body>
-
-<!-- 📋 Tela inicial / Formulário -->
-<div id="tela-formulario" class="tela ativa">
-    <div class="formulario">
-        <h2>Criar Perfil</h2>
-        <input type="text" id="nomePerfil" placeholder="Digite seu nome" required>
-        <button onclick="irParaEscolherAvatar()">Escolher Imagem</button>
+    <video id="video"></video>
+    <div id="menu">
+        <div id="barra-busca">
+            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
+            <div id="teclado-virtual"></div>
+        </div>
+        <div class="secao">
+            <h2>▶ CONTINUAR ASSISTINDO</h2>
+            <div id="lista-continuar"></div>
+        </div>
+        <div class="secao">
+            <h2>📺 ANIMES / SÉRIES</h2>
+            <div id="lista"></div>
+        </div>
     </div>
-</div>
-
-<!-- 🎭 Tela: Escolher Avatar -->
-<div id="tela-escolha-avatar" class="tela">
-    <button class="voltar" onclick="voltarParaFormulario()">← Voltar</button>
-    <h2>Escolha sua Imagem de Perfil</h2>
-
-    <div class="categoria">
-        <h3>Masculino</h3>
-        <div class="grid-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" onclick="selecionarAvatar(this.src)">
+    <div id="infobar">
+        <div id="barra-progresso" onclick="buscarNoVideo(event)">
+            <div id="progresso-atual"></div>
+        </div>
+        <span id="tempo">00:00 / 00:00</span>
+        <div id="aviso-prox-container" style="display: none;">
+            <p>PRÓXIMO EPISÓDIO EM <span id="contador">10</span>s</p>
+            <button id="btn-pular" onclick="pularEpisodio()">⏭ PULAR AGORA</button>
+            <button id="btn-cancelar" onclick="cancelarPulo()">❌ CANCELAR</button>
         </div>
     </div>
 
-    <div class="categoria">
-        <h3>Feminino</h3>
-        <div class="grid-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg" onclick="selecionarAvatar(this.src)">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg" onclick="selecionarAvatar(this.src)">
-        </div>
-    </div>
-</div>
+    <script>
+        let series = [];
+        const video = document.getElementById('video');
+        const lista = document.getElementById('lista');
+        const listaContinuar = document.getElementById('lista-continuar');
+        const menu = document.getElementById('menu');
+        const infobar = document.getElementById('infobar');
+        let hls = null, serieAtual = null, tempAtual = null, paginaEpisodio = 0, timerPulo = null, episodioAtual = 0;
 
-<!-- 🖼️ Tela: Escolher Fundo -->
-<div id="tela-escolha-fundo" class="tela">
-    <button class="voltar" onclick="voltarParaAvatar()">← Voltar</button>
-    <h2>Escolha o Fundo</h2>
-    <div class="categoria">
-        <div class="grid-fundos">
-            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg" onclick="selecionarFundo(this.src)">
-            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund02.jpg" onclick="selecionarFundo(this.src)">
-            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund03.jpg" onclick="selecionarFundo(this.src)">
-            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund04.jpg" onclick="selecionarFundo(this.src)">
-            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund05.jpg" onclick="selecionarFundo(this.src)">
-        </div>
-    </div>
-</div>
+        // ✅ JSON CORRIGIDO (sem erro de sintaxe)
+        const JSON_SERIES = [
+            {"nome":"Tintim","img":"https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br","temporadas":[{"n":1,"pasta":"a/as-aventuras-de-tintim-dublado","total":39}]},
+            {"nome":"Yomi no Tsugai","img":"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=1200,height=675/catalog/crunchyroll/cf01037046bf9885e1ddbc3c1753610e.png","temporadas":[{"n":1,"pasta":"y/yomi-no-tsugai","total":12}]},
+            {"nome":"Invencivel","img":"https://i.ytimg.com/vi/Xg8aWV14vSs/maxresdefault.jpg","temporadas":[{"n":1,"pasta":"i/invencivel-4-dublado","total":8}]},
+            {"nome":"Pantera","img":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKlP0fX0wkJMcFT5d2lKmz8j0iBPgHq7wIwBlLfBQbCA&s=10","temporadas":[{"n":1,"pasta":"a/a-pantera-cor-de-rosa","total":129}]},
+            {"nome":"One Piece","img":"https://m.media-amazon.com/images/M/MV5BMTNjNGU4NTUtYmVjMy00YjRiLTkxMWUtNzZkMDNiYjZhNmViXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"o/one-piece","total":1167,"start":1003}]},
+            {"nome":"Bungou Stray Dogs","img":"https://a.storyblok.com/f/178900/800x1130/4e261b5e56/4bfe95125aa26d6e09f76bee218eda301680100266_main.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"b/bungou-stray-dogs-3-dublado","total":12},{"n":4,"pasta":"b/bungou-stray-dogs-4-dublado","total":13},{"n":5,"pasta":"b/bungou-stray-dogs-5-dublado","total":11}]},
+            {"nome":"Dr. Stone","img":"https://media.fstatic.com/pAyamOs1LKoA1EdOtDqTeby9Y-c=/350x525/smart/filters:format(webp)/media/movies/covers/2025/12/154514l.jpg","temporadas":[{"n":"4 - Parte 3","pasta":"d/dr-stone-science-future-3-dublado","total":12}]},
+            {"nome":"Fairy Tail","img":"https://m.media-amazon.com/images/M/MV5BODlhNTQ3ZDgtMDJlMC00YzdmLWE3ZTMtOWNmMTZkN2I2MzI5XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"f/fairy-tail-dublado","total":72}]},
+            {"nome":"Jujutsu Kaisen","img":"https://a.storyblok.com/f/178900/1003x1504/9047535fee/jujutsu-kaisen-season-3-teaser-visual-en.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"j/jujutsu-kaisen-3-dublado","total":12}]},
+            {"nome":"Samurai Champloo","img":"https://animesdigital.org/wp-content/uploads/2024/08/assistir-samurai-champloo-dublado-dublado-todos-os-episodios-online-animes-online-213x300.jpg","temporadas":[{"n":1,"pasta":"animes/samurai-champloo-dublado","total":26}]},
+            {"nome":"Street Fighter II V","img":"https://animesdigital.org/wp-content/uploads/2024/12/assistir-street-fighter-2-victory-dublado-dublado-todos-os-episodios-online-animes-online-220x300.jpg","temporadas":[{"n":1,"pasta":"s/street-fighter-2-v-dublado","total":29,"start":20}]},
+            {"nome":"Tate no Yuusha (Shield Hero)","img":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtOgGo8THMQl2SY-dxEg__274r5d_t-KZ8l0jBNJr4DQ&s=10","temporadas":[{"n":2,"pasta":"t/tate-no-yuusha-no-nariagari-season-2-dublado","total":13},{"n":3,"pasta":"t/tate-no-yuusha-no-nariagari-season-3-dublado","total":12},{"n":4,"pasta":"t/tate-no-yuusha-no-nariagari-season-4-dublado","total":12}]},
+            {"nome":"Wind Breaker","img":"https://br.web.img3.acsta.net/pictures/24/03/14/09/50/4097731.jpg","temporadas":[{"n":1,"pasta":"w/wind-breaker-dublado","total":13,"start":9},{"n":2,"pasta":"w/wind-breaker-2-dublado","total":12}]},
+            {"nome":"Yu Yu Hakusho","img":"https://m.media-amazon.com/images/M/MV5BNWJmODlhODItZTZmYi00ZGNjLTk1NmYtMjE5M2IwYjI2MzI2XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"y/yu-yu-hakusho-dublado","total":112,"start":3}]},
+            {"nome":"Sentenced to Be a Hero","img":"https://media.fstatic.com/DLGo6ksThichUN6tqO9AhcEhjPg=/350x525/smart/filters:format(webp)/media/movies/covers/2025/09/G0LOifUWkAACsHj.jfif","temporadas":[{"n":1,"pasta":"y/yuusha-kei-ni-shosu-choubatsu-yuusha-9004-dublado","total":12}]}
+        ];
 
-<script>
-    let avatarSelecionado = '';
-    let nomeDigitado = '';
-
-    function irParaEscolherAvatar() {
-        nomeDigitado = document.getElementById('nomePerfil').value.trim();
-        if (!nomeDigitado) {
-            alert('Digite um nome primeiro!');
-            return;
+        async function carregarSeries() {
+            series = JSON_SERIES;
+            series.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+            renderizarMenu();
+            renderizarContinuarAssistindo();
         }
-        trocarTela('tela-escolha-avatar');
-    }
 
-    function selecionarAvatar(caminho) {
-        avatarSelecionado = caminho;
-        trocarTela('tela-escolha-fundo');
-    }
+        function voltarParaMenu() {
+            video.pause(); infobar.style.display = 'none'; menu.style.display = 'flex'; cancelarPulo();
+            const primeiroContinuar = listaContinuar.querySelector('button'); const primeiroGeral = lista.querySelector('button');
+            if (primeiroContinuar) primeiroContinuar.focus(); else if (primeiroGeral) primeiroGeral.focus();
+        }
 
-    function selecionarFundo(caminho) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('${caminho}')`;
-        alert(`Perfil criado!\nNome: ${nomeDigitado}\nImagem salva ✅`);
-        voltarParaFormulario();
-    }
+        function renderizarMenu() {
+            lista.innerHTML = ""; if (!series.length) return;
+            series.forEach(s => {
+                const btn = document.createElement('button');
+                btn.innerHTML = `<img src="${s.img}" alt="${s.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'"><span>${s.nome}</span>`;
+                btn.onclick = () => renderizarTemporadas(s); lista.appendChild(btn);
+            });
+        }
 
-    function trocarTela(idTela) {
-        document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-        document.getElementById(idTela).classList.add('ativa');
-    }
+        function renderizarTemporadas(serie) {
+            serieAtual = serie; lista.innerHTML = "";
+            const titulo = document.createElement('h2'); titulo.innerText = serie.nome; titulo.style.width = "100%"; lista.appendChild(titulo);
+            serie.temporadas.forEach(temp => {
+                const btn = document.createElement('button'); btn.className = "nav-btn"; btn.innerText = `📆 Temporada ${temp.n}`;
+                btn.onclick = () => mostrarEpisodios(temp, serie); lista.appendChild(btn);
+            });
+            const btnVoltar = document.createElement('button'); btnVoltar.className = "nav-btn"; btnVoltar.innerText = "⬅ VOLTAR";
+            btnVoltar.onclick = () => { renderizarMenu(); renderizarContinuarAssistindo(); }; lista.appendChild(btnVoltar); btnVoltar.focus();
+        }
 
-    function voltarParaFormulario() {
-        trocarTela('tela-formulario');
-    }
+        function mostrarEpisodios(temp, serie, pagina = 0) {
+            tempAtual = temp; serieAtual = serie; paginaEpisodio = pagina; lista.innerHTML = "";
+            const btnVoltar = document.createElement('button'); btnVoltar.className = "nav-btn"; btnVoltar.innerText = "⬅ VOLTAR ÀS TEMPORADAS";
+            btnVoltar.onclick = () => renderizarTemporadas(serie); lista.appendChild(btnVoltar);
+            const inicio = paginaEpisodio * 6; const fim = Math.min(inicio + 6, temp.total); const numeroInicial = temp.start || 1;
+            for (let i = inicio; i < fim; i++) {
+                const numeroEp = numeroInicial + i; const epFormatado = String(numeroEp).padStart(2, '0');
+                const url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
+                const btn = document.createElement('button'); btn.innerHTML = `<img src="${serie.img}" alt="Episódio ${numeroEp}"><span>Episódio ${numeroEp}</span>`;
+                btn.onclick = () => tocarVideo(url, numeroEp, 0); lista.appendChild(btn);
+            }
+            if (paginaEpisodio > 0) { const btnAnterior = document.createElement('button'); btnAnterior.className = "nav-btn"; btnAnterior.innerText = "⬅ ANTERIOR"; btnAnterior.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio - 1); lista.appendChild(btnAnterior); }
+            if (fim < temp.total) { const btnProximo = document.createElement('button'); btnProximo.className = "nav-btn"; btnProximo.innerText = "PRÓXIMO ➡"; btnProximo.onclick = () => mostrarEpisodios(temp, serie, paginaEpisodio + 1); lista.appendChild(btnProximo); }
+            btnVoltar.focus();
+        }
 
-    function voltarParaAvatar() {
-        trocarTela('tela-escolha-avatar');
-    }
-</script>
+        // ✅ CABEÇALHOS FORTES: imita o site original
+        function tocarVideo(url, numeroEp, tempoInicio = 0) {
+            if (!url) return; episodioAtual = numeroEp; menu.style.display = 'none'; infobar.style.display = 'none';
+            if (hls) { hls.destroy(); hls = null; }
 
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    enableWorker: true, lowLatencyMode: false,
+                    backBufferLength: 300, maxBufferLength: 150, maxMaxBufferLength: 3000, maxBufferSize: 300 * 1024 * 1024,
+                    // 🔒 CABEÇALHOS DO SITE QUE FUNCIONA
+                    xhrSetup: function(xhr) {
+                        xhr.withCredentials = false;
+                        xhr.setRequestHeader('Origin', 'https://animesonlinecc.to');
+                        xhr.setRequestHeader('Referer', 'https://animesonlinecc.to/');
+                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36');
+                        xhr.setRequestHeader('Accept', '*/*');
+                        xhr.setRequestHeader('Accept-Language', 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7');
+                        xhr.setRequestHeader('Sec-Fetch-Site', 'cross-site');
+                        xhr.setRequestHeader('Sec-Fetch-Mode', 'cors');
+                        xhr.setRequestHeader('Sec-Fetch-Dest', 'video');
+                    },
+                    manifestLoadingTimeOut: 60000, manifestLoadingMaxRetry: 20, manifestLoadingRetryDelay: 1500,
+                    levelLoadingTimeOut: 60000, levelLoadingMaxRetry: 20, levelLoadingRetryDelay: 1500,
+                    fragLoadingTimeOut: 60000, fragLoadingMaxRetry: 30, fragLoadingRetryDelay: 1500
+                });
+
+                hls.loadSource(url); hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    if (tempoInicio > 0 && isFinite(tempoInicio) && tempoInicio < video.duration) video.currentTime = tempoInicio;
+                    video.play().catch(e => console.log("Autoplay bloqueado:", e));
+                });
+
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.log("Tentando reconectar...", data.details);
+                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) setTimeout(() => hls.startLoad(), 1800);
+                        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+                        else tentarReproduzirNativo(url, tempoInicio);
+                    }
+                });
+
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                tentarReproduzirNativo(url, tempoInicio);
+            } else {
+                alert("❌ Formato não suportado"); voltarParaMenu();
+            }
+        }
+
+        function tentarReproduzirNativo(url, tempoInicio = 0) {
+            video.src = url; video.load();
+            video.onloadedmetadata = () => {
+                if (tempoInicio > 0 && isFinite(tempoInicio) && tempoInicio < video.duration) video.currentTime = tempoInicio;
+                video.play().catch(() => { alert("❌ Não foi possível reproduzir"); voltarParaMenu(); });
+            };
+        }
+
+        video.ontimeupdate = () => {
+            const tempoAtual = video.currentTime; const duracao = video.duration || 0;
+            document.getElementById('tempo').innerText = `${formatarTempo(tempoAtual)} / ${formatarTempo(duracao)}`;
+            document.getElementById('progresso-atual').style.width = duracao ? `${(tempoAtual / duracao) * 100}%` : "0%";
+            if (duracao - tempoAtual <= 10 && duracao - tempoAtual > 0 && !timerPulo) iniciarContadorProximo();
+            if (video.currentSrc && duracao > 10) {
+                try {
+                    const chave = `progresso_${btoa(video.currentSrc)}`;
+                    localStorage.setItem(chave, tempoAtual); localStorage.setItem(`duracao_${chave}`, duracao);
+                    if (serieAtual) {
+                        localStorage.setItem(`img_${chave}`, serieAtual.img);
+                        localStorage.setItem(`nome_${chave}`, `${serieAtual.nome} - Ep ${episodioAtual}`);
+                        localStorage.setItem(`url_${chave}`, video.currentSrc);
+                    }
+                } catch (e) { console.log("Erro ao salvar progresso:", e); }
+            }
+        };
+
+        function formatarTempo(seg) { if (!isFinite(seg)) return "00:00"; const m = Math.floor(seg / 60); const s = Math.floor(seg % 60); return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
+        function buscarNoVideo(e) { if (!video.duration) return; video.currentTime = (e.offsetX / e.target.offsetWidth) * video.duration; }
+        function iniciarContadorProximo() { segundosRestantes = 10; document.getElementById('contador').innerText = segundosRestantes; document.getElementById('aviso-prox-container').style.display = 'block'; infobar.style.display = 'block'; timerPulo = setInterval(() => { segundosRestantes--; document.getElementById('contador').innerText = segundosRestantes; if (segundosRestantes <= 0) pularEpisodio(); }, 1000); }
+        function pularEpisodio() { cancelarPulo(); const prox = episodioAtual + 1; const ep = String(prox).padStart(2, '0'); const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${ep}.mp4/index.m3u8`; tocarVideo(novaUrl, prox, 0); }
+        function cancelarPulo() { clearInterval(timerPulo); timerPulo = null; document.getElementById('aviso-prox-container').style.display = 'none'; }
+
+        function renderizarContinuarAssistindo() {
+            listaContinuar.innerHTML = ""; const itens = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const chave = localStorage.key(i); if (!chave.startsWith('progresso_')) continue;
+                try {
+                    const tempo = parseFloat(localStorage.getItem(chave)) || 0; const duracao = parseFloat(localStorage.getItem(`duracao_${chave}`)) || 0;
+                    const img = localStorage.getItem(`img_${chave}`) || 'https://via.placeholder.com/250?text=Sem+Imagem';
+                    const nome = localStorage.getItem(`nome_${chave}`) || 'Episódio';
+                    const url = localStorage.getItem(`url_${chave}`) || atob(chave.replace('progresso_', ''));
+                    if (tempo > 10 && duracao > 0 && (tempo / duracao) < 0.92) itens.push({ url, tempo, duracao, img, nome });
+                } catch (e) { console.log("Erro no histórico:", e); continue; }
+            }
+            itens.sort((a, b) => b.tempo - a.tempo);
+            if (itens.length === 0) { listaContinuar.innerHTML = `<p style="padding:20px; color:#aaa; text-align:center;">Nenhuma continuação por enquanto</p>`; return; }
+            itens.forEach(item => {
+                const porcentagem = Math.round((item.tempo / item.duracao) * 100); const tempoFormatado = formatarTempo(item.tempo);
+                const btn = document.createElement('button');
+                btn.innerHTML = `<img src="${item.img}" alt="${item.nome}" onerror="this.src='https://via.placeholder.com/250?text=Sem+Imagem'"><span>${item.nome}</span><div class="tempo-parado">Retomando em ${tempoFormatado} • ${porcentagem}%</div>`;
+                btn.onclick = () => tocarVideo(item.url, 0, item.tempo); listaContinuar.appendChild(btn);
+            });
+        }
+
+        function filtrarSeries() {
+            const termo = document.getElementById('campo-procura').value.toLowerCase().trim();
+            document.querySelectorAll('#lista button, #lista-continuar button').forEach(btn => { btn.style.display = btn.innerText.toLowerCase().includes(termo) ? "flex" : "none"; });
+        }
+        function criarTeclado() { const c = document.getElementById('teclado-virtual'); c.innerHTML = ""; "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789⌫".split('').forEach(t => { const b = document.createElement('button'); b.innerText = t; b.onclick = () => { const campo = document.getElementById('campo-procura'); t === '⌫' ? campo.value = campo.value.slice(0, -1) : campo.value += t; filtrarSeries(); }; c.appendChild(b); }); }
+        function mostrarTeclado() { document.getElementById('teclado-virtual').style.display = 'grid'; }
+
+        document.addEventListener('keydown', e => {
+            const bContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
+            const bGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
+            const todos = [...bContinuar, ...bGerais]; const idx = todos.indexOf(document.activeElement); const col = window.innerWidth > 800 ? 4 : 2;
+            if (menu.style.display !== 'none') {
+                if (e.keyCode === 39 && idx < todos.length - 1) { e.preventDefault(); todos[idx + 1].focus(); }
+                if (e.keyCode === 37 && idx > 0) { e.preventDefault(); todos[idx - 1].focus(); }
+                if (e.keyCode === 40 && idx + col < todos.length) { e.preventDefault(); todos[idx + col].focus(); }
+                if (e.keyCode === 38 && idx - col >= 0) { e.preventDefault(); todos[idx - col].focus(); }
+                if (e.keyCode === 13) { e.preventDefault(); document.activeElement.click(); }
+                if (e.keyCode === 8) { e.preventDefault(); paginaEpisodio > 0 ? mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1) : tempAtual ? renderizarTemporadas(serieAtual) : voltarParaMenu(); }
+            } else {
+                const aviso = document.getElementById('aviso-prox-container').style.display === 'block';
+                if (aviso) { if (e.keyCode === 38) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? document.getElementById('btn-cancelar').focus() : document.getElementById('btn-pular').focus(); } if (e.keyCode === 13) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? pularEpisodio() : cancelarPulo(); } }
+                else { if (e.keyCode === 13) { e.preventDefault(); video.paused ? (video.play(), infobar.style.display = 'none') : (video.pause(), infobar.style.display = 'block'); } }
+                if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
+                if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
+                if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
+                if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
+            }
+        });
+
+        window.onload = () => { criarTeclado(); carregarSeries(); };
+    </script>
 </body>
 </html>
