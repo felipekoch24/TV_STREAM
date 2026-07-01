@@ -1,13 +1,310 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Player</title>
+    <title>Sessão Nostalgia - TV</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { margin: 0; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; user-select: none; }
+        body { 
+            color: white; 
+            font-family: 'Segoe UI, Roboto, Arial', sans-serif; 
+            min-height: 100vh; 
+            margin: 0; 
+            overflow-x: hidden;
+            background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('fund01.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background 0.5s ease;
+        }
+
+        /* Tela principal de perfis */
+        #tela-perfis {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            padding: 20px;
+            text-align: center;
+        }
+
+        #tela-perfis h1 {
+            font-size: 36px;
+            margin-bottom: 40px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .lista-perfis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .perfil-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .perfil-item img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            object-fit: cover;
+            background: rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+
+        .perfil-item:hover { transform: scale(1.05); }
+        .perfil-item:hover img { border-color: #f47521; box-shadow: 0 0 15px rgba(244,117,33,0.4); }
+
+        .perfil-item p {
+            font-size: 18px;
+            color: #ddd;
+        }
+
+        .btn-editar {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f47521;
+            color: white;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .perfil-item:hover .btn-editar { opacity: 1; }
+
+        .perfil-vazio {
+            border: 2px dashed rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* Telas de criação/edição */
+        #tela-formulario, #tela-escolha-avatar, #tela-escolha-fundo {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .voltar {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            font-size: 15px;
+            margin-bottom: 30px;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .voltar:hover { background: rgba(255,255,255,0.1); }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 25px;
+            color: #fff;
+        }
+
+        input {
+            padding: 16px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: none;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.25);
+            outline: none;
+        }
+
+        input:focus { border-color: #f47521; box-shadow: 0 0 0 2px rgba(244,117,33,0.3); }
+
+        button {
+            padding: 14px 45px;
+            background-color: #f47521;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 19px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.25s;
+        }
+
+        button:hover { background-color: #e06518; transform: translateY(-2px); }
+
+        .categoria { margin-bottom: 40px; }
+        .categoria h3 { font-size: 22px; margin-bottom: 20px; color: #f47521; }
+        .grid-avatares, .grid-fundos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            max-width: 850px;
+        }
+
+        .avatar-opcao {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fundo-opcao {
+            width: 120px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .avatar-opcao:hover, .avatar-opcao.selecionado,
+        .fundo-opcao:hover, .fundo-opcao.selecionado {
+            border-color: #f47521;
+            box-shadow: 0 0 15px rgba(244,117,33,0.4);
+        }
+
+        /* Tela de carregamento */
+        #tela-carregando {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75));
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+
+        #avatar-carregando {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f47521;
+            margin-bottom: 25px;
+        }
+
+        #mensagem-carregando {
+            font-size: 30px;
+            margin-bottom: 35px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+
+        .bolinhas { display: flex; gap: 16px; }
+        .bolinha {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f47521;
+            animation: pular 1.2s infinite;
+        }
+        .bolinha:nth-child(2) { animation-delay: 0.2s; }
+        .bolinha:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pular {
+            0%,100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-20px); opacity: 1; }
+        }
+
+        /* Tela inicial */
+        #tela-home {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 30px;
+            background: rgba(0,0,0,0.75);
+        }
+
+        .cabecalho {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .info-usuario {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .info-usuario img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #f47521;
+        }
+
+        .info-usuario h2 { font-size: 26px; margin: 0; }
+
+        .conteudo-home {
+            padding: 60px 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Estilos do Player */
+        #tela-player {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+        }
+
         video { width: 100vw; height: 100vh; object-fit: contain; background: #000; }
         #menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; padding: 20px; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; gap: 25px; }
         #barra-busca { width: 100%; margin-bottom: 10px; }
@@ -33,34 +330,281 @@
     </style>
 </head>
 <body>
-    <video id="video"></video>
-    <div id="menu">
-        <div id="barra-busca">
-            <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
-            <div id="teclado-virtual"></div>
+
+    <!-- 📋 Tela: Escolher perfil -->
+    <div id="tela-perfis">
+        <h1>QUEM ESTÁ ASSISTINDO?</h1>
+        <div class="lista-perfis" id="listaPerfis"></div>
+    </div>
+
+    <!-- 📝 Tela: Nome do perfil -->
+    <div id="tela-formulario">
+        <button class="voltar" onclick="voltarParaPerfis()">← Voltar</button>
+        <h2 id="tituloForm">Novo Perfil</h2>
+        <input type="text" id="nomePerfil" placeholder="Digite o nome">
+        <br>
+        <button onclick="avancarParaAvatar()">Continuar</button>
+    </div>
+
+    <!-- 🎭 Tela: Escolher avatar -->
+    <div id="tela-escolha-avatar">
+        <button class="voltar" onclick="voltarParaFormulario()">← Voltar</button>
+        <h2>Escolha sua imagem</h2>
+
+        <!-- 🟦 Masculino - 13 opções -->
+        <div class="categoria">
+            <h3>Masculino</h3>
+            <div class="grid-avatares">
+                <img class="avatar-opcao" src="masc01.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc02.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc03.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc04.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc05.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc06.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc07.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc08.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc09.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc10.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc11.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc12.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="masc13.jpg" onclick="selecionarAvatar(this.src)">
+            </div>
         </div>
-        <div class="secao">
-            <h2>▶ CONTINUAR ASSISTINDO</h2>
-            <div id="lista-continuar"></div>
-        </div>
-        <div class="secao">
-            <h2>📺 ANIMES / SÉRIES</h2>
-            <div id="lista"></div>
+
+        <!-- 🟥 Feminino - 13 opções -->
+        <div class="categoria">
+            <h3>Feminino</h3>
+            <div class="grid-avatares">
+                <img class="avatar-opcao" src="femin01.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin02.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin03.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin04.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin05.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin06.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin07.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin08.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin09.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin10.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin11.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin12.jpg" onclick="selecionarAvatar(this.src)">
+                <img class="avatar-opcao" src="femin13.jpg" onclick="selecionarAvatar(this.src)">
+            </div>
         </div>
     </div>
-    <div id="infobar">
-        <div id="barra-progresso" onclick="buscarNoVideo(event)">
-            <div id="progresso-atual"></div>
+
+    <!-- 🖼️ Tela: Escolher fundo -->
+    <div id="tela-escolha-fundo">
+        <button class="voltar" onclick="voltarParaAvatar()">← Voltar</button>
+        <h2>Escolha o fundo da tela</h2>
+        <div class="categoria">
+            <h3>Opções de fundo</h3>
+            <div class="grid-fundos">
+                <img class="fundo-opcao" src="fund01.jpg" onclick="selecionarFundo(this.src)">
+                <img class="fundo-opcao" src="fund02.jpg" onclick="selecionarFundo(this.src)">
+                <img class="fundo-opcao" src="fund03.jpg" onclick="selecionarFundo(this.src)">
+                <img class="fundo-opcao" src="fund04.jpg" onclick="selecionarFundo(this.src)">
+                <img class="fundo-opcao" src="fund05.jpg" onclick="selecionarFundo(this.src)">
+            </div>
         </div>
-        <span id="tempo">00:00 / 00:00</span>
-        <div id="aviso-prox-container" style="display: none;">
-            <p>PRÓXIMO EPISÓDIO EM <span id="contador">10</span>s</p>
-            <button id="btn-pular" onclick="pularEpisodio()">⏭ PULAR AGORA</button>
-            <button id="btn-cancelar" onclick="cancelarPulo()">❌ CANCELAR</button>
+    </div>
+
+    <!-- 🌀 Tela: Carregamento -->
+    <div id="tela-carregando">
+        <img id="avatar-carregando" src="" alt="">
+        <h2 id="mensagem-carregando"></h2>
+        <div class="bolinhas">
+            <div class="bolinha"></div>
+            <div class="bolinha"></div>
+            <div class="bolinha"></div>
+        </div>
+    </div>
+
+    <!-- 🏠 Tela: Início -->
+    <div id="tela-home">
+        <div class="cabecalho">
+            <div class="info-usuario">
+                <img id="avatar-usuario" src="" alt="">
+                <h2>BEM-VINDO(A), <span id="nome-usuario"></span>!</h2>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button onclick="abrirPlayer()" style="background: #f47521; padding: 9px 18px;">📺 ABRIR TV NOSTALGIA</button>
+                <button onclick="voltarParaPerfis()" style="background: #333; padding: 9px 18px;">Trocar Perfil</button>
+            </div>
+        </div>
+        <div class="conteudo-home">
+            <h3 style="font-size: 28px; margin-bottom: 25px;">Bem-vindo à sua Sessão Nostalgia!</h3>
+            <p>Todos os seus conteúdos favoritos, organizados e prontos para assistir.</p>
+        </div>
+    </div>
+
+    <!-- 🎬 Tela: Player de Vídeo -->
+    <div id="tela-player">
+        <video id="video"></video>
+        <div id="menu">
+            <div id="barra-busca">
+                <input type="text" id="campo-procura" placeholder="🔍 DIGITE O NOME..." oninput="filtrarSeries()" onclick="mostrarTeclado()">
+                <div id="teclado-virtual"></div>
+            </div>
+            <div class="secao">
+                <h2>▶ CONTINUAR ASSISTINDO</h2>
+                <div id="lista-continuar"></div>
+            </div>
+            <div class="secao">
+                <h2>📺 ANIMES / SÉRIES / DESENHOS</h2>
+                <div id="lista"></div>
+            </div>
+            <button class="voltar" onclick="fecharPlayer()" style="margin-top: 20px;">⬅ VOLTAR AO MENU</button>
+        </div>
+        <div id="infobar">
+            <div id="barra-progresso" onclick="buscarNoVideo(event)">
+                <div id="progresso-atual"></div>
+            </div>
+            <span id="tempo">00:00 / 00:00</span>
+            <div id="aviso-prox-container" style="display: none;">
+                <p>PRÓXIMO EPISÓDIO EM <span id="contador">10</span>s</p>
+                <button id="btn-pular" onclick="pularEpisodio()">⏭ PULAR AGORA</button>
+                <button id="btn-cancelar" onclick="cancelarPulo()">❌ CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ========== LÓGICA DE PERFIS ==========
+        let perfis = JSON.parse(localStorage.getItem('perfis')) || [];
+        let indiceEdicao = null;
+        let nomeTemp = "";
+        let avatarTemp = "";
+        let fundoTemp = "";
+
+        function salvarPerfis() {
+            localStorage.setItem('perfis', JSON.stringify(perfis));
+            carregarListaPerfis();
+        }
+
+        function carregarListaPerfis() {
+            const container = document.getElementById('listaPerfis');
+            container.innerHTML = "";
+
+            perfis.forEach((perfil, i) => {
+                const div = document.createElement('div');
+                div.className = 'perfil-item';
+                div.onclick = () => entrarPerfil(i);
+                div.innerHTML = `
+                    <button class="btn-editar" onclick="editarPerfil(${i}, event)">✎</button>
+                    <img src="${perfil.avatar}" alt="">
+                    <p>${perfil.nome}</p>
+                `;
+                container.appendChild(div);
+            });
+
+            if (perfis.length < 4) {
+                const divNovo = document.createElement('div');
+                divNovo.className = 'perfil-item perfil-vazio';
+                divNovo.onclick = () => abrirFormulario();
+                divNovo.innerHTML = `<span>+</span><p>Novo Perfil</p>`;
+                container.appendChild(divNovo);
+            }
+        }
+
+        function abrirFormulario(indice = null) {
+            indiceEdicao = indice;
+            document.getElementById('tituloForm').textContent = indice !== null ? "Editar Perfil" : "Novo Perfil";
+            document.getElementById('nomePerfil').value = indice !== null ? perfis[indice].nome : "";
+            document.getElementById('tela-perfis').style.display = "none";
+            document.getElementById('tela-formulario').style.display = "block";
+        }
+
+        function avancarParaAvatar() {
+            nomeTemp = document.getElementById('nomePerfil').value.trim();
+            if (!nomeTemp) return alert("Digite um nome válido!");
+            document.getElementById('tela-formulario').style.display = "none";
+            document.getElementById('tela-escolha-avatar').style.display = "block";
+            document.querySelectorAll('.avatar-opcao').forEach(img => img.classList.remove('selecionado'));
+        }
+
+        function selecionarAvatar(caminho) {
+            document.querySelectorAll('.avatar-opcao').forEach(img => img.classList.remove('selecionado'));
+            event.currentTarget.classList.add('selecionado');
+            avatarTemp = caminho;
+            document.getElementById('tela-escolha-avatar').style.display = "none";
+            document.getElementById('tela-escolha-fundo').style.display = "block";
+            document.querySelectorAll('.fundo-opcao').forEach(img => img.classList.remove('selecionado'));
+        }
+
+        function selecionarFundo(caminho) {
+            document.querySelectorAll('.fundo-opcao').forEach(img => img.classList.remove('selecionado'));
+            event.currentTarget.classList.add('selecionado');
+            fundoTemp = caminho;
+
+            if (indiceEdicao !== null) {
+                perfis[indiceEdicao] = { nome: nomeTemp, avatar: avatarTemp, fundo: fundoTemp };
+            } else {
+                perfis.push({ nome: nomeTemp, avatar: avatarTemp, fundo: fundoTemp });
+            }
+
+            salvarPerfis();
+            iniciarCarregamento(nomeTemp, avatarTemp, fundoTemp);
+        }
+
+        function entrarPerfil(indice) {
+            const p = perfis[indice];
+            iniciarCarregamento(p.nome, p.avatar, p.fundo || 'fund01.jpg');
+        }
+
+        function editarPerfil(indice, e) {
+            e.stopPropagation();
+            abrirFormulario(indice);
+        }
+
+        function iniciarCarregamento(nome, avatar, fundo) {
+            document.body.style.background = `linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('${fundo}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+
+            document.getElementById('tela-carregando').style.background = `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${fundo}')`;
+            document.getElementById('avatar-carregando').src = avatar;
+            document.getElementById('mensagem-carregando').textContent = `BEM-VINDO(A), ${nome}!`;
+
+            const tela = document.getElementById('tela-carregando');
+            tela.style.opacity = "1";
+            tela.style.pointerEvents = "auto";
+
+            setTimeout(() => {
+                document.getElementById('nome-usuario').textContent = nome;
+                document.getElementById('avatar-usuario').src = avatar;
+                tela.style.opacity = "0";
+                tela.style.pointerEvents = "none";
+                document.getElementById('tela-escolha-fundo').style.display = "none";
+                document.getElementById('tela-perfis').style.display = "none";
+                document.getElementById('tela-home').style.display = "block";
+            }, 1800);
+        }
+
+        function voltarParaPerfis() {
+            document.getElementById('tela-formulario').style.display = "none";
+            document.getElementById('tela-escolha-avatar').style.display = "none";
+            document.getElementById('tela-escolha-fundo').style.display = "none";
+            document.getElementById('tela-home').style.display = "none";
+            document.getElementById('tela-perfis').style.display = "flex";
+            document.body.style.background = `linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('fund01.jpg')`;
+            indiceEdicao = null;
+            nomeTemp = "";
+            avatarTemp = "";
+            fundoTemp = "";
+        }
+
+        function voltarParaFormulario() {
+            document.getElementById('tela-escolha-avatar').style.display = "none";
+            document.getElementById('tela-formulario').style.display = "block";
+        }
+
+        function voltarParaAvatar() {
+            document.getElementById('tela-escolha-fundo').style.display = "none";
+            document.getElementById('tela-escolha-avatar').style.display = "block";
+        }
+
+        // ========== LÓGICA DO PLAYER ==========
         let series = [];
         const video = document.getElementById('video');
         const lista = document.getElementById('lista');
@@ -69,23 +613,11 @@
         const infobar = document.getElementById('infobar');
         let hls = null, serieAtual = null, tempAtual = null, paginaEpisodio = 0, timerPulo = null, episodioAtual = 0;
 
-        // ✅ JSON CORRIGIDO (sem erro de sintaxe)
+        // ✅ SUA LISTA DE CONTEÚDOS COM LINKS DO GITHUB
         const JSON_SERIES = [
-            {"nome":"Tintim","img":"https://static.wikia.nocookie.net/dublagem/images/6/63/Tintim.jpg/revision/latest?cb=20240623151337&path-prefix=pt-br","temporadas":[{"n":1,"pasta":"a/as-aventuras-de-tintim-dublado","total":39}]},
-            {"nome":"Yomi no Tsugai","img":"https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=1200,height=675/catalog/crunchyroll/cf01037046bf9885e1ddbc3c1753610e.png","temporadas":[{"n":1,"pasta":"y/yomi-no-tsugai","total":12}]},
-            {"nome":"Invencivel","img":"https://i.ytimg.com/vi/Xg8aWV14vSs/maxresdefault.jpg","temporadas":[{"n":1,"pasta":"i/invencivel-4-dublado","total":8}]},
-            {"nome":"Pantera","img":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKlP0fX0wkJMcFT5d2lKmz8j0iBPgHq7wIwBlLfBQbCA&s=10","temporadas":[{"n":1,"pasta":"a/a-pantera-cor-de-rosa","total":129}]},
-            {"nome":"One Piece","img":"https://m.media-amazon.com/images/M/MV5BMTNjNGU4NTUtYmVjMy00YjRiLTkxMWUtNzZkMDNiYjZhNmViXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"o/one-piece","total":1167,"start":1003}]},
-            {"nome":"Bungou Stray Dogs","img":"https://a.storyblok.com/f/178900/800x1130/4e261b5e56/4bfe95125aa26d6e09f76bee218eda301680100266_main.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"b/bungou-stray-dogs-3-dublado","total":12},{"n":4,"pasta":"b/bungou-stray-dogs-4-dublado","total":13},{"n":5,"pasta":"b/bungou-stray-dogs-5-dublado","total":11}]},
-            {"nome":"Dr. Stone","img":"https://media.fstatic.com/pAyamOs1LKoA1EdOtDqTeby9Y-c=/350x525/smart/filters:format(webp)/media/movies/covers/2025/12/154514l.jpg","temporadas":[{"n":"4 - Parte 3","pasta":"d/dr-stone-science-future-3-dublado","total":12}]},
-            {"nome":"Fairy Tail","img":"https://m.media-amazon.com/images/M/MV5BODlhNTQ3ZDgtMDJlMC00YzdmLWE3ZTMtOWNmMTZkN2I2MzI5XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"f/fairy-tail-dublado","total":72}]},
-            {"nome":"Jujutsu Kaisen","img":"https://a.storyblok.com/f/178900/1003x1504/9047535fee/jujutsu-kaisen-season-3-teaser-visual-en.jpg/m/filters:quality(95)format(webp)","temporadas":[{"n":3,"pasta":"j/jujutsu-kaisen-3-dublado","total":12}]},
-            {"nome":"Samurai Champloo","img":"https://animesdigital.org/wp-content/uploads/2024/08/assistir-samurai-champloo-dublado-dublado-todos-os-episodios-online-animes-online-213x300.jpg","temporadas":[{"n":1,"pasta":"animes/samurai-champloo-dublado","total":26}]},
-            {"nome":"Street Fighter II V","img":"https://animesdigital.org/wp-content/uploads/2024/12/assistir-street-fighter-2-victory-dublado-dublado-todos-os-episodios-online-animes-online-220x300.jpg","temporadas":[{"n":1,"pasta":"s/street-fighter-2-v-dublado","total":29,"start":20}]},
-            {"nome":"Tate no Yuusha (Shield Hero)","img":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtOgGo8THMQl2SY-dxEg__274r5d_t-KZ8l0jBNJr4DQ&s=10","temporadas":[{"n":2,"pasta":"t/tate-no-yuusha-no-nariagari-season-2-dublado","total":13},{"n":3,"pasta":"t/tate-no-yuusha-no-nariagari-season-3-dublado","total":12},{"n":4,"pasta":"t/tate-no-yuusha-no-nariagari-season-4-dublado","total":12}]},
-            {"nome":"Wind Breaker","img":"https://br.web.img3.acsta.net/pictures/24/03/14/09/50/4097731.jpg","temporadas":[{"n":1,"pasta":"w/wind-breaker-dublado","total":13,"start":9},{"n":2,"pasta":"w/wind-breaker-2-dublado","total":12}]},
-            {"nome":"Yu Yu Hakusho","img":"https://m.media-amazon.com/images/M/MV5BNWJmODlhODItZTZmYi00ZGNjLTk1NmYtMjE5M2IwYjI2MzI2XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg","temporadas":[{"n":1,"pasta":"y/yu-yu-hakusho-dublado","total":112,"start":3}]},
-            {"nome":"Sentenced to Be a Hero","img":"https://media.fstatic.com/DLGo6ksThichUN6tqO9AhcEhjPg=/350x525/smart/filters:format(webp)/media/movies/covers/2025/09/G0LOifUWkAACsHj.jfif","temporadas":[{"n":1,"pasta":"y/yuusha-kei-ni-shosu-choubatsu-yuusha-9004-dublado","total":12}]}
+            {"nome":"📢 Anúncios","img":"https://via.placeholder.com/250?text=Anúncios","temporadas":[{"n":1,"pasta":"anuncios","total":1}]},
+            {"nome":"🤠 Pica-Pau","img":"https://via.placeholder.com/250?text=Pica-Pau","temporadas":[{"n":1,"pasta":"pica-pau","total":1}]},
+            {"nome":"💪 Popeye","img":"https://via.placeholder.com/250?text=Popeye","temporadas":[{"n":1,"pasta":"popeye","total":1}]}
         ];
 
         async function carregarSeries() {
@@ -93,6 +625,19 @@
             series.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
             renderizarMenu();
             renderizarContinuarAssistindo();
+        }
+
+        function abrirPlayer() {
+            document.getElementById('tela-home').style.display = 'none';
+            document.getElementById('tela-player').style.display = 'block';
+            carregarSeries();
+        }
+
+        function fecharPlayer() {
+            if (hls) { hls.destroy(); hls = null; }
+            video.pause();
+            document.getElementById('tela-player').style.display = 'none';
+            document.getElementById('tela-home').style.display = 'block';
         }
 
         function voltarParaMenu() {
@@ -128,7 +673,8 @@
             const inicio = paginaEpisodio * 6; const fim = Math.min(inicio + 6, temp.total); const numeroInicial = temp.start || 1;
             for (let i = inicio; i < fim; i++) {
                 const numeroEp = numeroInicial + i; const epFormatado = String(numeroEp).padStart(2, '0');
-                const url = `https://cdn-s01.mywallpaper-4k-image.net/stream/${temp.pasta}/${epFormatado}.mp4/index.m3u8`;
+                // 🔗 LINK DO SEU GITHUB
+                const url = `https://raw.githubusercontent.com/felipekoch24/TV_NOSTALGIA/main/${temp.pasta}/index.m3u8`;
                 const btn = document.createElement('button'); btn.innerHTML = `<img src="${serie.img}" alt="Episódio ${numeroEp}"><span>Episódio ${numeroEp}</span>`;
                 btn.onclick = () => tocarVideo(url, numeroEp, 0); lista.appendChild(btn);
             }
@@ -137,7 +683,6 @@
             btnVoltar.focus();
         }
 
-        // ✅ CABEÇALHOS FORTES: imita o site original
         function tocarVideo(url, numeroEp, tempoInicio = 0) {
             if (!url) return; episodioAtual = numeroEp; menu.style.display = 'none'; infobar.style.display = 'none';
             if (hls) { hls.destroy(); hls = null; }
@@ -146,21 +691,8 @@
                 hls = new Hls({
                     enableWorker: true, lowLatencyMode: false,
                     backBufferLength: 300, maxBufferLength: 150, maxMaxBufferLength: 3000, maxBufferSize: 300 * 1024 * 1024,
-                    // 🔒 CABEÇALHOS DO SITE QUE FUNCIONA
-                    xhrSetup: function(xhr) {
-                        xhr.withCredentials = false;
-                        xhr.setRequestHeader('Origin', 'https://animesonlinecc.to');
-                        xhr.setRequestHeader('Referer', 'https://animesonlinecc.to/');
-                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36');
-                        xhr.setRequestHeader('Accept', '*/*');
-                        xhr.setRequestHeader('Accept-Language', 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7');
-                        xhr.setRequestHeader('Sec-Fetch-Site', 'cross-site');
-                        xhr.setRequestHeader('Sec-Fetch-Mode', 'cors');
-                        xhr.setRequestHeader('Sec-Fetch-Dest', 'video');
-                    },
-                    manifestLoadingTimeOut: 60000, manifestLoadingMaxRetry: 20, manifestLoadingRetryDelay: 1500,
-                    levelLoadingTimeOut: 60000, levelLoadingMaxRetry: 20, levelLoadingRetryDelay: 1500,
-                    fragLoadingTimeOut: 60000, fragLoadingMaxRetry: 30, fragLoadingRetryDelay: 1500
+                    manifestLoadingTimeOut: 30000, manifestLoadingMaxRetry: 10,
+                    fragLoadingTimeOut: 20000, fragLoadingMaxRetry: 15
                 });
 
                 hls.loadSource(url); hls.attachMedia(video);
@@ -171,10 +703,9 @@
 
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        console.log("Tentando reconectar...", data.details);
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) setTimeout(() => hls.startLoad(), 1800);
-                        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-                        else tentarReproduzirNativo(url, tempoInicio);
+                        console.log("Erro, tentando novamente...", data.details);
+                        hls.destroy();
+                        setTimeout(() => tocarVideo(url, numeroEp, tempoInicio), 2000);
                     }
                 });
 
@@ -214,7 +745,7 @@
         function formatarTempo(seg) { if (!isFinite(seg)) return "00:00"; const m = Math.floor(seg / 60); const s = Math.floor(seg % 60); return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
         function buscarNoVideo(e) { if (!video.duration) return; video.currentTime = (e.offsetX / e.target.offsetWidth) * video.duration; }
         function iniciarContadorProximo() { segundosRestantes = 10; document.getElementById('contador').innerText = segundosRestantes; document.getElementById('aviso-prox-container').style.display = 'block'; infobar.style.display = 'block'; timerPulo = setInterval(() => { segundosRestantes--; document.getElementById('contador').innerText = segundosRestantes; if (segundosRestantes <= 0) pularEpisodio(); }, 1000); }
-        function pularEpisodio() { cancelarPulo(); const prox = episodioAtual + 1; const ep = String(prox).padStart(2, '0'); const novaUrl = `https://cdn-s01.mywallpaper-4k-image.net/stream/${tempAtual.pasta}/${ep}.mp4/index.m3u8`; tocarVideo(novaUrl, prox, 0); }
+        function pularEpisodio() { cancelarPulo(); const prox = episodioAtual + 1; const ep = String(prox).padStart(2, '0'); const novaUrl = `https://raw.githubusercontent.com/felipekoch24/TV_NOSTALGIA/main/${tempAtual.pasta}/index.m3u8`; tocarVideo(novaUrl, prox, 0); }
         function cancelarPulo() { clearInterval(timerPulo); timerPulo = null; document.getElementById('aviso-prox-container').style.display = 'none'; }
 
         function renderizarContinuarAssistindo() {
@@ -247,28 +778,31 @@
         function mostrarTeclado() { document.getElementById('teclado-virtual').style.display = 'grid'; }
 
         document.addEventListener('keydown', e => {
-            const bContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
-            const bGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
-            const todos = [...bContinuar, ...bGerais]; const idx = todos.indexOf(document.activeElement); const col = window.innerWidth > 800 ? 4 : 2;
-            if (menu.style.display !== 'none') {
-                if (e.keyCode === 39 && idx < todos.length - 1) { e.preventDefault(); todos[idx + 1].focus(); }
-                if (e.keyCode === 37 && idx > 0) { e.preventDefault(); todos[idx - 1].focus(); }
-                if (e.keyCode === 40 && idx + col < todos.length) { e.preventDefault(); todos[idx + col].focus(); }
-                if (e.keyCode === 38 && idx - col >= 0) { e.preventDefault(); todos[idx - col].focus(); }
-                if (e.keyCode === 13) { e.preventDefault(); document.activeElement.click(); }
-                if (e.keyCode === 8) { e.preventDefault(); paginaEpisodio > 0 ? mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1) : tempAtual ? renderizarTemporadas(serieAtual) : voltarParaMenu(); }
-            } else {
-                const aviso = document.getElementById('aviso-prox-container').style.display === 'block';
-                if (aviso) { if (e.keyCode === 38) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? document.getElementById('btn-cancelar').focus() : document.getElementById('btn-pular').focus(); } if (e.keyCode === 13) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? pularEpisodio() : cancelarPulo(); } }
-                else { if (e.keyCode === 13) { e.preventDefault(); video.paused ? (video.play(), infobar.style.display = 'none') : (video.pause(), infobar.style.display = 'block'); } }
-                if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
-                if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
-                if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
-                if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
+            if (document.getElementById('tela-player').style.display === 'block') {
+                const bContinuar = Array.from(listaContinuar.querySelectorAll('button:not([style*="display: none"])'));
+                const bGerais = Array.from(lista.querySelectorAll('button:not([style*="display: none"])'));
+                const todos = [...bContinuar, ...bGerais]; const idx = todos.indexOf(document.activeElement); const col = window.innerWidth > 800 ? 4 : 2;
+                if (menu.style.display !== 'none') {
+                    if (e.keyCode === 39 && idx < todos.length - 1) { e.preventDefault(); todos[idx + 1].focus(); }
+                    if (e.keyCode === 37 && idx > 0) { e.preventDefault(); todos[idx - 1].focus(); }
+                    if (e.keyCode === 40 && idx + col < todos.length) { e.preventDefault(); todos[idx + col].focus(); }
+                    if (e.keyCode === 38 && idx - col >= 0) { e.preventDefault(); todos[idx - col].focus(); }
+                    if (e.keyCode === 13) { e.preventDefault(); document.activeElement.click(); }
+                    if (e.keyCode === 8) { e.preventDefault(); paginaEpisodio > 0 ? mostrarEpisodios(tempAtual, serieAtual, paginaEpisodio - 1) : tempAtual ? renderizarTemporadas(serieAtual) : fecharPlayer(); }
+                } else {
+                    const aviso = document.getElementById('aviso-prox-container').style.display === 'block';
+                    if (aviso) { if (e.keyCode === 38) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? document.getElementById('btn-cancelar').focus() : document.getElementById('btn-pular').focus(); } if (e.keyCode === 13) { e.preventDefault(); document.activeElement === document.getElementById('btn-pular') ? pularEpisodio() : cancelarPulo(); } }
+                    else { if (e.keyCode === 13) { e.preventDefault(); video.paused ? (video.play(), infobar.style.display = 'none') : (video.pause(), infobar.style.display = 'block'); } }
+                    if (e.keyCode === 40) { e.preventDefault(); voltarParaMenu(); }
+                    if (e.keyCode === 37) { e.preventDefault(); video.currentTime -= 10; }
+                    if (e.keyCode === 39) { e.preventDefault(); video.currentTime += 10; }
+                    if (e.keyCode === 8) { e.preventDefault(); voltarParaMenu(); }
+                }
             }
         });
 
-        window.onload = () => { criarTeclado(); carregarSeries(); };
+        window.onload = () => { criarTeclado(); carregarListaPerfis(); };
     </script>
+
 </body>
 </html>
