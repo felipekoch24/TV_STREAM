@@ -53,8 +53,9 @@
             outline: none;
         }
 
+        /* Destaque de foco — funciona para setas e mouse */
         .focado {
-            border: 4px solid #0099ff;
+            border: 4px solid #0099ff !important;
             box-shadow: 0 0 20px #0099ff;
             transform: scale(1.05);
             transition: all 0.2s ease;
@@ -77,6 +78,7 @@
             width: 220px;
             cursor: pointer;
             outline: none;
+            border: 3px solid transparent;
         }
 
         .perfil-item img {
@@ -85,7 +87,7 @@
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 15px;
-            border: 3px solid transparent;
+            border: none;
         }
 
         .perfil-item p {
@@ -162,61 +164,62 @@
     <h2>Quem está assistindo?</h2>
     <div class="lista-perfis" id="listaPerfis"></div>
     <div style="text-align: center; margin-top: 40px;">
-        <button class="botao" id="btnNovoPerfil">+ Novo Perfil</button>
+        <button class="botao" id="btnNovoPerfil" tabindex="0">+ Novo Perfil</button>
     </div>
 </div>
 
 <!-- 📝 Digitar Nome do Perfil -->
 <div id="tela-nome" class="tela">
-    <button class="voltar" id="voltarNome">← Voltar</button>
+    <button class="voltar" id="voltarNome" tabindex="0">← Voltar</button>
     <h2>Criar Novo Perfil</h2>
     <div class="form-container">
         <label style="font-size: 28px;">Digite seu nome:</label>
-        <input type="text" id="inputNome" placeholder="Ex: Felipe" autofocus>
-        <button class="botao" id="btnEscolherAvatar" style="width:100%; margin-top:20px;">Escolher Imagem</button>
+        <input type="text" id="inputNome" placeholder="Ex: Felipe" tabindex="0">
+        <br>
+        <button class="botao" id="btnEscolherAvatar" tabindex="0" style="width:100%; margin-top:20px;">Escolher Imagem</button>
     </div>
 </div>
 
 <!-- 🎭 Escolher Imagem de Perfil -->
 <div id="tela-avatar" class="tela">
-    <button class="voltar" id="voltarAvatar">← Voltar</button>
+    <button class="voltar" id="voltarAvatar" tabindex="0">← Voltar</button>
     <h2>Escolha sua Imagem</h2>
 
     <div class="categoria">
         <h3>Masculino</h3>
         <div class="grade-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" tabindex="0">
         </div>
     </div>
 
     <div class="categoria">
         <h3>Feminino</h3>
         <div class="grade-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg" tabindex="0">
         </div>
     </div>
 </div>
@@ -225,6 +228,9 @@
 let perfis = JSON.parse(localStorage.getItem('perfisTVSTREAM')) || [];
 let nomeAtual = '';
 
+// --------------------
+// Funções básicas
+// --------------------
 function carregarPerfis() {
     const container = document.getElementById('listaPerfis');
     container.innerHTML = '';
@@ -232,9 +238,11 @@ function carregarPerfis() {
         const div = document.createElement('div');
         div.className = 'perfil-item';
         div.tabIndex = 0;
-        div.innerHTML = `<img src="${perfil.imagem}"><p>${perfil.nome}</p>`;
-        div.addEventListener('click', () => entrarNoPerfil(perfil.nome));
-        div.addEventListener('keydown', (e) => { if(e.key === 'Enter') entrarNoPerfil(perfil.nome); });
+        div.innerHTML = `<img src="${perfil.imagem}" alt=""><p>${perfil.nome}</p>`;
+        // Clique com mouse
+        div.onclick = () => entrarNoPerfil(perfil.nome);
+        // Enter com controle
+        div.onkeydown = (e) => { if (e.key === 'Enter') entrarNoPerfil(perfil.nome); };
         container.appendChild(div);
     });
     focarPrimeiro();
@@ -242,7 +250,8 @@ function carregarPerfis() {
 
 function entrarNoPerfil(nome) {
     alert(`✅ Entrando no perfil: ${nome}`);
-    // Aqui você vai colocar o link ou código que abre sua lista de canais/stream
+    // Troque essa linha abaixo pelo link do seu sistema principal
+    // window.location.href = "seu-link-principal.html";
 }
 
 function salvarPerfil(nome, imagem) {
@@ -255,70 +264,97 @@ function salvarPerfil(nome, imagem) {
 function trocarTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
     document.getElementById(id).classList.add('ativa');
-    setTimeout(focarPrimeiro, 100);
+    setTimeout(focarPrimeiro, 50);
 }
 
 function focarPrimeiro() {
-    const foco = document.querySelector('.ativa [tabindex="0"], .ativa button, .ativa input, .ativa .avatar-opcao');
-    if(foco) foco.focus();
+    const primeiro = document.querySelector('.ativa [tabindex="0"]');
+    if (primeiro) primeiro.focus();
 }
 
-// Navegação pelo controle remoto
+// --------------------
+// Atualiza destaque de foco
+// --------------------
+function atualizarFoco() {
+    document.querySelectorAll('.focado').forEach(el => el.classList.remove('focado'));
+    if (document.activeElement && document.activeElement.hasAttribute('tabindex')) {
+        document.activeElement.classList.add('focado');
+    }
+}
+
+// --------------------
+// Navegação por SETAS e ENTER
+// --------------------
 document.addEventListener('keydown', (e) => {
     const focado = document.activeElement;
-    if(!focado) return;
+    if (!focado || !focado.hasAttribute('tabindex')) return;
 
-    const indice = [...focado.parentElement.children].indexOf(focado);
+    const itens = Array.from(focado.parentElement.querySelectorAll('[tabindex="0"]'));
+    const idx = itens.indexOf(focado);
     const colunas = window.innerWidth > 1000 ? 5 : window.innerWidth > 700 ? 4 : 3;
 
-    switch(e.key) {
+    switch (e.key) {
         case 'ArrowRight':
-            const dir = focado.parentElement.children[indice + 1];
-            if(dir) dir.focus();
+            if (idx + 1 < itens.length) itens[idx + 1].focus();
             break;
         case 'ArrowLeft':
-            const esq = focado.parentElement.children[indice - 1];
-            if(esq) esq.focus();
+            if (idx - 1 >= 0) itens[idx - 1].focus();
             break;
         case 'ArrowDown':
-            const baixo = focado.parentElement.children[indice + colunas];
-            if(baixo) baixo.focus();
+            if (idx + colunas < itens.length) itens[idx + colunas].focus();
             break;
         case 'ArrowUp':
-            const cima = focado.parentElement.children[indice - colunas];
-            if(cima) cima.focus();
+            if (idx - colunas >= 0) itens[idx - colunas].focus();
             break;
         case 'Enter':
-            if(focado.classList.contains('avatar-opcao')) {
+            e.preventDefault();
+            if (focado.classList.contains('avatar-opcao')) {
                 salvarPerfil(nomeAtual, focado.src);
+            } else if (focado.id === 'btnNovoPerfil') {
+                trocarTela('tela-nome');
+            } else if (focado.id === 'btnEscolherAvatar') {
+                nomeAtual = document.getElementById('inputNome').value.trim();
+                if (!nomeAtual) { alert('Digite um nome!'); return; }
+                trocarTela('tela-avatar');
+            } else if (focado.classList.contains('voltar')) {
+                voltarTela();
+            } else if (focado.classList.contains('perfil-item')) {
+                entrarNoPerfil(focado.querySelector('p').textContent);
             }
             break;
         case 'Escape':
-            voltar();
+            voltarTela();
             break;
     }
     atualizarFoco();
 });
 
-function atualizarFoco() {
-    document.querySelectorAll('.focado').forEach(el => el.classList.remove('focado'));
-    if(document.activeElement) document.activeElement.classList.add('focado');
-}
+// --------------------
+// Suporte ao MOUSE
+// --------------------
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('avatar-opcao')) {
+        nomeAtual = document.getElementById('inputNome').value.trim();
+        if (nomeAtual) salvarPerfil(nomeAtual, e.target.src);
+    }
+    atualizarFoco();
+});
 
-function voltar() {
+// --------------------
+// Botões de voltar
+// --------------------
+function voltarTela() {
     const telaAtual = document.querySelector('.tela.ativa').id;
-    if(telaAtual === 'tela-nome') trocarTela('tela-inicial');
-    if(telaAtual === 'tela-avatar') trocarTela('tela-nome');
+    if (telaAtual === 'tela-nome') trocarTela('tela-inicial');
+    if (telaAtual === 'tela-avatar') trocarTela('tela-nome');
 }
 
-// Ações dos botões
-document.getElementById('btnNovoPerfil').onclick = () => trocarTela('tela-nome');
 document.getElementById('voltarNome').onclick = () => trocarTela('tela-inicial');
 document.getElementById('voltarAvatar').onclick = () => trocarTela('tela-nome');
-
+document.getElementById('btnNovoPerfil').onclick = () => trocarTela('tela-nome');
 document.getElementById('btnEscolherAvatar').onclick = () => {
     nomeAtual = document.getElementById('inputNome').value.trim();
-    if(!nomeAtual) { alert('Digite um nome válido!'); return; }
+    if (!nomeAtual) { alert('Digite um nome válido!'); return; }
     trocarTela('tela-avatar');
 };
 
