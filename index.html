@@ -156,11 +156,14 @@
         .capa-item img { width: 100%; height: 240px; object-fit: cover; display: block; }
         .capa-item p { padding: 12px; text-align: center; background: rgba(0,0,0,0.8); font-size: 16px; }
 
-        /* Player nativo */
+        /* Player nativo otimizado para m3u8 */
         .player-container { display: none; margin-top: 30px; text-align: center; }
         video {
             width: 100%; max-width: 900px; border-radius: 10px;
             background: #000; margin-bottom: 15px;
+        }
+        .aviso-reproducao {
+            margin-top: 10px; font-size: 14px; color: #ffcc00;
         }
     </style>
 </head>
@@ -250,7 +253,7 @@
         </div>
     </div>
 
-    <!-- 🏠 Tela inicial com capas -->
+    <!-- 🏠 Tela inicial com capas corrigidas -->
     <div id="tela-home">
         <div class="cabecalho">
             <div class="info-usuario">
@@ -260,13 +263,13 @@
             <button onclick="voltarParaPerfis()" style="background: #333; padding: 9px 18px;">Trocar Perfil</button>
         </div>
 
-        <!-- 🎬 CONTEÚDO COM SEUS VÍDEOS -->
+        <!-- 🎬 CONTEÚDO COM NOMES E FOTOS CORRETOS -->
         <div class="secao-conteudo">
             <h3>📺 DISPONÍVEL AGORA</h3>
             <div class="grade-capas">
                 <div class="capa-item" onclick="abrirVideo('herois')">
-                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg" alt="Herói Desconto">
-                    <p>Herói Desconto</p>
+                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg" alt="Herói de Escudo T2">
+                    <p>Herói de Escudo T2</p>
                 </div>
                 <div class="capa-item" onclick="abrirVideo('jujutsu')">
                     <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp" alt="Jujutsu Temporada 3">
@@ -284,11 +287,14 @@
         </div>
 
         <div class="player-container" id="area-player">
-            <video id="video-player" controls autoplay playsinline preload="auto">
-                Seu aparelho não suporta reprodução.
+            <video id="video-player" controls autoplay playsinline preload="metadata">
+                <source src="" type="application/x-mpegURL">
+                <source src="" type="video/mp4">
+                Seu aparelho não suporta reprodução direta.
             </video>
             <br>
             <button onclick="fecharPlayer()" style="background:#333;">Voltar</button>
+            <p class="aviso-reproducao">⚠️ Se não tocar automaticamente, clique no botão "Play" do vídeo.</p>
         </div>
     </div>
 
@@ -299,7 +305,7 @@
 
         // 👇 SEUS LINKS JÁ CONFIGURADOS 👇
         const LINKS_VIDEOS = {
-            herois: "COLOQUE_AQUI_O_LINK_DO_HEROI_DESCONTO", // Aguardando seu link
+            herois: "COLOQUE_AQUI_O_LINK_DO_HEROI_DE_ESCUDO", // Coloque o link .m3u8 ou .mp4 aqui
             jujutsu: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/jujutsu-t3/Assistir%20Jujutsu%20Kaisen%203%20T3%20Ep3.m3u8",
             street19: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/streetfighterve19/%5BAnimeFire.io%5D%20Street%20Fighter%20II%20V%20(Dublado)%20-%20Epis%C3%B3dio%2019%20(SD).m3u8",
             street20: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/streetfighterve20/%5BAnimeFire.io%5D%20Street%20Fighter%20II%20V%20(Dublado)%20-%20Epis%C3%B3dio%2020%20(SD).m3u8"
@@ -424,12 +430,25 @@
             document.getElementById('tela-escolha-avatar').style.display = "block";
         }
 
-        // 🎬 Abre vídeo ao clicar na capa
+        // 🎬 Abre vídeo com suporte correto a .m3u8
         function abrirVideo(id) {
             const video = document.getElementById('video-player');
-            video.src = LINKS_VIDEOS[id];
+            const link = LINKS_VIDEOS[id];
+            
+            if (!link || link.includes("COLOQUE_AQUI")) {
+                alert("Esse vídeo ainda não tem link configurado! Coloque o endereço no código.");
+                return;
+            }
+
+            // Define o tipo corretamente
+            const tipo = link.endsWith('.m3u8') ? 'application/x-mpegURL' : 'video/mp4';
+            video.innerHTML = `<source src="${link}" type="${tipo}">Seu aparelho não suporta reprodução.`;
+            
             video.load();
-            video.play().catch(() => alert("Clique no play para iniciar!"));
+            video.play().catch(() => {
+                alert("Clique no botão ▶ Play dentro do vídeo para iniciar!");
+            });
+            
             document.getElementById('area-player').style.display = "block";
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
@@ -437,7 +456,7 @@
         function fecharPlayer() {
             const video = document.getElementById('video-player');
             video.pause();
-            video.src = "";
+            video.innerHTML = "";
             document.getElementById('area-player').style.display = "none";
         }
 
