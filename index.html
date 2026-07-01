@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>TV STREAM - Perfis</title>
+    <title>TV STREAM</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body {
             background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
                         url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
@@ -23,42 +18,17 @@
             transition: background 0.4s ease;
         }
 
-        .tela {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            padding: 40px;
-        }
+        .tela { display: none; width: 100vw; height: 100vh; padding: 40px; }
+        .tela.ativa { display: block; }
 
-        .tela.ativa {
-            display: block;
-        }
-
-        h1, h2 {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 36px;
-        }
-
-        h3 {
-            font-size: 26px;
-            margin: 30px 0 20px;
-            text-align: center;
-            color: #ffcc00;
-        }
+        h1, h2 { text-align: center; margin-bottom: 40px; font-size: 36px; }
+        h3 { font-size: 26px; margin: 30px 0 20px; text-align: center; color: #ffcc00; }
 
         .voltar {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            padding: 15px 30px;
-            font-size: 24px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            outline: none;
+            position: absolute; top: 30px; left: 30px;
+            padding: 15px 30px; font-size: 24px;
+            background: rgba(255,255,255,0.2); border: none; border-radius: 8px;
+            color: white; cursor: pointer; outline: none;
         }
 
         .focado {
@@ -69,116 +39,91 @@
         }
 
         .lista-perfis {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-            justify-items: center;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px; max-width: 1200px; margin: 0 auto; justify-items: center;
         }
 
         .perfil-item {
-            text-align: center;
-            padding: 15px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.1);
-            width: 220px;
-            cursor: pointer;
-            outline: none;
-            border: 3px solid transparent;
+            text-align: center; padding: 15px; border-radius: 12px;
+            background: rgba(255,255,255,0.1); width: 220px;
+            cursor: pointer; outline: none; border: 3px solid transparent;
         }
 
         .perfil-item img {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 15px;
-            border: none;
+            width: 160px; height: 160px; border-radius: 50%;
+            object-fit: cover; margin-bottom: 15px; border: none;
         }
 
-        .perfil-item p {
-            font-size: 26px;
-            font-weight: bold;
-        }
+        .perfil-item p { font-size: 26px; font-weight: bold; }
 
         .botao {
-            padding: 20px 40px;
-            font-size: 28px;
-            background: #0099ff;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            outline: none;
+            padding: 20px 40px; font-size: 28px;
+            background: #0099ff; border: none; border-radius: 10px;
+            color: white; cursor: pointer; outline: none;
         }
 
         .form-container {
-            max-width: 600px;
-            margin: 80px auto;
-            background: rgba(0,0,0,0.7);
-            padding: 40px;
-            border-radius: 12px;
+            max-width: 600px; margin: 80px auto;
+            background: rgba(0,0,0,0.7); padding: 40px; border-radius: 12px;
         }
 
         input {
-            width: 100%;
-            padding: 20px;
-            font-size: 28px;
-            margin: 20px 0;
-            border: none;
-            border-radius: 8px;
-            outline: none;
+            width: 100%; padding: 20px; font-size: 28px;
+            margin: 20px 0; border: none; border-radius: 8px; outline: none;
         }
 
-        .grade-avatares {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 25px;
-            max-width: 1100px;
-            margin: 0 auto;
-            justify-items: center;
+        .grade-avatares, .grade-fundos {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 25px; max-width: 1100px; margin: 0 auto; justify-items: center;
         }
 
         .avatar-opcao {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            cursor: pointer;
-            border: 3px solid transparent;
-            outline: none;
-            background: #222;
-        }
-
-        .grade-fundos {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 25px;
-            max-width: 1100px;
-            margin: 0 auto;
-            justify-items: center;
+            width: 120px; height: 120px; border-radius: 50%;
+            object-fit: cover; cursor: pointer; border: 3px solid transparent;
+            outline: none; background: #222;
         }
 
         .fundo-opcao {
-            width: 160px;
-            height: 100px;
-            border-radius: 8px;
-            object-fit: cover;
-            cursor: pointer;
-            border: 3px solid transparent;
-            outline: none;
-            background: #222;
+            width: 160px; height: 100px; border-radius: 8px;
+            object-fit: cover; cursor: pointer; border: 3px solid transparent;
+            outline: none; background: #222;
         }
 
-        .categoria {
-            margin-bottom: 50px;
+        /* Tela Player com Capas */
+        #tela-player { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 999; }
+        #video { width: 100%; height: 100%; object-fit: contain; }
+        #menu-animes {
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            background: rgba(0,0,0,0.85); padding: 25px; border-radius: 12px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px; z-index: 100;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .anime-card {
+            background: #1a1a1a; border-radius: 10px; padding: 12px;
+            text-align: center; cursor: pointer; outline: none;
+            border: 3px solid transparent;
+            transition: transform 0.2s;
+        }
+        .anime-card img {
+            width: 100%; height: 280px; object-fit: cover;
+            border-radius: 6px; margin-bottom: 12px;
+        }
+        .anime-card h4 {
+            font-size: 18px; color: #fff;
+            line-height: 1.3;
+        }
+        .voltar-menu {
+            grid-column: 1 / -1;
+            padding: 15px; font-size: 22px;
+            background: #222; border: none; border-radius: 8px;
+            color: white; cursor: pointer; outline: none;
         }
     </style>
 </head>
 <body>
 
-<!-- 📺 Tela Principal TV STREAM -->
+<!-- 📺 Tela Inicial Perfis -->
 <div id="tela-inicial" class="tela ativa">
     <h1>TV STREAM</h1>
     <h2>Quem está assistindo?</h2>
@@ -188,7 +133,7 @@
     </div>
 </div>
 
-<!-- 📝 Digitar Nome do Perfil -->
+<!-- 📝 Nome do Perfil -->
 <div id="tela-nome" class="tela">
     <button class="voltar" id="voltarNome" tabindex="0">← Voltar</button>
     <h2>Criar Novo Perfil</h2>
@@ -200,11 +145,10 @@
     </div>
 </div>
 
-<!-- 🎭 Escolher Imagem de Perfil -->
+<!-- 🎭 Escolher Avatar -->
 <div id="tela-avatar" class="tela">
     <button class="voltar" id="voltarAvatar" tabindex="0">← Voltar</button>
-    <h2>Escolha sua Imagem de Perfil</h2>
-
+    <h2>Escolha sua Imagem</h2>
     <div class="categoria">
         <h3>Masculino</h3>
         <div class="grade-avatares">
@@ -223,7 +167,6 @@
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" tabindex="0">
         </div>
     </div>
-
     <div class="categoria">
         <h3>Feminino</h3>
         <div class="grade-avatares">
@@ -247,7 +190,7 @@
 <!-- 🖼️ Escolher Fundo -->
 <div id="tela-fundo" class="tela">
     <button class="voltar" id="voltarFundo" tabindex="0">← Voltar</button>
-    <h2>Escolha o Fundo da Tela</h2>
+    <h2>Escolha o Fundo</h2>
     <div class="categoria">
         <div class="grade-fundos">
             <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg" tabindex="0">
@@ -259,34 +202,68 @@
     </div>
 </div>
 
+<!-- 🎬 Tela Player com Capas -->
+<div id="tela-player" class="tela">
+    <video id="video" controls playsinline></video>
+    <div id="menu-animes">
+        <h2 style="grid-column: 1 / -1; margin:0 0 20px 0; text-align:center;">📺 Catálogo</h2>
+
+        <!-- Herói do Escudo -->
+        <div class="anime-card" onclick="tocarVideo('heroi')" tabindex="0">
+            <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg" alt="Herói do Escudo">
+            <h4>Herói do Escudo<br>Temporada 2</h4>
+        </div>
+
+        <!-- Jujutsu Kaisen T3 -->
+        <div class="anime-card" onclick="tocarVideo('jujutsu')" tabindex="0">
+            <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp" alt="Jujutsu Kaisen T3">
+            <h4>Jujutsu Kaisen<br>T3 - Episódio 3</h4>
+        </div>
+
+        <!-- Street Fighter II V -->
+        <div class="anime-card" onclick="tocarVideo('streetfighter')" tabindex="0">
+            <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg" alt="Street Fighter II V">
+            <h4>Street Fighter II V<br>Episódio 19</h4>
+        </div>
+
+        <button class="voltar-menu" onclick="fecharPlayer()" tabindex="0">⬅ Voltar ao Menu Principal</button>
+    </div>
+</div>
+
 <script>
 let perfis = JSON.parse(localStorage.getItem('perfisTVSTREAM')) || [];
-let nomeAtual = '';
-let avatarAtual = '';
+let nomeAtual = '', avatarAtual = '', fundoAtual = '';
+let hls = null;
+const video = document.getElementById('video');
+
+// 📋 Links corretos
+const LINKS = {
+    heroi: "", // Adicione aqui quando subir o arquivo
+    jujutsu: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/jujutsu-t3/Assistir%20Jujutsu%20Kaisen%203%20T3%20Ep3.m3u8",
+    streetfighter: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/streetfighterv/%5BAnimeFire.io%5D%20Street%20Fighter%20II%20V%20(Dublado)%20-%20Epis%C3%B3dio%2019%20(SD).m3u8"
+};
 
 // --------------------
-// Funções básicas
+// Perfis
 // --------------------
 function carregarPerfis() {
     const container = document.getElementById('listaPerfis');
     container.innerHTML = '';
-    perfis.forEach((perfil, index) => {
+    perfis.forEach(perfil => {
         const div = document.createElement('div');
         div.className = 'perfil-item';
         div.tabIndex = 0;
-        div.innerHTML = `<img src="${perfil.avatar}" alt=""><p>${perfil.nome}</p>`;
+        div.innerHTML = `<img src="${perfil.avatar}"><p>${perfil.nome}</p>`;
         div.onclick = () => entrarNoPerfil(perfil);
-        div.onkeydown = (e) => { if (e.key === 'Enter') entrarNoPerfil(perfil); };
+        div.onkeydown = e => e.key === 'Enter' && entrarNoPerfil(perfil);
         container.appendChild(div);
     });
     focarPrimeiro();
 }
 
-// ✅ Ao entrar no perfil: abre o sistema principal
 function entrarNoPerfil(perfil) {
-    alert(`✅ Entrando no perfil: ${perfil.nome}`);
-    // ⬇️ COLOQUE AQUI O LINK DO SEU SISTEMA PRINCIPAL
-    window.location.href = "seu-sistema-principal.html";
+    document.body.style.background = `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('${perfil.fundo}')`;
+    trocarTela('tela-player');
 }
 
 function salvarPerfil(nome, avatar, fundo) {
@@ -307,89 +284,94 @@ function focarPrimeiro() {
     if (primeiro) primeiro.focus();
 }
 
-// --------------------
-// Destaque de foco
-// --------------------
 function atualizarFoco() {
     document.querySelectorAll('.focado').forEach(el => el.classList.remove('focado'));
-    if (document.activeElement && document.activeElement.hasAttribute('tabindex')) {
-        document.activeElement.classList.add('focado');
-    }
+    if (document.activeElement?.hasAttribute('tabindex')) document.activeElement.classList.add('focado');
 }
 
 // --------------------
-// Navegação por SETAS e ENTER
+// Player de Vídeo
 // --------------------
-document.addEventListener('keydown', (e) => {
-    const focado = document.activeElement;
-    if (!focado || !focado.hasAttribute('tabindex')) return;
+function tocarVideo(tipo) {
+    const url = LINKS[tipo];
+    if (!url) return alert('Arquivo ainda não disponível — adicione o episódio primeiro!');
 
+    if (hls) { hls.destroy(); hls = null; }
+
+    if (Hls.isSupported()) {
+        hls = new Hls({
+            enableWorker: true,
+            manifestLoadingMaxRetry: 15,
+            fragLoadingMaxRetry: 25,
+            maxBufferSize: 200 * 1024 * 1024
+        });
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(e => console.log("Autoplay:", e)));
+        hls.on(Hls.Events.ERROR, (_, d) => d.fatal && setTimeout(() => hls?.startLoad(), 1500));
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.play().catch(e => console.log("Reprodução:", e));
+    } else {
+        alert('Formato não suportado no seu dispositivo!');
+    }
+}
+
+function fecharPlayer() {
+    if (hls) { hls.destroy(); hls = null; }
+    video.pause(); video.src = "";
+    trocarTela('tela-inicial');
+}
+
+// --------------------
+// Navegação Setas + Mouse
+// --------------------
+document.addEventListener('keydown', e => {
+    const focado = document.activeElement;
+    if (!focado?.hasAttribute('tabindex')) return;
     const itens = Array.from(focado.parentElement.querySelectorAll('[tabindex="0"]'));
     const idx = itens.indexOf(focado);
     const colunas = window.innerWidth > 1000 ? 5 : window.innerWidth > 700 ? 4 : 3;
 
     switch (e.key) {
-        case 'ArrowRight':
-            if (idx + 1 < itens.length) itens[idx + 1].focus();
-            break;
-        case 'ArrowLeft':
-            if (idx - 1 >= 0) itens[idx - 1].focus();
-            break;
-        case 'ArrowDown':
-            if (idx + colunas < itens.length) itens[idx + colunas].focus();
-            break;
-        case 'ArrowUp':
-            if (idx - colunas >= 0) itens[idx - colunas].focus();
-            break;
+        case 'ArrowRight': if (idx + 1 < itens.length) itens[idx + 1].focus(); break;
+        case 'ArrowLeft': if (idx - 1 >= 0) itens[idx - 1].focus(); break;
+        case 'ArrowDown': if (idx + colunas < itens.length) itens[idx + colunas].focus(); break;
+        case 'ArrowUp': if (idx - colunas >= 0) itens[idx - colunas].focus(); break;
         case 'Enter':
             e.preventDefault();
-            if (focado.classList.contains('avatar-opcao')) {
-                avatarAtual = focado.src;
-                trocarTela('tela-fundo');
-            } else if (focado.classList.contains('fundo-opcao')) {
-                salvarPerfil(nomeAtual, avatarAtual, focado.src);
-            } else if (focado.id === 'btnNovoPerfil') {
-                trocarTela('tela-nome');
-            } else if (focado.id === 'btnEscolherAvatar') {
+            if (focado.classList.contains('avatar-opcao')) { avatarAtual = focado.src; trocarTela('tela-fundo'); }
+            else if (focado.classList.contains('fundo-opcao')) { salvarPerfil(nomeAtual, avatarAtual, focado.src); }
+            else if (focado.id === 'btnNovoPerfil') { trocarTela('tela-nome'); }
+            else if (focado.id === 'btnEscolherAvatar') {
                 nomeAtual = document.getElementById('inputNome').value.trim();
-                if (!nomeAtual) { alert('Digite um nome válido!'); return; }
+                if (!nomeAtual) return alert('Digite um nome!');
                 trocarTela('tela-avatar');
-            } else if (focado.classList.contains('voltar')) {
-                voltarTela();
-            } else if (focado.classList.contains('perfil-item')) {
-                const perfil = perfis.find(p => p.nome === focado.querySelector('p').textContent);
-                if (perfil) entrarNoPerfil(perfil);
             }
+            else if (focado.classList.contains('voltar') || focado.classList.contains('voltar-menu')) voltarTela();
+            else if (focado.classList.contains('perfil-item')) {
+                const p = perfis.find(x => x.nome === focado.querySelector('p').textContent);
+                if (p) entrarNoPerfil(p);
+            }
+            else if (focado.classList.contains('anime-card')) focado.click();
             break;
-        case 'Escape':
-            voltarTela();
-            break;
+        case 'Escape': voltarTela(); break;
     }
     atualizarFoco();
 });
 
-// --------------------
-// Suporte ao MOUSE
-// --------------------
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('avatar-opcao')) {
-        avatarAtual = e.target.src;
-        trocarTela('tela-fundo');
-    }
-    if (e.target.classList.contains('fundo-opcao')) {
-        if (nomeAtual && avatarAtual) salvarPerfil(nomeAtual, avatarAtual, e.target.src);
-    }
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('avatar-opcao')) { avatarAtual = e.target.src; trocarTela('tela-fundo'); }
+    if (e.target.classList.contains('fundo-opcao') && nomeAtual && avatarAtual) salvarPerfil(nomeAtual, avatarAtual, e.target.src);
     atualizarFoco();
 });
 
-// --------------------
-// Botões de voltar
-// --------------------
 function voltarTela() {
-    const telaAtual = document.querySelector('.tela.ativa').id;
-    if (telaAtual === 'tela-nome') trocarTela('tela-inicial');
-    if (telaAtual === 'tela-avatar') trocarTela('tela-nome');
-    if (telaAtual === 'tela-fundo') trocarTela('tela-avatar');
+    const tela = document.querySelector('.tela.ativa').id;
+    if (tela === 'tela-nome') trocarTela('tela-inicial');
+    if (tela === 'tela-avatar') trocarTela('tela-nome');
+    if (tela === 'tela-fundo') trocarTela('tela-avatar');
+    if (tela === 'tela-player') fecharPlayer();
 }
 
 document.getElementById('voltarNome').onclick = () => trocarTela('tela-inicial');
@@ -398,7 +380,7 @@ document.getElementById('voltarFundo').onclick = () => trocarTela('tela-avatar')
 document.getElementById('btnNovoPerfil').onclick = () => trocarTela('tela-nome');
 document.getElementById('btnEscolherAvatar').onclick = () => {
     nomeAtual = document.getElementById('inputNome').value.trim();
-    if (!nomeAtual) { alert('Digite um nome válido!'); return; }
+    if (!nomeAtual) return alert('Digite um nome válido!');
     trocarTela('tela-avatar');
 };
 
