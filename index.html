@@ -20,6 +20,7 @@
             color: #fff;
             min-height: 100vh;
             overflow: hidden;
+            transition: background 0.4s ease;
         }
 
         .tela {
@@ -39,6 +40,13 @@
             font-size: 36px;
         }
 
+        h3 {
+            font-size: 26px;
+            margin: 30px 0 20px;
+            text-align: center;
+            color: #ffcc00;
+        }
+
         .voltar {
             position: absolute;
             top: 30px;
@@ -53,7 +61,6 @@
             outline: none;
         }
 
-        /* Destaque de foco — funciona para setas e mouse */
         .focado {
             border: 4px solid #0099ff !important;
             box-shadow: 0 0 20px #0099ff;
@@ -144,15 +151,28 @@
             background: #222;
         }
 
-        .categoria {
-            margin-bottom: 50px;
+        .grade-fundos {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px;
+            max-width: 1100px;
+            margin: 0 auto;
+            justify-items: center;
         }
 
-        .categoria h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #ddd;
+        .fundo-opcao {
+            width: 160px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 3px solid transparent;
+            outline: none;
+            background: #222;
+        }
+
+        .categoria {
+            margin-bottom: 50px;
         }
     </style>
 </head>
@@ -183,7 +203,7 @@
 <!-- 🎭 Escolher Imagem de Perfil -->
 <div id="tela-avatar" class="tela">
     <button class="voltar" id="voltarAvatar" tabindex="0">← Voltar</button>
-    <h2>Escolha sua Imagem</h2>
+    <h2>Escolha sua Imagem de Perfil</h2>
 
     <div class="categoria">
         <h3>Masculino</h3>
@@ -224,9 +244,25 @@
     </div>
 </div>
 
+<!-- 🖼️ Escolher Fundo -->
+<div id="tela-fundo" class="tela">
+    <button class="voltar" id="voltarFundo" tabindex="0">← Voltar</button>
+    <h2>Escolha o Fundo da Tela</h2>
+    <div class="categoria">
+        <div class="grade-fundos">
+            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg" tabindex="0">
+            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund02.jpg" tabindex="0">
+            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund03.jpg" tabindex="0">
+            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund04.jpg" tabindex="0">
+            <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund05.jpg" tabindex="0">
+        </div>
+    </div>
+</div>
+
 <script>
 let perfis = JSON.parse(localStorage.getItem('perfisTVSTREAM')) || [];
 let nomeAtual = '';
+let avatarAtual = '';
 
 // --------------------
 // Funções básicas
@@ -238,24 +274,23 @@ function carregarPerfis() {
         const div = document.createElement('div');
         div.className = 'perfil-item';
         div.tabIndex = 0;
-        div.innerHTML = `<img src="${perfil.imagem}" alt=""><p>${perfil.nome}</p>`;
-        // Clique com mouse
-        div.onclick = () => entrarNoPerfil(perfil.nome);
-        // Enter com controle
-        div.onkeydown = (e) => { if (e.key === 'Enter') entrarNoPerfil(perfil.nome); };
+        div.innerHTML = `<img src="${perfil.avatar}" alt=""><p>${perfil.nome}</p>`;
+        div.onclick = () => entrarNoPerfil(perfil);
+        div.onkeydown = (e) => { if (e.key === 'Enter') entrarNoPerfil(perfil); };
         container.appendChild(div);
     });
     focarPrimeiro();
 }
 
-function entrarNoPerfil(nome) {
-    alert(`✅ Entrando no perfil: ${nome}`);
-    // Troque essa linha abaixo pelo link do seu sistema principal
-    // window.location.href = "seu-link-principal.html";
+// ✅ Ao entrar no perfil: abre o sistema principal
+function entrarNoPerfil(perfil) {
+    alert(`✅ Entrando no perfil: ${perfil.nome}`);
+    // ⬇️ COLOQUE AQUI O LINK DO SEU SISTEMA PRINCIPAL
+    window.location.href = "seu-sistema-principal.html";
 }
 
-function salvarPerfil(nome, imagem) {
-    perfis.push({ nome, imagem });
+function salvarPerfil(nome, avatar, fundo) {
+    perfis.push({ nome, avatar, fundo });
     localStorage.setItem('perfisTVSTREAM', JSON.stringify(perfis));
     trocarTela('tela-inicial');
     carregarPerfis();
@@ -273,7 +308,7 @@ function focarPrimeiro() {
 }
 
 // --------------------
-// Atualiza destaque de foco
+// Destaque de foco
 // --------------------
 function atualizarFoco() {
     document.querySelectorAll('.focado').forEach(el => el.classList.remove('focado'));
@@ -309,17 +344,21 @@ document.addEventListener('keydown', (e) => {
         case 'Enter':
             e.preventDefault();
             if (focado.classList.contains('avatar-opcao')) {
-                salvarPerfil(nomeAtual, focado.src);
+                avatarAtual = focado.src;
+                trocarTela('tela-fundo');
+            } else if (focado.classList.contains('fundo-opcao')) {
+                salvarPerfil(nomeAtual, avatarAtual, focado.src);
             } else if (focado.id === 'btnNovoPerfil') {
                 trocarTela('tela-nome');
             } else if (focado.id === 'btnEscolherAvatar') {
                 nomeAtual = document.getElementById('inputNome').value.trim();
-                if (!nomeAtual) { alert('Digite um nome!'); return; }
+                if (!nomeAtual) { alert('Digite um nome válido!'); return; }
                 trocarTela('tela-avatar');
             } else if (focado.classList.contains('voltar')) {
                 voltarTela();
             } else if (focado.classList.contains('perfil-item')) {
-                entrarNoPerfil(focado.querySelector('p').textContent);
+                const perfil = perfis.find(p => p.nome === focado.querySelector('p').textContent);
+                if (perfil) entrarNoPerfil(perfil);
             }
             break;
         case 'Escape':
@@ -334,8 +373,11 @@ document.addEventListener('keydown', (e) => {
 // --------------------
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('avatar-opcao')) {
-        nomeAtual = document.getElementById('inputNome').value.trim();
-        if (nomeAtual) salvarPerfil(nomeAtual, e.target.src);
+        avatarAtual = e.target.src;
+        trocarTela('tela-fundo');
+    }
+    if (e.target.classList.contains('fundo-opcao')) {
+        if (nomeAtual && avatarAtual) salvarPerfil(nomeAtual, avatarAtual, e.target.src);
     }
     atualizarFoco();
 });
@@ -347,10 +389,12 @@ function voltarTela() {
     const telaAtual = document.querySelector('.tela.ativa').id;
     if (telaAtual === 'tela-nome') trocarTela('tela-inicial');
     if (telaAtual === 'tela-avatar') trocarTela('tela-nome');
+    if (telaAtual === 'tela-fundo') trocarTela('tela-avatar');
 }
 
 document.getElementById('voltarNome').onclick = () => trocarTela('tela-inicial');
 document.getElementById('voltarAvatar').onclick = () => trocarTela('tela-nome');
+document.getElementById('voltarFundo').onclick = () => trocarTela('tela-avatar');
 document.getElementById('btnNovoPerfil').onclick = () => trocarTela('tela-nome');
 document.getElementById('btnEscolherAvatar').onclick = () => {
     nomeAtual = document.getElementById('inputNome').value.trim();
