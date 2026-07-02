@@ -3,336 +3,587 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TV STREAM</title>
+    <title>TV STREAM - Fire Stick</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :focus { outline: 3px solid #f47521; outline-offset: 2px; }
         body { 
             color: white; 
             font-family: 'Segoe UI, Roboto, Arial', sans-serif; 
             min-height: 100vh; 
             margin: 0; 
-            overflow-x: hidden;
-            background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
+            overflow-y: auto;
+            background: linear-gradient(rgba(0,0,0,0.90), rgba(0,0,0,0.90)), url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            transition: background 0.5s ease;
+            padding: 20px;
         }
 
+        /* Telas */
+        .tela { display: none; width: 100%; min-height: 100vh; }
+        .ativa { display: block; }
+
+        /* Perfil */
         #tela-perfis {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 20px; text-align: center;
+            text-align: center;
         }
-        #tela-perfis h1 { font-size: 36px; margin-bottom: 40px; color: #fff; font-weight: 600; }
+        h1 { font-size: 38px; margin-bottom: 50px; color: #fff; font-weight: 600; }
         .lista-perfis {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 30px; width: 100%; max-width: 600px; margin-bottom: 40px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 35px; width: 100%; max-width: 700px;
         }
         .perfil-item {
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            cursor: pointer; transition: transform 0.2s; position: relative;
+            position: relative;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+            cursor: pointer; transition: transform 0.2s;
+            padding: 10px; border-radius: 12px;
         }
         .perfil-item img {
-            width: 120px; height: 120px; border-radius: 50%; border: 3px solid transparent;
-            object-fit: cover; background: rgba(255,255,255,0.08); transition: all 0.3s;
+            width: 140px; height: 140px; border-radius: 50%; border: 3px solid transparent;
+            object-fit: cover; background: rgba(255,255,255,0.08);
         }
-        .perfil-item:hover { transform: scale(1.05); }
-        .perfil-item:hover img { border-color: #f47521; box-shadow: 0 0 15px rgba(244,117,33,0.4); }
-        .perfil-item p { font-size: 18px; color: #ddd; }
+        .perfil-item:hover, .perfil-item:focus { transform: scale(1.08); }
+        .perfil-item:hover img, .perfil-item:focus img { border-color: #f47521; box-shadow: 0 0 20px rgba(244,117,33,0.5); }
+        .perfil-item p { font-size: 20px; color: #eee; }
         .btn-editar {
-            position: absolute; top: -8px; right: -8px; width: 28px; height: 28px;
+            position: absolute; top: 5px; right: 5px; width: 36px; height: 36px;
             border-radius: 50%; background: #f47521; color: white; border: none;
-            font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.2s;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            z-index: 10;
         }
-        .perfil-item:hover .btn-editar { opacity: 1; }
         .perfil-vazio {
-            border: 2px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;
-            font-size: 40px; color: rgba(255,255,255,0.4); border-radius: 50%; width: 120px; height: 120px;
+            border: 3px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;
+            font-size: 50px; color: rgba(255,255,255,0.4); border-radius: 50%; width: 140px; height: 140px;
         }
 
-        #tela-formulario, #tela-escolha-avatar, #tela-escolha-fundo {
-            display: none; width: 100%; min-height: 100vh; padding: 40px 20px;
-        }
+        /* Formulário */
         .voltar {
-            background: transparent; border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 18px; font-size: 15px; margin-bottom: 30px;
-            color: white; border-radius: 6px; cursor: pointer;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px; font-size: 18px; margin-bottom: 30px;
+            color: white; border-radius: 8px; cursor: pointer;
         }
-        .voltar:hover { background: rgba(255,255,255,0.1); }
-        h2 { font-size: 28px; margin-bottom: 25px; color: #fff; }
+        .voltar:hover, .voltar:focus { background: rgba(255,255,255,0.2); }
+        h2 { font-size: 32px; margin-bottom: 30px; color: #fff; }
         input {
-            padding: 16px; font-size: 18px; border-radius: 8px; border: none;
-            width: 90%; max-width: 350px; text-align: center;
-            background: rgba(255,255,255,0.12); color: white; margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.25); outline: none;
+            padding: 18px; font-size: 20px; border-radius: 8px; border: none;
+            width: 90%; max-width: 400px; text-align: center;
+            background: rgba(255,255,255,0.15); color: white; margin-bottom: 35px;
+            border: 2px solid transparent;
         }
-        input:focus { border-color: #f47521; box-shadow: 0 0 0 2px rgba(244,117,33,0.3); }
-        button {
-            padding: 14px 45px; background-color: #f47521; color: white; border: none;
-            cursor: pointer; font-size: 19px; border-radius: 8px; font-weight: bold;
-            transition: all 0.25s;
+        input:focus { border-color: #f47521; }
+        .btn-principal {
+            padding: 16px 50px; background-color: #f47521; color: white; border: none;
+            cursor: pointer; font-size: 22px; border-radius: 10px; font-weight: bold;
         }
-        button:hover { background-color: #e06518; transform: translateY(-2px); }
+        .btn-principal:hover, .btn-principal:focus { background-color: #e06518; transform: translateY(-2px); }
 
-        .categoria { margin-bottom: 40px; }
-        .categoria h3 { font-size: 22px; margin-bottom: 20px; color: #f47521; }
+        /* Avatares */
+        .categoria { margin-bottom: 45px; }
+        .categoria h3 { font-size: 26px; margin-bottom: 25px; color: #f47521; }
         .grid-avatares, .grid-fundos {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 20px; max-width: 850px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 25px; max-width: 900px;
         }
-        .avatar-opcao {
-            width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+        .avatar-opcao, .fundo-opcao {
+            width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
             border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
         }
-        .fundo-opcao {
-            width: 120px; height: 80px; border-radius: 8px; object-fit: cover;
-            border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .avatar-opcao:hover, .avatar-opcao.selecionado,
-        .fundo-opcao:hover, .fundo-opcao.selecionado {
-            border-color: #f47521; box-shadow: 0 0 15px rgba(244,117,33,0.4);
+        .fundo-opcao { border-radius: 10px; height: 90px; }
+        .avatar-opcao:hover, .avatar-opcao:focus, .avatar-opcao.selecionado,
+        .fundo-opcao:hover, .fundo-opcao:focus, .fundo-opcao.selecionado {
+            border-color: #f47521; box-shadow: 0 0 18px rgba(244,117,33,0.5);
         }
 
+        /* Carregamento */
         #tela-carregando {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75));
-            background-size: cover; background-position: center;
+            background: rgba(0,0,0,0.92);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s;
         }
+        #tela-carregando.ativa { opacity: 1; pointer-events: all; }
         #avatar-carregando {
-            width: 130px; height: 130px; border-radius: 50%; object-fit: cover;
-            border: 3px solid #f47521; margin-bottom: 25px;
+            width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
+            border: 4px solid #f47521; margin-bottom: 30px;
         }
-        #mensagem-carregando {
-            font-size: 30px; margin-bottom: 35px; text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-        }
-        .bolinhas { display: flex; gap: 16px; }
+        #mensagem-carregando { font-size: 34px; margin-bottom: 40px; }
+        .bolinhas { display: flex; gap: 20px; }
         .bolinha {
-            width: 20px; height: 20px; border-radius: 50%; background: #f47521;
+            width: 22px; height: 22px; border-radius: 50%; background: #f47521;
             animation: pular 1.2s infinite;
         }
         .bolinha:nth-child(2) { animation-delay: 0.2s; }
         .bolinha:nth-child(3) { animation-delay: 0.4s; }
         @keyframes pular {
             0%,100% { transform: translateY(0); opacity: 0.5; }
-            50% { transform: translateY(-20px); opacity: 1; }
+            50% { transform: translateY(-22px); opacity: 1; }
         }
 
-        #tela-home {
-            display: none; width: 100%; min-height: 100vh; padding: 30px;
-            background: rgba(0,0,0,0.75);
-        }
+        /* Home e Séries */
         .cabecalho {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 25px 0; border-bottom: 1px solid rgba(255,255,255,0.15);
-            margin-bottom: 40px; flex-wrap: wrap; gap: 20px;
+            padding: 30px 0; border-bottom: 2px solid rgba(255,255,255,0.15);
+            margin-bottom: 50px; flex-wrap: wrap; gap: 25px;
         }
-        .info-usuario { display: flex; align-items: center; gap: 18px; }
-        .info-usuario img {
-            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
-            border: 2px solid #f47521;
+        .info-usuario { display: flex; align-items: center; gap: 20px; }
+        .info-usuario img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #f47521; }
+        .info-usuario h2 { font-size: 30px; margin: 0; }
+        .secao { margin-bottom: 60px; }
+        .secao h3 { font-size: 28px; margin-bottom: 25px; color: #f47521; }
+        .grade {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 30px;
         }
-        .info-usuario h2 { font-size: 26px; margin: 0; }
+        .item {
+            cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .item:hover, .item:focus { transform: scale(1.07); box-shadow: 0 0 22px rgba(244,117,33,0.5); }
+        .item img { width: 100%; height: 260px; object-fit: cover; display: block; }
+        .item p { padding: 15px; text-align: center; background: rgba(0,0,0,0.85); font-size: 18px; }
+        .progresso {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255,255,255,0.2);
+        }
+        .barra-progresso {
+            height: 100%; background: #f47521; transition: width 0.3s;
+        }
 
-        .secao-conteudo { margin: 50px 0; }
-        .secao-conteudo h3 { font-size: 24px; margin-bottom: 20px; color: #f47521; }
-        .grade-capas {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 25px; max-width: 1000px; margin: 0 auto;
+        /* Player */
+        .player-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9998;
+            display: none; flex-direction: column;
         }
-        .capa-item {
-            cursor: pointer; transition: transform 0.3s ease; border-radius: 8px; overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        .player-container.ativo { display: flex; }
+        #video-player {
+            width: 100%; height: 100%;
+            background: #000;
         }
-        .capa-item:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(244,117,33,0.5); }
-        .capa-item img { width: 100%; height: 240px; object-fit: cover; display: block; }
-        .capa-item p { padding: 12px; text-align: center; background: rgba(0,0,0,0.8); font-size: 16px; }
-
-        .player-container { display: none; margin-top: 30px; text-align: center; }
-        video {
-            width: 100%; max-width: 900px; border-radius: 10px;
-            background: #000; margin-bottom: 15px;
+        .controles-player {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 25px;
+            transition: opacity 0.4s;
         }
-        .aviso-reproducao { margin-top: 10px; font-size: 14px; color: #ffcc00; }
+        .controles-player.oculto { opacity: 0; pointer-events: none; }
+        .info-ep { font-size: 22px; margin-bottom: 15px; }
+        .tempo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 10px; }
+        .barra-tempo {
+            width: 100%; height: 8px; background: rgba(255,255,255,0.2);
+            border-radius: 4px; overflow: hidden;
+        }
+        .preenchimento { height: 100%; background: #f47521; width: 0%; transition: width 0.2s; }
+        .proximo-ep {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); padding: 30px 50px; border-radius: 12px;
+            text-align: center; display: none;
+        }
+        .proximo-ep.ativo { display: block; }
+        .proximo-ep h4 { font-size: 28px; margin-bottom: 20px; }
+        .proximo-ep p { font-size: 22px; margin-bottom: 25px; color: #ffcc00; }
+        .btn-proximo {
+            padding: 12px 30px; font-size: 20px; background: #f47521; border: none;
+            color: white; border-radius: 8px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div id="tela-perfis">
-        <h1>QUEM ESTÁ ASSISTINDO?</h1>
-        <div class="lista-perfis" id="listaPerfis"></div>
-    </div>
+<!-- Telas -->
+<div id="tela-perfis" class="tela ativa">
+    <h1>QUEM ESTÁ ASSISTINDO?</h1>
+    <div class="lista-perfis" id="listaPerfis"></div>
+</div>
 
-    <div id="tela-formulario">
-        <button class="voltar" onclick="voltarParaPerfis()">← Voltar</button>
-        <h2 id="tituloForm">Novo Perfil</h2>
-        <input type="text" id="nomePerfil" placeholder="Digite o nome">
-        <br>
-        <button onclick="avancarParaAvatar()">Continuar</button>
-    </div>
+<div id="tela-formulario" class="tela">
+    <button class="voltar" onclick="voltarParaPerfis()">← Voltar</button>
+    <h2 id="tituloForm">Novo Perfil</h2>
+    <input type="text" id="nomePerfil" placeholder="Digite o nome">
+    <br>
+    <button class="btn-principal" onclick="avancarParaAvatar()">Continuar</button>
+</div>
 
-    <div id="tela-escolha-avatar">
-        <button class="voltar" onclick="voltarParaFormulario()">← Voltar</button>
-        <h2>Escolha sua imagem</h2>
-        <div class="categoria">
-            <h3>Masculino</h3>
-            <div class="grid-avatares">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" onclick="selecionarAvatar(this.src)">
-            </div>
-        </div>
-        <div class="categoria">
-            <h3>Feminino</h3>
-            <div class="grid-avatares">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg" onclick="selecionarAvatar(this.src)">
-                <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg" onclick="selecionarAvatar(this.src)">
-            </div>
+<div id="tela-avatar" class="tela">
+    <button class="voltar" onclick="voltarParaForm()">← Voltar</button>
+    <h2>Escolha sua imagem</h2>
+    <div class="categoria">
+        <h3>Masculino</h3>
+        <div class="grid-avatares">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
         </div>
     </div>
+    <div class="categoria">
+        <h3>Feminino</h3>
+        <div class="grid-avatares">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+        </div>
+    </div>
+</div>
 
-    <div id="tela-escolha-fundo">
-        <button class="voltar" onclick="voltarParaAvatar()">← Voltar</button>
-        <h2>Escolha o fundo da tela</h2>
-        <div class="categoria">
-            <h3>Opções de fundo</h3>
-            <div class="grid-fundos">
-                <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg" onclick="selecionarFundo(this.src)">
-                <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund02.jpg" onclick="selecionarFundo(this.src)">
-                <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund03.jpg" onclick="selecionarFundo(this.src)">
-                <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund04.jpg" onclick="selecionarFundo(this.src)">
-                <img class="fundo-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund05.jpg" onclick="selecionarFundo(this.src)">
+<div id="tela-home" class="tela">
+    <div class="cabecalho">
+        <div class="info-usuario">
+            <img id="imgUsuario" src="" alt="">
+            <h2>BEM-VINDO, <span id="nomeUsuario"></span></h2>
+        </div>
+        <button class="voltar" onclick="voltarParaPerfis()">Trocar Perfil</button>
+    </div>
+
+    <div class="secao">
+        <h3>📺 MINHAS SÉRIES</h3>
+        <div class="grade" id="listaSeries">
+            <div class="item" onclick="abrirEpisodios('sfv')" tabindex="0">
+                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg" alt="Street Fighter II V">
+                <p>Street Fighter II V</p>
+            </div>
+            <div class="item" onclick="abrirEpisodios('jujutsu')" tabindex="0">
+                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp" alt="Jujutsu Kaisen">
+                <p>Jujutsu Kaisen T3</p>
+            </div>
+            <div class="item" onclick="abrirEpisodios('heroi')" tabindex="0">
+                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg" alt="Herói do Escudo">
+                <p>Herói do Escudo T2</p>
             </div>
         </div>
     </div>
 
-    <div id="tela-carregando">
-        <img id="avatar-carregando" src="" alt="">
-        <h2 id="mensagem-carregando"></h2>
-        <div class="bolinhas">
-            <div class="bolinha"></div>
-            <div class="bolinha"></div>
-            <div class="bolinha"></div>
+    <div class="secao" id="secaoEpisodios" style="display: none;">
+        <button class="voltar" onclick="voltarParaSeries()">← Voltar para Séries</button>
+        <h3 id="tituloSerie"></h3>
+        <div class="grade" id="listaEpisodios"></div>
+    </div>
+</div>
+
+<div id="tela-carregando" class="tela">
+    <img id="imgCarregando" src="" alt="">
+    <h2 id="textoCarregando">Carregando...</h2>
+    <div class="bolinhas">
+        <div class="bolinha"></div><div class="bolinha"></div><div class="bolinha"></div>
+    </div>
+</div>
+
+<div class="player-container" id="player">
+    <video id="video-player" playsinline preload="metadata"></video>
+    <div class="controles-player" id="controlesVideo">
+        <div class="info-ep" id="infoEpAtual"></div>
+        <div class="tempo">
+            <span id="tempoAtual">00:00</span>
+            <span id="tempoTotal">00:00</span>
+        </div>
+        <div class="barra-tempo">
+            <div class="preenchimento" id="barraTempo"></div>
         </div>
     </div>
-
-    <div id="tela-home">
-        <div class="cabecalho">
-            <div class="info-usuario">
-                <img id="avatar-usuario" src="" alt="">
-                <h2>BEM-VINDO(A), <span id="nome-usuario"></span>!</h2>
-            </div>
-            <button onclick="voltarParaPerfis()" style="background: #333; padding: 9px 18px;">Trocar Perfil</button>
-        </div>
-
-        <div class="secao-conteudo">
-            <h3>📺 DISPONÍVEL AGORA</h3>
-            <div class="grade-capas">
-                <div class="capa-item" onclick="abrirVideo('herois')">
-                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg" alt="Herói de Escudo T2">
-                    <p>Herói de Escudo T2</p>
-                </div>
-                <div class="capa-item" onclick="abrirVideo('jujutsu')">
-                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp" alt="Jujutsu Temporada 3">
-                    <p>Jujutsu Kaisen T3 Ep3</p>
-                </div>
-                <div class="capa-item" onclick="abrirVideo('street19')">
-                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg" alt="Street Fighter V Ep19">
-                    <p>Street Fighter V Ep19</p>
-                </div>
-                <div class="capa-item" onclick="abrirVideo('street20')">
-                    <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg" alt="Street Fighter V Ep20">
-                    <p>Street Fighter V Ep20</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="player-container" id="area-player">
-            <video id="video-player" controls autoplay playsinline preload="metadata">
-                Seu aparelho não suporta reprodução direta.
-            </video>
-            <br>
-            <button onclick="fecharPlayer()" style="background:#333;">Voltar</button>
-            <p class="aviso-reproducao">⚠️ Se não tocar sozinho, clique no botão ▶ Play do vídeo.</p>
-        </div>
+    <div class="proximo-ep" id="avisoProximo">
+        <h4>Próximo Episódio</h4>
+        <p>Continua em <span id="contagemRegressiva">10</span> segundos</p>
+        <button class="btn-proximo" onclick="irProximoEp()">Assistir Agora</button>
     </div>
+</div>
 
-    <script>
-        let perfis = JSON.parse(localStorage.getItem('perfis')) || [];
-        let indiceEdicao = null;
-        let nomeTemp = "", avatarTemp = "", fundoTemp = "";
+<script>
+let perfis = JSON.parse(localStorage.getItem('perfis')) || [];
+let perfilAtual = null;
+let serieAtual = null;
+let epAtual = null;
+let temporizadorProximo = null;
 
-        const LINKS_VIDEOS = {
-            herois: "", // Coloque o link aqui quando tiver
-            jujutsu: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/jujutsu-t3/Assistir%20Jujutsu%20Kaisen%203%20T3%20Ep3.m3u8",
-            street19: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/streetfighterve19/%5BAnimeFire.io%5D%20Street%20Fighter%20II%20V%20(Dublado)%20-%20Epis%C3%B3dio%2019%20(SD).m3u8",
-            street20: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/streetfighterve20/%5BAnimeFire.io%5D%20Street%20Fighter%20II%20V%20(Dublado)%20-%20Epis%C3%B3dio%2020%20(SD).m3u8"
-        };
+// 📋 Catálogo de vídeos
+const CATALOGO = {
+    jujutsu: {
+        nome: "Jujutsu Kaisen T3",
+        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp",
+        eps: [
+            {id: "jujutsu3", nome: "Episódio 3", link: "https://www.dropbox.com/scl/fi/7m3k0sa7upbjjmqga3k5d/Assistir-Jujutsu-Kaisen-3-T3-Ep3.m3u8?rlkey=2m0jh37g0s3zelz2xe9k7x3d7&dl=1"}
+        ]
+    },
+    sfv: {
+        nome: "Street Fighter II V",
+        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg",
+        eps: [
+            {id: "sfv19", nome: "Episódio 19", link: "https://www.dropbox.com/scl/fi/f23dp2yrgx5ouh2bjud6h/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-19-SD.m3u8?rlkey=z997bpvro0rwhbuxmf1vfmae4&dl=1"},
+            {id: "sfv20", nome: "Episódio 20", link: "https://www.dropbox.com/scl/fi/0qx0rqunmyt09h5u40zb9/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-20-SD.m3u8?rlkey=73r4rd99hbmle7je6fe4589f6&dl=1"},
+            {id: "sfv21", nome: "Episódio 21", link: "https://www.dropbox.com/scl/fi/vpgra16bmnri6x8yankdv/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-21-SD.m3u8?rlkey=70k2ii0lvkb1iynmgbk8l2nwp&dl=1"}
+        ]
+    },
+    heroi: {
+        nome: "Herói do Escudo T2",
+        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg",
+        eps: [
+            {id: "heroi1", nome: "Episódio 1", link: ""}
+        ]
+    }
+};
 
-        function salvarPerfis() { localStorage.setItem('perfis', JSON.stringify(perfis)); carregarListaPerfis(); }
-        function carregarListaPerfis() {
-            const c = document.getElementById('listaPerfis'); c.innerHTML = "";
-            perfis.forEach((p, i) => {
-                const div = document.createElement('div'); div.className = 'perfil-item';
-                div.onclick = () => entrarPerfil(i);
-                div.innerHTML = `<button class="btn-editar" onclick="editarPerfil(${i}, event)">✎</button><img src="${p.avatar}" alt=""><p>${p.nome}</p>`;
-                c.appendChild(div);
-            });
-            if(perfis.length <4) {
-                const divN = document.createElement('div'); divN.className='perfil-item perfil-vazio';
-                divN.onclick=abrirFormulario; divN.innerHTML='<span>+</span>'; c.appendChild(divN);
-            }
+// 📌 Funções de Perfil
+function salvarPerfis() {
+    localStorage.setItem('perfis', JSON.stringify(perfis));
+    listarPerfis();
+}
+
+function listarPerfis() {
+    const div = document.getElementById('listaPerfis');
+    div.innerHTML = "";
+    perfis.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'perfil-item';
+        el.tabIndex = 0;
+        el.innerHTML = `
+            <button class="btn-editar" onclick="editarPerfil(${i}, event)">✏️</button>
+            <img src="${p.avatar}" alt="">
+            <p>${p.nome}</p>
+        `;
+        el.onclick = () => entrarPerfil(i);
+        div.appendChild(el);
+    });
+    if(perfis.length < 4) {
+        const novo = document.createElement('div');
+        novo.className = 'perfil-item perfil-vazio';
+        novo.tabIndex = 0;
+        novo.onclick = abrirFormulario;
+        novo.innerHTML = `<span>+</span>`;
+        div.appendChild(novo);
+    }
+}
+
+function abrirFormulario(indice = null) {
+    document.getElementById('tituloForm').textContent = indice !== null ? "Editar Perfil" : "Novo Perfil";
+    document.getElementById('nomePerfil').value = indice !== null ? perfis[indice].nome : "";
+    document.getElementById('tela-perfis').classList.remove('ativa');
+    document.getElementById('tela-formulario').classList.add('ativa');
+    document.getElementById('nomePerfil').focus();
+}
+
+function avancarParaAvatar() {
+    const nome = document.getElementById('nomePerfil').value.trim();
+    if(!nome) return alert("Digite um nome!");
+    window.nomeTemp = nome;
+    document.getElementById('tela-formulario').classList.remove('ativa');
+    document.getElementById('tela-avatar').classList.add('ativa');
+}
+
+function selecionarAvatar(src) {
+    window.avatarTemp = src;
+    const indice = window.indiceEdicao;
+    if(indice !== undefined && indice !== null) {
+        perfis[indice] = {nome: nomeTemp, avatar: avatarTemp};
+    } else {
+        perfis.push({nome: nomeTemp, avatar: avatarTemp, progresso: {}});
+    }
+    salvarPerfis();
+    document.getElementById('tela-avatar').classList.remove('ativa');
+    document.getElementById('tela-perfis').classList.add('ativa');
+}
+
+function editarPerfil(i, e) {
+    e.stopPropagation();
+    window.indiceEdicao = i;
+    abrirFormulario(i);
+}
+
+function entrarPerfil(i) {
+    perfilAtual = perfis[i];
+    document.getElementById('imgUsuario').src = perfilAtual.avatar;
+    document.getElementById('nomeUsuario').textContent = perfilAtual.nome;
+    document.getElementById('tela-carregando').classList.add('ativa');
+    setTimeout(() => {
+        document.getElementById('tela-perfis').classList.remove('ativa');
+        document.getElementById('tela-carregando').classList.remove('ativa');
+        document.getElementById('tela-home').classList.add('ativa');
+    }, 1500);
+}
+
+function voltarParaPerfis() {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.getElementById('player').classList.remove('ativo');
+    document.getElementById('tela-perfis').classList.add('ativa');
+    perfilAtual = null;
+}
+
+function voltarParaForm() {
+    document.getElementById('tela-avatar').classList.remove('ativa');
+    document.getElementById('tela-formulario').classList.add('ativa');
+}
+
+// 📺 Séries e Episódios
+function abrirEpisodios(idSerie) {
+    serieAtual = CATALOGO[idSerie];
+    document.getElementById('tituloSerie').textContent = serieAtual.nome;
+    const div = document.getElementById('listaEpisodios');
+    div.innerHTML = "";
+    serieAtual.eps.forEach((ep, idx) => {
+        const prog = perfilAtual.progresso?.[ep.id] || 0;
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.tabIndex = 0;
+        el.innerHTML = `
+            <img src="${serieAtual.capa}" alt="${ep.nome}">
+            <p>${ep.nome}</p>
+            <div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>
+        `;
+        el.onclick = () => reproduzirEp(idx);
+        div.appendChild(el);
+    });
+    document.getElementById('secaoEpisodios').style.display = 'block';
+    document.getElementById('listaSeries').parentNode.style.display = 'none';
+}
+
+function voltarParaSeries() {
+    document.getElementById('secaoEpisodios').style.display = 'none';
+    document.getElementById('listaSeries').parentNode.style.display = 'block';
+    serieAtual = null;
+}
+
+// 🎬 Player e Progresso
+function reproduzirEp(indice) {
+    epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
+    if(!epAtual.dados.link) return alert("Episódio sem link ainda!");
+    const video = document.getElementById('video-player');
+    video.src = epAtual.dados.link;
+    document.getElementById('infoEpAtual').textContent = `${serieAtual.nome} - ${epAtual.dados.nome}`;
+    document.getElementById('player').classList.add('ativo');
+    document.getElementById('avisoProximo').classList.remove('ativo');
+    video.play();
+    restaurarProgresso();
+}
+
+function salvarProgresso() {
+    if(!epAtual) return;
+    const video = document.getElementById('video-player');
+    if(!perfilAtual.progresso) perfilAtual.progresso = {};
+    const porcentagem = video.duration ? Math.min(100, (video.currentTime / video.duration) * 100) : 0;
+    perfilAtual.progresso[epAtual.dados.id] = porcentagem;
+    perfis[perfis.findIndex(p => p.nome === perfilAtual.nome)] = perfilAtual;
+    localStorage.setItem('perfis', JSON.stringify(perfis));
+}
+
+function restaurarProgresso() {
+    const video = document.getElementById('video-player');
+    setTimeout(() => {
+        if(epAtual.dados.id && perfilAtual.progresso?.[epAtual.dados.id]) {
+            const porcentagem = perfilAtual.progresso[epAtual.dados.id];
+            video.currentTime = (porcentagem / 100) * video.duration;
         }
-        function abrirFormulario(i=null) { indiceEdicao=i; document.getElementById('tituloForm').textContent=i!==null?"Editar Perfil":"Novo Perfil"; document.getElementById('nomePerfil').value=i!==null?perfis[i].nome:""; document.getElementById('tela-perfis').style.display='none'; document.getElementById('tela-formulario').style.display='block'; }
-        function avancarParaAvatar() { nomeTemp=document.getElementById('nomePerfil').value.trim(); if(!nomeTemp)return alert("Digite um nome!"); document.getElementById('tela-formulario').style.display='none'; document.getElementById('tela-escolha-avatar').style.display='block'; document.querySelectorAll('.avatar-opcao').forEach(i=>i.classList.remove('selecionado')); }
-        function selecionarAvatar(c) { document.querySelectorAll('.avatar-opcao').forEach(i=>i.classList.remove('selecionado')); event.currentTarget.classList.add('selecionado'); avatarTemp=c; document.getElementById('tela-escolha-avatar').style.display='none'; document.getElementById('tela-escolha-fundo').style.display='block'; document.querySelectorAll('.fundo-opcao').forEach(i=>i.classList.remove('selecionado')); }
-        function selecionarFundo(c) { document.querySelectorAll('.fundo-opcao').forEach(i=>i.classList.remove('selecionado')); event.currentTarget.classList.add('selecionado'); fundoTemp=c; if(indiceEdicao!==null) perfis[indiceEdicao]={nome:nomeTemp,avatar:avatarTemp,fundo:fundoTemp}; else perfis.push({nome:nomeTemp,avatar:avatarTemp,fundo:fundoTemp}); salvarPerfis(); iniciarCarregamento(nomeTemp,avatarTemp,fundoTemp); }
-        function entrarPerfil(i) { const p=perfis[i]; iniciarCarregamento(p.nome,p.avatar,p.fundo||'https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg'); }
-        function editarPerfil(i,e) { e.stopPropagation(); abrirFormulario(i); }
-        function iniciarCarregamento(n,a,f) {
-            document.body.style.background=`linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('${fundoTemp||f}')`;
-            document.getElementById('tela-carregando').style.background=`linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${fundoTemp||f}')`;
-            document.getElementById('avatar-carregando').src=a; document.getElementById('mensagem-carregando').textContent=`BEM-VINDO(A), ${n}!`;
-            const t=document.getElementById('tela-carregando'); t.style.opacity='1'; t.style.pointerEvents='auto';
-            setTimeout(()=>{ document.getElementById('nome-usuario').textContent=n; document.getElementById('avatar-usuario').src=a; t.style.opacity='0'; t.style.pointerEvents='none'; document.getElementById('tela-escolha-fundo').style.display='none'; document.getElementById('tela-perfis').style.display='none'; document.getElementById('tela-home').style.display='block'; },1800);
+    }, 1500);
+}
+
+function mostrarProximoEp() {
+    if(temporizadorProximo) clearInterval(temporizadorProximo);
+    const proxIndice = epAtual.indice + 1;
+    if(proxIndice >= serieAtual.eps.length) return;
+    document.getElementById('avisoProximo').classList.add('ativo');
+    let cont = 10;
+    document.getElementById('contagemRegressiva').textContent = cont;
+    temporizadorProximo = setInterval(() => {
+        cont--;
+        document.getElementById('contagemRegressiva').textContent = cont;
+        if(cont <= 0) {
+            clearInterval(temporizadorProximo);
+            irProximoEp();
         }
-        function voltarParaPerfis() { document.getElementById('tela-formulario').style.display='none'; document.getElementById('tela-escolha-avatar').style.display='none'; document.getElementById('tela-escolha-fundo').style.display='none'; document.getElementById('tela-home').style.display='none'; document.getElementById('area-player').style.display='none'; document.getElementById('tela-perfis').style.display='flex'; document.body.style.background=`linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg')`; indiceEdicao=nomeTemp=avatarTemp=fundoTemp=null; }
-        function voltarParaFormulario() { document.getElementById('tela-escolha-avatar').style.display='none'; document.getElementById('tela-formulario').style.display='block'; }
-        function voltarParaAvatar() { document.getElementById('tela-escolha-fundo').style.display='none'; document.getElementById('tela-escolha-avatar').style.display='block'; }
-        function abrirVideo(id) {
-            const v=document.getElementById('video-player'), l=LINKS_VIDEOS[id];
-            if(!l)return alert("Vídeo sem link ainda!");
-            const t=l.endsWith('.m3u8')?'application/x-mpegURL':'video/mp4';
-            v.innerHTML=`<source src="${l}" type="${t}">Seu aparelho não suporta.`;
-            v.load(); v.play().catch(()=>alert("Clique no play dentro do vídeo!"));
-            document.getElementById('area-player').style.display='block'; window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+    }, 1000);
+}
+
+function irProximoEp() {
+    clearInterval(temporizadorProximo);
+    document.getElementById('avisoProximo').classList.remove('ativo');
+    reproduzirEp(epAtual.indice + 1);
+}
+
+function fecharPlayer() {
+    salvarProgresso();
+    const video = document.getElementById('video-player');
+    video.pause();
+    video.src = "";
+    document.getElementById('player').classList.remove('ativo');
+    document.getElementById('avisoProximo').classList.remove('ativo');
+    if(temporizadorProximo) clearInterval(temporizadorProximo);
+}
+
+// 🎮 Controles do Fire Stick
+document.addEventListener('keydown', (e) => {
+    const video = document.getElementById('video-player');
+    const playerAtivo = document.getElementById('player').classList.contains('ativo');
+    const controlesVisiveis = !document.getElementById('controlesVideo').classList.contains('oculto');
+
+    if(!playerAtivo) {
+        // Navegação normal
+        switch(e.key) {
+            case 'ArrowUp': e.preventDefault(); navegar('up'); break;
+            case 'ArrowDown': e.preventDefault(); navegar('down'); break;
+            case 'ArrowLeft': e.preventDefault(); navegar('left'); break;
+            case 'ArrowRight': e.preventDefault(); navegar('right'); break;
+            case 'Enter': e.preventDefault(); document.activeElement?.click(); break;
+            case 'Backspace': case 'Escape': e.preventDefault(); voltarParaPerfis(); break;
         }
-        function fecharPlayer() { const v=document.getElementById('video-player'); v.pause(); v.innerHTML=""; document.getElementById('area-player').style.display='none'; }
-        window.onload=carregarListaPerfis;
-    </script>
+    } else {
+        // Controles dentro do player
+        switch(e.key) {
+            case 'ArrowDown': e.preventDefault(); fecharPlayer(); break;
+            case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
+            case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(video.duration || 99999, video.currentTime + 10); break;
+            case 'Enter': e.preventDefault(); video.paused ? video.play() : video.pause(); break;
+            case 'ArrowUp':
+                e.preventDefault();
+                document.getElementById('controlesVideo').classList.toggle('oculto');
+                break;
+            case 'Escape': e.preventDefault(); fecharPlayer(); break;
+        }
+    }
+});
+
+function navegar(direcao) {
+    const foco = document.activeElement;
+    const todos = Array.from(document.querySelectorAll('button, [tabindex="0"], input'));
+    const idx = todos.indexOf(foco);
+    if(idx === -1) return;
+    let novoIdx;
+    switch(direcao) {
+        case 'up': novoIdx = idx - 5; break;
+        case 'down': novoIdx = idx + 5; break;
+        case 'left': novoIdx = idx - 1; break;
+        case 'right': novoIdx = idx + 1; break;
+        default: return;
+    }
+    if(novoIdx >= 0 && novoIdx < todos.length) todos[novoIdx].focus();
+}
+
+// ⏱️ Atualiza tempo e progresso
+document.getElementById('video-player').addEventListener('timeupdate', () => {
+    const v = document.getElementById('video-player');
+    if(!v.duration) return;
+    const porcentagem = (v.currentTime / v.duration) * 100;
+    document.getElementById('barraTempo').style.width = porcentagem + "%";
+    document.getElementById('tempoAtual').textContent = formatarTempo(v.currentTime);
+    document.getElementById('tempoTotal').textContent = formatarTempo(v.duration);
+    if(porcentagem >= 95 && !document.getElementById('avisoProximo').classList.contains('ativo')) {
+        mostrarProximoEp();
+    }
+});
+
+function formatarTempo(segundos) {
+    const min = Math.floor(segundos / 60);
+    const seg = Math.floor(segundos % 60);
+    return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+}
+
+// Inicialização
+window.onload = () => {
+    listarPerfis();
+    document.querySelector('.perfil-item, .perfil-vazio')?.focus();
+};
+</script>
 </body>
 </html>
