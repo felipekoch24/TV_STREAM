@@ -24,8 +24,12 @@
         .info-usuario h2 { font-size: 30px; margin: 0; }
         .secao { margin-bottom: 60px; }
         .secao h3 { font-size: 28px; margin-bottom: 25px; color: #f47521; }
-        .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px; }
-        .item { cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; padding: 5px; }
+        .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px; max-width: 100%; }
+        .item { 
+            cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; padding: 5px; 
+            outline: none; /* Remove contorno padrão para usar o nosso */
+        }
         .item:hover, .item:focus { transform: scale(1.07); box-shadow: 0 0 22px rgba(244,117,33,0.5); }
         .item:active { transform: scale(0.97); }
         .item img { width: 100%; height: 260px; object-fit: cover; display: block; }
@@ -54,13 +58,13 @@
         .proximo-ep.ativo { display: block; }
         .proximo-ep h4 { font-size: 28px; margin-bottom: 20px; }
         .proximo-ep p { font-size: 22px; margin-bottom: 25px; color: #ffcc00; }
-        .btn-proximo { padding: 12px 30px; font-size: 20px; background: #f47521; border: none; color: white; border-radius: 8px; cursor: pointer; }
+        .btn-proximo { padding: 12px 30px; font-size: 20px; background: #f47521; border: none; color: white; border-radius: 8px; cursor: pointer; outline: none; }
+        .btn-proximo:focus { box-shadow: 0 0 15px rgba(244,117,33,0.7); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-<!-- Tela Principal já direta -->
 <div id="tela-home" class="tela ativa">
     <div class="cabecalho">
         <div class="info-usuario">
@@ -71,24 +75,11 @@
 
     <div class="secao">
         <h3>📺 MINHAS SÉRIES</h3>
-        <div class="grade" id="listaSeries">
-            <div class="item" onclick="abrirEpisodios('sfv')" tabindex="0">
-                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg" alt="Street Fighter II V">
-                <p>Street Fighter II V</p>
-            </div>
-            <div class="item" onclick="abrirEpisodios('jujutsu')" tabindex="0">
-                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp" alt="Jujutsu Kaisen">
-                <p>Jujutsu Kaisen T3</p>
-            </div>
-            <div class="item" onclick="abrirEpisodios('heroi')" tabindex="0">
-                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg" alt="Herói do Escudo">
-                <p>Herói do Escudo T2</p>
-            </div>
-        </div>
+        <div class="grade" id="listaSeries"></div>
     </div>
 
     <div class="secao" id="secaoEpisodios" style="display: none;">
-        <button class="voltar" onclick="voltarParaSeries()">← Voltar para Séries</button>
+        <button class="voltar" id="btnVoltarEp" onclick="voltarParaSeries()">← Voltar para Séries</button>
         <h3 id="tituloSerie"></h3>
         <div class="grade" id="listaEpisodios"></div>
     </div>
@@ -122,7 +113,6 @@
 </div>
 
 <script>
-// Perfil pré-definido direto
 let perfilAtual = {
     nome: "FELIPE",
     avatar: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg",
@@ -133,7 +123,6 @@ let epAtual = null;
 let temporizadorProximo = null;
 let hls = null;
 
-// 📋 CATÁLOGO COMPLETO
 const CATALOGO = {
     jujutsu: {
         nome: "Jujutsu Kaisen T3",
@@ -187,7 +176,29 @@ const CATALOGO = {
     }
 };
 
-// 📺 Séries e Episódios
+// Carrega lista de séries ao iniciar
+function carregarSeries() {
+    const div = document.getElementById('listaSeries');
+    div.innerHTML = "";
+    Object.keys(CATALOGO).forEach(id => {
+        const serie = CATALOGO[id];
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', serie.nome);
+        el.innerHTML = `<img src="${serie.capa}" alt="${serie.nome}"><p>${serie.nome}</p>`;
+        el.onclick = () => abrirEpisodios(id);
+        el.onkeydown = (e) => { if(e.key === 'Enter') abrirEpisodios(id); };
+        div.appendChild(el);
+    });
+    // Foca no primeiro item ao abrir
+    setTimeout(() => {
+        const primeiro = document.querySelector('#listaSeries .item');
+        if(primeiro) primeiro.focus();
+    }, 100);
+}
+
 function abrirEpisodios(idSerie) {
     serieAtual = CATALOGO[idSerie];
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
@@ -198,20 +209,31 @@ function abrirEpisodios(idSerie) {
         const el = document.createElement('div');
         el.className = 'item';
         el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', ep.nome);
         el.innerHTML = `<img src="${serieAtual.capa}" alt="${ep.nome}"><p>${ep.nome}</p><div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>`;
         el.onclick = () => reproduzirEp(idx);
+        el.onkeydown = (e) => { if(e.key === 'Enter') reproduzirEp(idx); };
         div.appendChild(el);
     });
     document.getElementById('secaoEpisodios').style.display = 'block';
-    document.getElementById('listaSeries').parentNode.style.display = 'none';
-}
-function voltarParaSeries() {
-    document.getElementById('secaoEpisodios').style.display = 'none';
-    document.getElementById('listaSeries').parentNode.style.display = 'block';
-    serieAtual = null;
+    document.querySelector('.secao:not(#secaoEpisodios)').style.display = 'none';
+    // Foca no botão voltar primeiro
+    setTimeout(() => {
+        document.getElementById('btnVoltarEp').focus();
+    }, 100);
 }
 
-// 🎬 Player
+function voltarParaSeries() {
+    document.getElementById('secaoEpisodios').style.display = 'none';
+    document.querySelector('.secao:not(#secaoEpisodios)').style.display = 'block';
+    serieAtual = null;
+    setTimeout(() => {
+        const primeiro = document.querySelector('#listaSeries .item');
+        if(primeiro) primeiro.focus();
+    }, 100);
+}
+
 function reproduzirEp(indice) {
     epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
     if(!epAtual.dados.link) return alert("Link indisponível!");
@@ -233,11 +255,13 @@ function reproduzirEp(indice) {
 
     video.onended = mostrarProximoEp;
 }
+
 function pararPlayer() {
     if (hls) hls.destroy(); hls = null;
     const v = document.getElementById('video-player'); v.pause(); v.src = ""; v.load();
     if(temporizadorProximo) clearInterval(temporizadorProximo);
 }
+
 function salvarProgresso() {
     if(!epAtual) return;
     const v = document.getElementById('video-player');
@@ -249,6 +273,7 @@ function salvarProgresso() {
         localStorage.setItem('progresso_felipe', JSON.stringify(perfilAtual.progresso));
     }
 }
+
 function restaurarProgresso() {
     setTimeout(() => {
         const v = document.getElementById('video-player');
@@ -257,6 +282,7 @@ function restaurarProgresso() {
         }
     }, 1200);
 }
+
 function mostrarProximoEp() {
     if(temporizadorProximo) clearInterval(temporizadorProximo);
     const prox = epAtual.indice + 1;
@@ -274,31 +300,24 @@ function mostrarProximoEp() {
         if(cont <= 0) { clearInterval(temporizadorProximo); irProximoEp(); }
     }, 1000);
 }
+
 function irProximoEp() {
     clearInterval(temporizadorProximo);
     document.getElementById('avisoProximo').classList.remove('ativo');
     reproduzirEp(epAtual.indice + 1);
 }
+
 function fecharPlayer() {
     salvarProgresso();
     pararPlayer();
     document.getElementById('player').classList.remove('ativo');
 }
 
-// 🎮 Controles
+// Navegação melhorada para controle remoto
 document.addEventListener('keydown', (e) => {
-    const v = document.getElementById('video-player');
     const playerAtivo = document.getElementById('player').classList.contains('ativo');
-    if(!playerAtivo) {
-        switch(e.key) {
-            case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
-            case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
-            case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
-            case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
-            case 'Enter': e.preventDefault(); if(document.activeElement) document.activeElement.click(); break;
-            case 'Escape': e.preventDefault(); break;
-        }
-    } else {
+    if(playerAtivo) {
+        const v = document.getElementById('video-player');
         switch(e.key) {
             case 'ArrowDown': e.preventDefault(); fecharPlayer(); break;
             case 'ArrowLeft': e.preventDefault(); v.currentTime = Math.max(0, v.currentTime - 10); break;
@@ -307,20 +326,56 @@ document.addEventListener('keydown', (e) => {
             case 'ArrowUp': e.preventDefault(); document.getElementById('controlesVideo').classList.toggle('oculto'); break;
             case 'Escape': e.preventDefault(); fecharPlayer(); break;
         }
+        return;
+    }
+
+    // Navegação geral entre itens
+    const focoAtual = document.activeElement;
+    const todosItens = Array.from(document.querySelectorAll('[tabindex="0"]:not([disabled])'))
+        .filter(el => el.offsetParent !== null);
+    const indiceAtual = todosItens.indexOf(focoAtual);
+    if(indiceAtual === -1) return;
+
+    const colunas = window.innerWidth >= 1200 ? 5 : window.innerWidth >= 900 ? 4 : window.innerWidth >= 600 ? 3 : 2;
+
+    switch(e.key) {
+        case 'ArrowUp':
+            e.preventDefault();
+            const acima = indiceAtual - colunas;
+            if(acima >= 0) todosItens[acima].focus();
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            const abaixo = indiceAtual + colunas;
+            if(abaixo < todosItens.length) todosItens[abaixo].focus();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            if(indiceAtual % colunas !== 0) todosItens[indiceAtual - 1].focus();
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            if((indiceAtual + 1) % colunas !== 0 && indiceAtual + 1 < todosItens.length) todosItens[indiceAtual + 1].focus();
+            break;
+        case 'Enter':
+            e.preventDefault();
+            if(focoAtual.onclick) focoAtual.click();
+            break;
+        case 'Escape':
+            e.preventDefault();
+            if(document.getElementById('secaoEpisodios').style.display === 'block') {
+                voltarParaSeries();
+            }
+            break;
     }
 });
-function moverFoco(direcao) {
-    const el = Array.from(document.querySelectorAll('[tabindex="0"], button')).filter(el => el.offsetParent !== null);
-    const i = el.indexOf(document.activeElement); if(i === -1) return;
-    const map = {up: i-4, down: i+4, left: i-1, right: i+1};
-    const novo = map[direcao];
-    if(novo >=0 && novo < el.length) { el[novo].focus(); el[novo].scrollIntoView({behavior: 'smooth', block: 'center'}); }
-}
+
 function formatarTempo(s) {
     const m = Math.floor(s/60);
     const seg = Math.floor(s%60);
     return `${m.toString().padStart(2,'0')}:${seg.toString().padStart(2,'0')}`;
 }
+
 document.getElementById('video-player').addEventListener('timeupdate', () => {
     const v = document.getElementById('video-player');
     if(!v.duration || isNaN(v.duration)) return;
@@ -330,6 +385,9 @@ document.getElementById('video-player').addEventListener('timeupdate', () => {
     document.getElementById('tempoTotal').textContent = formatarTempo(v.duration);
     salvarProgresso();
 });
+
+// Inicia o sistema
+window.onload = carregarSeries;
 </script>
 </body>
 </html>
