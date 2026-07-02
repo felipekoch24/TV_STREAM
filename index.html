@@ -6,7 +6,12 @@
     <title>TV STREAM - Fire Stick</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :focus { outline: 3px solid #f47521; outline-offset: 2px; }
+        /* Destaque para item selecionado */
+        :focus { 
+            outline: 3px solid #f47521 !important; 
+            outline-offset: 3px !important; 
+            border-radius: 8px;
+        }
         body { 
             color: white; 
             font-family: 'Segoe UI, Roboto, Arial', sans-serif; 
@@ -39,6 +44,7 @@
             display: flex; flex-direction: column; align-items: center; gap: 12px;
             cursor: pointer; transition: transform 0.2s;
             padding: 10px; border-radius: 12px;
+            text-decoration: none;
         }
         .perfil-item img {
             width: 140px; height: 140px; border-radius: 50%; border: 3px solid transparent;
@@ -104,11 +110,11 @@
             z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s;
         }
         #tela-carregando.ativa { opacity: 1; pointer-events: all; }
-        #avatar-carregando {
+        #imgCarregando {
             width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
             border: 4px solid #f47521; margin-bottom: 30px;
         }
-        #mensagem-carregando { font-size: 34px; margin-bottom: 40px; }
+        #textoCarregando { font-size: 34px; margin-bottom: 40px; }
         .bolinhas { display: flex; gap: 20px; }
         .bolinha {
             width: 22px; height: 22px; border-radius: 50%; background: #f47521;
@@ -140,6 +146,7 @@
             cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             position: relative;
+            padding: 5px;
         }
         .item:hover, .item:focus { transform: scale(1.07); box-shadow: 0 0 22px rgba(244,117,33,0.5); }
         .item img { width: 100%; height: 260px; object-fit: cover; display: block; }
@@ -299,6 +306,8 @@ let perfilAtual = null;
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
+let indiceEdicao = null;
+let nomeTemp = "", avatarTemp = "";
 
 // 📋 Catálogo de vídeos
 const CATALOGO = {
@@ -340,48 +349,58 @@ function listarPerfis() {
         const el = document.createElement('div');
         el.className = 'perfil-item';
         el.tabIndex = 0;
+        el.setAttribute('role', 'button');
         el.innerHTML = `
-            <button class="btn-editar" onclick="editarPerfil(${i}, event)">✏️</button>
+            <button class="btn-editar" onclick="editarPerfil(${i}, event)" tabindex="0">✏️</button>
             <img src="${p.avatar}" alt="">
             <p>${p.nome}</p>
         `;
         el.onclick = () => entrarPerfil(i);
+        el.onkeydown = (e) => { if(e.key === 'Enter') entrarPerfil(i); };
         div.appendChild(el);
     });
     if(perfis.length < 4) {
         const novo = document.createElement('div');
         novo.className = 'perfil-item perfil-vazio';
         novo.tabIndex = 0;
+        novo.setAttribute('role', 'button');
         novo.onclick = abrirFormulario;
+        novo.onkeydown = (e) => { if(e.key === 'Enter') abrirFormulario(); };
         novo.innerHTML = `<span>+</span>`;
         div.appendChild(novo);
     }
+    // Foca no primeiro item automaticamente
+    setTimeout(() => {
+        const primeiro = document.querySelector('.perfil-item');
+        if(primeiro) primeiro.focus();
+    }, 100);
 }
 
 function abrirFormulario(indice = null) {
+    indiceEdicao = indice;
     document.getElementById('tituloForm').textContent = indice !== null ? "Editar Perfil" : "Novo Perfil";
     document.getElementById('nomePerfil').value = indice !== null ? perfis[indice].nome : "";
     document.getElementById('tela-perfis').classList.remove('ativa');
     document.getElementById('tela-formulario').classList.add('ativa');
-    document.getElementById('nomePerfil').focus();
+    setTimeout(() => document.getElementById('nomePerfil').focus(), 100);
 }
 
 function avancarParaAvatar() {
-    const nome = document.getElementById('nomePerfil').value.trim();
-    if(!nome) return alert("Digite um nome!");
-    window.nomeTemp = nome;
+    nomeTemp = document.getElementById('nomePerfil').value.trim();
+    if(!nomeTemp) return alert("Digite um nome!");
     document.getElementById('tela-formulario').classList.remove('ativa');
     document.getElementById('tela-avatar').classList.add('ativa');
+    setTimeout(() => document.querySelector('.avatar-opcao')?.focus(), 100);
 }
 
 function selecionarAvatar(src) {
-    window.avatarTemp = src;
-    const indice = window.indiceEdicao;
-    if(indice !== undefined && indice !== null) {
-        perfis[indice] = {nome: nomeTemp, avatar: avatarTemp};
+    avatarTemp = src;
+    if(indiceEdicao !== null) {
+        perfis[indiceEdicao] = {nome: nomeTemp, avatar: avatarTemp, progresso: perfis[indiceEdicao].progresso || {}};
     } else {
         perfis.push({nome: nomeTemp, avatar: avatarTemp, progresso: {}});
     }
+    indiceEdicao = null;
     salvarPerfis();
     document.getElementById('tela-avatar').classList.remove('ativa');
     document.getElementById('tela-perfis').classList.add('ativa');
@@ -389,7 +408,7 @@ function selecionarAvatar(src) {
 
 function editarPerfil(i, e) {
     e.stopPropagation();
-    window.indiceEdicao = i;
+    indiceEdicao = i;
     abrirFormulario(i);
 }
 
@@ -402,6 +421,7 @@ function entrarPerfil(i) {
         document.getElementById('tela-perfis').classList.remove('ativa');
         document.getElementById('tela-carregando').classList.remove('ativa');
         document.getElementById('tela-home').classList.add('ativa');
+        setTimeout(() => document.querySelector('.item')?.focus(), 100);
     }, 1500);
 }
 
@@ -410,11 +430,15 @@ function voltarParaPerfis() {
     document.getElementById('player').classList.remove('ativo');
     document.getElementById('tela-perfis').classList.add('ativa');
     perfilAtual = null;
+    serieAtual = null;
+    epAtual = null;
+    setTimeout(() => document.querySelector('.perfil-item')?.focus(), 100);
 }
 
 function voltarParaForm() {
     document.getElementById('tela-avatar').classList.remove('ativa');
     document.getElementById('tela-formulario').classList.add('ativa');
+    setTimeout(() => document.getElementById('nomePerfil').focus(), 100);
 }
 
 // 📺 Séries e Episódios
@@ -428,22 +452,26 @@ function abrirEpisodios(idSerie) {
         const el = document.createElement('div');
         el.className = 'item';
         el.tabIndex = 0;
+        el.setAttribute('role', 'button');
         el.innerHTML = `
             <img src="${serieAtual.capa}" alt="${ep.nome}">
             <p>${ep.nome}</p>
             <div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>
         `;
         el.onclick = () => reproduzirEp(idx);
+        el.onkeydown = (e) => { if(e.key === 'Enter') reproduzirEp(idx); };
         div.appendChild(el);
     });
     document.getElementById('secaoEpisodios').style.display = 'block';
     document.getElementById('listaSeries').parentNode.style.display = 'none';
+    setTimeout(() => document.querySelector('#listaEpisodios .item')?.focus(), 100);
 }
 
 function voltarParaSeries() {
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('listaSeries').parentNode.style.display = 'block';
     serieAtual = null;
+    setTimeout(() => document.querySelector('#listaSeries .item')?.focus(), 100);
 }
 
 // 🎬 Player e Progresso
@@ -516,48 +544,87 @@ function fecharPlayer() {
 document.addEventListener('keydown', (e) => {
     const video = document.getElementById('video-player');
     const playerAtivo = document.getElementById('player').classList.contains('ativo');
-    const controlesVisiveis = !document.getElementById('controlesVideo').classList.contains('oculto');
+    const focoAtual = document.activeElement;
 
     if(!playerAtivo) {
-        // Navegação normal
+        // Navegação fora do player
         switch(e.key) {
-            case 'ArrowUp': e.preventDefault(); navegar('up'); break;
-            case 'ArrowDown': e.preventDefault(); navegar('down'); break;
-            case 'ArrowLeft': e.preventDefault(); navegar('left'); break;
-            case 'ArrowRight': e.preventDefault(); navegar('right'); break;
-            case 'Enter': e.preventDefault(); document.activeElement?.click(); break;
-            case 'Backspace': case 'Escape': e.preventDefault(); voltarParaPerfis(); break;
+            case 'ArrowUp':
+                e.preventDefault();
+                moverFoco('up');
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                moverFoco('down');
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                moverFoco('left');
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                moverFoco('right');
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if(focoAtual) focoAtual.click();
+                break;
+            case 'Backspace':
+            case 'Escape':
+                e.preventDefault();
+                voltarParaPerfis();
+                break;
         }
     } else {
         // Controles dentro do player
         switch(e.key) {
-            case 'ArrowDown': e.preventDefault(); fecharPlayer(); break;
-            case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
-            case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(video.duration || 99999, video.currentTime + 10); break;
-            case 'Enter': e.preventDefault(); video.paused ? video.play() : video.pause(); break;
+            case 'ArrowDown':
+                e.preventDefault();
+                fecharPlayer();
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                video.currentTime = Math.max(0, video.currentTime - 10);
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                video.currentTime = Math.min(video.duration || 99999, video.currentTime + 10);
+                break;
+            case 'Enter':
+                e.preventDefault();
+                video.paused ? video.play() : video.pause();
+                break;
             case 'ArrowUp':
                 e.preventDefault();
                 document.getElementById('controlesVideo').classList.toggle('oculto');
                 break;
-            case 'Escape': e.preventDefault(); fecharPlayer(); break;
+            case 'Escape':
+                e.preventDefault();
+                fecharPlayer();
+                break;
         }
     }
 });
 
-function navegar(direcao) {
-    const foco = document.activeElement;
-    const todos = Array.from(document.querySelectorAll('button, [tabindex="0"], input'));
-    const idx = todos.indexOf(foco);
-    if(idx === -1) return;
-    let novoIdx;
+function moverFoco(direcao) {
+    const todosElementos = Array.from(document.querySelectorAll('[tabindex="0"], button, input'))
+        .filter(el => el.offsetParent !== null); // Apenas elementos visíveis
+    const indiceAtual = todosElementos.indexOf(document.activeElement);
+    if(indiceAtual === -1) return;
+
+    let novoIndice;
     switch(direcao) {
-        case 'up': novoIdx = idx - 5; break;
-        case 'down': novoIdx = idx + 5; break;
-        case 'left': novoIdx = idx - 1; break;
-        case 'right': novoIdx = idx + 1; break;
+        case 'up': novoIndice = indiceAtual - 4; break;
+        case 'down': novoIndice = indiceAtual + 4; break;
+        case 'left': novoIndice = indiceAtual - 1; break;
+        case 'right': novoIndice = indiceAtual + 1; break;
         default: return;
     }
-    if(novoIdx >= 0 && novoIdx < todos.length) todos[novoIdx].focus();
+
+    if(novoIndice >= 0 && novoIndice < todosElementos.length) {
+        todosElementos[novoIndice].focus();
+        todosElementos[novoIndice].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
 // ⏱️ Atualiza tempo e progresso
@@ -582,7 +649,6 @@ function formatarTempo(segundos) {
 // Inicialização
 window.onload = () => {
     listarPerfis();
-    document.querySelector('.perfil-item, .perfil-vazio')?.focus();
 };
 </script>
 </body>
