@@ -6,263 +6,67 @@
     <title>TV STREAM - Fire Stick / Android</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        :focus { 
-            outline: 3px solid #f47521 !important; 
-            outline-offset: 3px !important; 
-            border-radius: 8px;
-        }
+        :focus { outline: 3px solid #f47521 !important; outline-offset: 3px !important; border-radius: 8px; }
         body { 
-            color: white; 
-            font-family: 'Segoe UI, Roboto, Arial', sans-serif; 
-            min-height: 100vh; 
-            margin: 0; 
+            color: white; font-family: 'Segoe UI, Roboto, Arial', sans-serif; min-height: 100vh; margin: 0; 
             overflow-y: auto;
             background: linear-gradient(rgba(0,0,0,0.90), rgba(0,0,0,0.90)), url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            padding: 20px;
+            background-size: cover; background-position: center; background-attachment: fixed; padding: 20px;
         }
-
-        /* Telas */
         .tela { display: none; width: 100%; min-height: 100vh; }
         .ativa { display: block !important; }
-
-        /* Perfil */
-        #tela-perfis {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center;
-        }
-        h1 { font-size: 38px; margin-bottom: 50px; color: #fff; font-weight: 600; }
-        .lista-perfis {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 35px; width: 100%; max-width: 700px;
-        }
-        .perfil-item {
-            position: relative;
-            display: flex; flex-direction: column; align-items: center; gap: 12px;
-            cursor: pointer; transition: transform 0.2s;
-            padding: 10px; border-radius: 12px;
-            text-decoration: none;
-        }
-        .perfil-item:active { transform: scale(0.95); }
-        .perfil-item img {
-            width: 140px; height: 140px; border-radius: 50%; border: 3px solid transparent;
-            object-fit: cover; background: rgba(255,255,255,0.08);
-        }
-        .perfil-item:hover, .perfil-item:focus { transform: scale(1.08); }
-        .perfil-item:hover img, .perfil-item:focus img { border-color: #f47521; box-shadow: 0 0 20px rgba(244,117,33,0.5); }
-        .perfil-item p { font-size: 20px; color: #eee; }
-        .btn-editar {
-            position: absolute; top: 5px; right: 5px; width: 36px; height: 36px;
-            border-radius: 50%; background: #f47521; color: white; border: none;
-            font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            z-index: 10;
-        }
-        .perfil-vazio {
-            border: 3px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;
-            font-size: 50px; color: rgba(255,255,255,0.4); border-radius: 50%; width: 140px; height: 140px;
-        }
-
-        /* Formulário */
-        .voltar {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-            padding: 12px 22px; font-size: 18px; margin-bottom: 30px;
-            color: white; border-radius: 8px; cursor: pointer;
-        }
-        .voltar:hover, .voltar:focus { background: rgba(255,255,255,0.2); }
         h2 { font-size: 32px; margin-bottom: 30px; color: #fff; }
-        input {
-            padding: 18px; font-size: 20px; border-radius: 8px; border: none;
-            width: 90%; max-width: 400px; text-align: center;
-            background: rgba(255,255,255,0.15); color: white; margin-bottom: 35px;
-            border: 2px solid transparent;
-        }
-        input:focus { border-color: #f47521; }
-        .btn-principal {
-            padding: 16px 50px; background-color: #f47521; color: white; border: none;
-            cursor: pointer; font-size: 22px; border-radius: 10px; font-weight: bold;
-        }
-        .btn-principal:hover, .btn-principal:focus { background-color: #e06518; transform: translateY(-2px); }
-
-        /* Avatares */
-        .categoria { margin-bottom: 45px; }
-        .categoria h3 { font-size: 26px; margin-bottom: 25px; color: #f47521; }
-        .grid-avatares {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 25px; max-width: 900px;
-        }
-        .avatar-opcao {
-            width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
-            border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
-        }
-        .avatar-opcao:hover, .avatar-opcao:focus, .avatar-opcao.selecionado {
-            border-color: #f47521; box-shadow: 0 0 18px rgba(244,117,33,0.5);
-        }
-
-        /* Carregamento */
-        #tela-carregando {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            background: rgba(0,0,0,0.95);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s;
-        }
-        #tela-carregando.ativa { opacity: 1; pointer-events: auto; }
-        #imgCarregando {
-            width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
-            border: 4px solid #f47521; margin-bottom: 30px;
-        }
-        #textoCarregando { font-size: 34px; margin-bottom: 40px; color: #fff; }
-        .bolinhas { display: flex; gap: 20px; }
-        .bolinha {
-            width: 22px; height: 22px; border-radius: 50%; background: #f47521;
-            animation: pular 1.2s infinite;
-        }
-        .bolinha:nth-child(2) { animation-delay: 0.2s; }
-        .bolinha:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pular {
-            0%,100% { transform: translateY(0); opacity: 0.5; }
-            50% { transform: translateY(-22px); opacity: 1; }
-        }
-
-        /* Home e Séries */
-        .cabecalho {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 30px 0; border-bottom: 2px solid rgba(255,255,255,0.15);
-            margin-bottom: 50px; flex-wrap: wrap; gap: 25px;
-        }
+        .voltar { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 12px 22px; font-size: 18px; margin-bottom: 30px; color: white; border-radius: 8px; cursor: pointer; }
+        .voltar:hover, .voltar:focus { background: rgba(255,255,255,0.2); }
+        .cabecalho { display: flex; align-items: center; justify-content: space-between; padding: 30px 0; border-bottom: 2px solid rgba(255,255,255,0.15); margin-bottom: 50px; flex-wrap: wrap; gap: 25px; }
         .info-usuario { display: flex; align-items: center; gap: 20px; }
-        .info-usuario img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #f47521; }
+        .info-usuario img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #f47521; object-fit: cover; }
         .info-usuario h2 { font-size: 30px; margin: 0; }
         .secao { margin-bottom: 60px; }
         .secao h3 { font-size: 28px; margin-bottom: 25px; color: #f47521; }
-        .grade {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 30px;
-        }
-        .item {
-            cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            position: relative;
-            padding: 5px;
-        }
+        .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px; }
+        .item { cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; padding: 5px; }
         .item:hover, .item:focus { transform: scale(1.07); box-shadow: 0 0 22px rgba(244,117,33,0.5); }
         .item:active { transform: scale(0.97); }
         .item img { width: 100%; height: 260px; object-fit: cover; display: block; }
         .item p { padding: 15px; text-align: center; background: rgba(0,0,0,0.85); font-size: 18px; }
-        .progresso {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
-            background: rgba(255,255,255,0.2);
-        }
-        .barra-progresso {
-            height: 100%; background: #f47521; transition: width 0.3s;
-        }
-
-        /* Player */
-        .player-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            background: #000; z-index: 9998;
-            display: none; flex-direction: column;
-        }
+        .progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.2); }
+        .barra-progresso { height: 100%; background: #f47521; transition: width 0.3s; }
+        #tela-carregando { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        #tela-carregando.ativa { opacity: 1; pointer-events: auto; }
+        #imgCarregando { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #f47521; margin-bottom: 30px; }
+        #textoCarregando { font-size: 34px; margin-bottom: 40px; color: #fff; }
+        .bolinhas { display: flex; gap: 20px; }
+        .bolinha { width: 22px; height: 22px; border-radius: 50%; background: #f47521; animation: pular 1.2s infinite; }
+        .bolinha:nth-child(2) { animation-delay: 0.2s; }
+        .bolinha:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pular { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-22px); opacity: 1; } }
+        .player-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9998; display: none; flex-direction: column; }
         .player-container.ativo { display: flex !important; }
-        #video-player {
-            width: 100%; height: 100%;
-            background: #000;
-        }
-        .controles-player {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            padding: 25px;
-            transition: opacity 0.4s;
-        }
+        #video-player { width: 100%; height: 100%; background: #000; }
+        .controles-player { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 25px; transition: opacity 0.4s; }
         .controles-player.oculto { opacity: 0; pointer-events: none; }
         .info-ep { font-size: 22px; margin-bottom: 15px; }
         .tempo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 10px; }
-        .barra-tempo {
-            width: 100%; height: 8px; background: rgba(255,255,255,0.2);
-            border-radius: 4px; overflow: hidden;
-        }
+        .barra-tempo { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
         .preenchimento { height: 100%; background: #f47521; width: 0%; transition: width 0.2s; }
-        .proximo-ep {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); padding: 30px 50px; border-radius: 12px;
-            text-align: center; display: none;
-        }
+        .proximo-ep { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 30px 50px; border-radius: 12px; text-align: center; display: none; }
         .proximo-ep.ativo { display: block; }
         .proximo-ep h4 { font-size: 28px; margin-bottom: 20px; }
         .proximo-ep p { font-size: 22px; margin-bottom: 25px; color: #ffcc00; }
-        .btn-proximo {
-            padding: 12px 30px; font-size: 20px; background: #f47521; border: none;
-            color: white; border-radius: 8px; cursor: pointer;
-        }
+        .btn-proximo { padding: 12px 30px; font-size: 20px; background: #f47521; border: none; color: white; border-radius: 8px; cursor: pointer; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-<!-- Telas -->
-<div id="tela-perfis" class="tela ativa">
-    <h1>QUEM ESTÁ ASSISTINDO?</h1>
-    <div class="lista-perfis" id="listaPerfis"></div>
-</div>
-
-<div id="tela-formulario" class="tela">
-    <button class="voltar" onclick="voltarParaPerfis()">← Voltar</button>
-    <h2 id="tituloForm">Novo Perfil</h2>
-    <input type="text" id="nomePerfil" placeholder="Digite o nome">
-    <br>
-    <button class="btn-principal" onclick="avancarParaAvatar()">Continuar</button>
-</div>
-
-<div id="tela-avatar" class="tela">
-    <button class="voltar" onclick="voltarParaForm()">← Voltar</button>
-    <h2>Escolha sua imagem</h2>
-    <div class="categoria">
-        <h3>Masculino</h3>
-        <div class="grid-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc01.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-
-        </div>
-        
-    </div>
-    <div class="categoria">
-        <h3>Feminino</h3>
-        <div class="grid-avatares">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin01.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin02.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
-        </div>
-    </div>
-</div>
-
-<div id="tela-home" class="tela">
+<!-- Tela Principal já direta -->
+<div id="tela-home" class="tela ativa">
     <div class="cabecalho">
         <div class="info-usuario">
-            <img id="imgUsuario" src="" alt="">
-            <h2>BEM-VINDO, <span id="nomeUsuario"></span></h2>
+            <img id="imgUsuario" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" alt="Foto de perfil">
+            <h2>BEM-VINDO, <span id="nomeUsuario">FELIPE</span></h2>
         </div>
-        <button class="voltar" onclick="voltarParaPerfis()">Trocar Perfil</button>
     </div>
 
     <div class="secao">
@@ -291,7 +95,7 @@
 </div>
 
 <div id="tela-carregando" class="tela">
-    <img id="imgCarregando" src="" alt="">
+    <img id="imgCarregando" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" alt="Carregando">
     <h2 id="textoCarregando">Carregando...</h2>
     <div class="bolinhas">
         <div class="bolinha"></div><div class="bolinha"></div><div class="bolinha"></div>
@@ -318,153 +122,73 @@
 </div>
 
 <script>
-let perfis = JSON.parse(localStorage.getItem('perfis')) || [];
-let perfilAtual = null;
+// Perfil pré-definido direto
+let perfilAtual = {
+    nome: "FELIPE",
+    avatar: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg",
+    progresso: JSON.parse(localStorage.getItem('progresso_felipe')) || {}
+};
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
-let indiceEdicao = null;
-let nomeTemp = "", avatarTemp = "";
+let hls = null;
 
-// 📋 Catálogo de vídeos ======= ONDE FICAM LINKS IMPORTANTES ======= //
+// 📋 CATÁLOGO COMPLETO
 const CATALOGO = {
     jujutsu: {
         nome: "Jujutsu Kaisen T3",
         capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp",
         eps: [
-            {id: "jujutsu3", nome: "Episódio 3", link: "https://www.dropbox.com/scl/fi/7m3k0sa7upbjjmqga3k5d/Assistir-Jujutsu-Kaisen-3-T3-Ep3.m3u8?rlkey=2m0jh37g0s3zelz2xe9k7x3d7&dl=1"}
+            {id: "j3", nome: "Episódio 3", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/03v2.mp4/index.m3u8"},
+            {id: "j4", nome: "Episódio 4", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/04.mp4/index.m3u8"},
+            {id: "j5", nome: "Episódio 5", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/05.mp4/index.m3u8"},
+            {id: "j6", nome: "Episódio 6", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/06.mp4/index.m3u8"},
+            {id: "j7", nome: "Episódio 7", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/07.mp4/index.m3u8"},
+            {id: "j8", nome: "Episódio 8", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/08.mp4/index.m3u8"},
+            {id: "j9", nome: "Episódio 9", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/09.mp4/index.m3u8"},
+            {id: "j10", nome: "Episódio 10", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/10.mp4/index.m3u8"},
+            {id: "j11", nome: "Episódio 11", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/11.mp4/index.m3u8"},
+            {id: "j12", nome: "Episódio 12", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/12.mp4/index.m3u8"}
+        ]
+    },
+    heroi: {
+        nome: "Herói do Escudo T2",
+        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg",
+        eps: [
+            {id: "h3", nome: "Episódio 3", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/03.mp4/index.m3u8"},
+            {id: "h4", nome: "Episódio 4", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/04.mp4/index.m3u8"},
+            {id: "h5", nome: "Episódio 5", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/05.mp4/index.m3u8"},
+            {id: "h6", nome: "Episódio 6", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/06.mp4/index.m3u8"},
+            {id: "h7", nome: "Episódio 7", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/07.mp4/index.m3u8"},
+            {id: "h8", nome: "Episódio 8", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/08.mp4/index.m3u8"},
+            {id: "h9", nome: "Episódio 9", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/09.mp4/index.m3u8"},
+            {id: "h10", nome: "Episódio 10", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/10.mp4/index.m3u8"},
+            {id: "h11", nome: "Episódio 11", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/11.mp4/index.m3u8"},
+            {id: "h12", nome: "Episódio 12", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/12.mp4/index.m3u8"},
+            {id: "h13", nome: "Episódio 13", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/13.mp4/index.m3u8"}
         ]
     },
     sfv: {
         nome: "Street Fighter II V",
         capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg",
         eps: [
-            {id: "sfv19", nome: "Episódio 19", link: "https://www.dropbox.com/scl/fi/f23dp2yrgx5ouh2bjud6h/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-19-SD.m3u8?rlkey=z997bpvro0rwhbuxmf1vfmae4&dl=1"},
-            {id: "sfv20", nome: "Episódio 20", link: "https://www.dropbox.com/scl/fi/0qx0rqunmyt09h5u40zb9/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-20-SD.m3u8?rlkey=73r4rd99hbmle7je6fe4589f6&dl=1"},
-            {id: "sfv21", nome: "Episódio 21", link: "https://www.dropbox.com/scl/fi/vpgra16bmnri6x8yankdv/AnimeFire.io-Street-Fighter-II-V-Dublado-Epis-dio-21-SD.m3u8?rlkey=70k2ii0lvkb1iynmgbk8l2nwp&dl=1"}
-        ]
-    },
-    heroi: {
-        nome: "Herói do Escudo T2",
-        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg",
-        eps: [
-            {id: "heroi1", nome: "Episódio 1", link: ""}
+            {id: "sf19", nome: "Episódio 19", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/19.mp4/index.m3u8"},
+            {id: "sf20", nome: "Episódio 20", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/20.mp4/index.m3u8"},
+            {id: "sf21", nome: "Episódio 21", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/21.mp4/index.m3u8"},
+            {id: "sf22", nome: "Episódio 22", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/22.mp4/index.m3u8"},
+            {id: "sf23", nome: "Episódio 23", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/23.mp4/index.m3u8"},
+            {id: "sf24", nome: "Episódio 24", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/24.mp4/index.m3u8"},
+            {id: "sf25", nome: "Episódio 25", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/25.mp4/index.m3u8"},
+            {id: "sf26", nome: "Episódio 26", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/26.mp4/index.m3u8"},
+            {id: "sf27", nome: "Episódio 27", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/27.mp4/index.m3u8"},
+            {id: "sf28", nome: "Episódio 28", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/28.mp4/index.m3u8"},
+            {id: "sf29", nome: "Episódio 29", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/29.mp4/index.m3u8"}
         ]
     }
 };
 
-// 📌 Funções de Perfil
-function salvarPerfis() {
-    localStorage.setItem('perfis', JSON.stringify(perfis));
-    listarPerfis();
-}
-// ONDE LISTA OS PERFIS//
-function listarPerfis() {
-    const div = document.getElementById('listaPerfis');
-    div.innerHTML = "";
-    perfis.forEach((p, i) => {
-        const el = document.createElement('div');
-        el.className = 'perfil-item';
-        el.tabIndex = 0;
-        el.setAttribute('role', 'button');
-        el.innerHTML = `
-            <button class="btn-editar" onclick="editarPerfil(${i}, event)" tabindex="0">✏️</button>
-            <img src="${p.avatar}" alt="">
-            <p>${p.nome}</p>
-        `;
-        el.onclick = () => entrarPerfil(i);
-        el.onkeydown = (e) => { if(e.key === 'Enter') entrarPerfil(i); };
-        div.appendChild(el);
-    });
-    if(perfis.length < 4) {
-        const novo = document.createElement('div');
-        novo.className = 'perfil-item perfil-vazio';
-        novo.tabIndex = 0;
-        novo.setAttribute('role', 'button');
-        novo.onclick = abrirFormulario;
-        novo.onkeydown = (e) => { if(e.key === 'Enter') abrirFormulario(); };
-        novo.innerHTML = `<span>+</span>`;
-        div.appendChild(novo);
-    }
-    setTimeout(() => {
-        const primeiro = document.querySelector('.perfil-item');
-        if(primeiro) primeiro.focus();
-    }, 150);
-}
-
-function abrirFormulario(indice = null) {
-    indiceEdicao = indice;
-    document.getElementById('tituloForm').textContent = indice !== null ? "Editar Perfil" : "Novo Perfil";
-    document.getElementById('nomePerfil').value = indice !== null ? perfis[indice].nome : "";
-    document.getElementById('tela-perfis').classList.remove('ativa');
-    document.getElementById('tela-formulario').classList.add('ativa');
-    setTimeout(() => document.getElementById('nomePerfil').focus(), 100);
-}
-
-function avancarParaAvatar() {
-    nomeTemp = document.getElementById('nomePerfil').value.trim();
-    if(!nomeTemp) return alert("Digite um nome!");
-    document.getElementById('tela-formulario').classList.remove('ativa');
-    document.getElementById('tela-avatar').classList.add('ativa');
-    setTimeout(() => document.querySelector('.avatar-opcao')?.focus(), 100);
-}
-
-function selecionarAvatar(src) {
-    avatarTemp = src;
-    if(indiceEdicao !== null) {
-        perfis[indiceEdicao] = {nome: nomeTemp, avatar: avatarTemp, progresso: perfis[indiceEdicao].progresso || {}};
-    } else {
-        perfis.push({nome: nomeTemp, avatar: avatarTemp, progresso: {}});
-    }
-    indiceEdicao = null;
-    salvarPerfis();
-    document.getElementById('tela-avatar').classList.remove('ativa');
-    document.getElementById('tela-perfis').classList.add('ativa');
-}
-
-function editarPerfil(i, e) {
-    e.stopPropagation();
-    indiceEdicao = i;
-    abrirFormulario(i);
-}
-
-function entrarPerfil(i) {
-    perfilAtual = perfis[i];
-    document.getElementById('imgUsuario').src = perfilAtual.avatar;
-    document.getElementById('nomeUsuario').textContent = perfilAtual.nome;
-    
-    // Inicia carregamento
-    document.getElementById('imgCarregando').src = perfilAtual.avatar;
-    document.getElementById('textoCarregando').textContent = `Bem-vindo(a), ${perfilAtual.nome}!`;
-    
-    document.getElementById('tela-perfis').classList.remove('ativa');
-    document.getElementById('tela-carregando').classList.add('ativa');
-
-    setTimeout(() => {
-        document.getElementById('tela-carregando').classList.remove('ativa');
-        document.getElementById('tela-home').classList.add('ativa');
-        setTimeout(() => document.querySelector('.item')?.focus(), 100);
-    }, 1800);
-}
-
-function voltarParaPerfis() {
-    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-    document.getElementById('player').classList.remove('ativo');
-    document.getElementById('tela-perfis').classList.add('ativa');
-    perfilAtual = null;
-    serieAtual = null;
-    epAtual = null;
-    setTimeout(() => document.querySelector('.perfil-item')?.focus(), 100);
-}
-
-function voltarParaForm() {
-    document.getElementById('tela-avatar').classList.remove('ativa');
-    document.getElementById('tela-formulario').classList.add('ativa');
-    setTimeout(() => document.getElementById('nomePerfil').focus(), 100);
-}
-
 // 📺 Séries e Episódios
-function abrirEpisodios(idSerie) {  // FUNÇÃO QUE ABRE EPISÓDIOS //
+function abrirEpisodios(idSerie) {
     serieAtual = CATALOGO[idSerie];
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
     const div = document.getElementById('listaEpisodios');
@@ -474,202 +198,138 @@ function abrirEpisodios(idSerie) {  // FUNÇÃO QUE ABRE EPISÓDIOS //
         const el = document.createElement('div');
         el.className = 'item';
         el.tabIndex = 0;
-        el.setAttribute('role', 'button');
-        el.innerHTML = `
-            <img src="${serieAtual.capa}" alt="${ep.nome}">
-            <p>${ep.nome}</p>
-            <div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>
-        `;
+        el.innerHTML = `<img src="${serieAtual.capa}" alt="${ep.nome}"><p>${ep.nome}</p><div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>`;
         el.onclick = () => reproduzirEp(idx);
-        el.onkeydown = (e) => { if(e.key === 'Enter') reproduzirEp(idx); };
         div.appendChild(el);
     });
     document.getElementById('secaoEpisodios').style.display = 'block';
     document.getElementById('listaSeries').parentNode.style.display = 'none';
-    setTimeout(() => document.querySelector('#listaEpisodios .item')?.focus(), 100);
 }
-
-function voltarParaSeries() { // VOLTA PARA SÉRIES //
+function voltarParaSeries() {
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('listaSeries').parentNode.style.display = 'block';
     serieAtual = null;
-    setTimeout(() => document.querySelector('#listaSeries .item')?.focus(), 100);
 }
 
-// 🎬 Player e Progresso ====== RESPONSAVEL POR RODAR O PLAYER
+// 🎬 Player
 function reproduzirEp(indice) {
     epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
-    if(!epAtual.dados.link) return alert("Episódio sem link ainda!");
+    if(!epAtual.dados.link) return alert("Link indisponível!");
     const video = document.getElementById('video-player');
-    video.src = epAtual.dados.link;
     document.getElementById('infoEpAtual').textContent = `${serieAtual.nome} - ${epAtual.dados.nome}`;
     document.getElementById('player').classList.add('ativo');
     document.getElementById('avisoProximo').classList.remove('ativo');
-    video.play();
-    restaurarProgresso();
+    pararPlayer();
+
+    if (Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true });
+        hls.loadSource(epAtual.dados.link);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { restaurarProgresso(); video.play().catch(() => {}); });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = epAtual.dados.link;
+        video.addEventListener('loadedmetadata', () => { restaurarProgresso(); video.play().catch(() => {}); });
+    } else { alert("Formato não suportado!"); }
+
+    video.onended = mostrarProximoEp;
 }
-// FUNÇÃO QUE SALVA PROGRESSO //
+function pararPlayer() {
+    if (hls) hls.destroy(); hls = null;
+    const v = document.getElementById('video-player'); v.pause(); v.src = ""; v.load();
+    if(temporizadorProximo) clearInterval(temporizadorProximo);
+}
 function salvarProgresso() {
     if(!epAtual) return;
-    const video = document.getElementById('video-player');
+    const v = document.getElementById('video-player');
     if(!perfilAtual.progresso) perfilAtual.progresso = {};
-    const porcentagem = video.duration ? Math.min(100, (video.currentTime / video.duration) * 100) : 0;
-    perfilAtual.progresso[epAtual.dados.id] = porcentagem;
-    perfis[perfis.findIndex(p => p.nome === perfilAtual.nome)] = perfilAtual;
-    localStorage.setItem('perfis', JSON.stringify(perfis));
+    if(v.duration && !isNaN(v.duration)) {
+        const tempo = Math.round(v.currentTime);
+        const porcentagem = Math.min(100, (tempo / v.duration) * 100);
+        perfilAtual.progresso[epAtual.dados.id] = {tempo, porcentagem};
+        localStorage.setItem('progresso_felipe', JSON.stringify(perfilAtual.progresso));
+    }
 }
-
 function restaurarProgresso() {
-    const video = document.getElementById('video-player');
     setTimeout(() => {
-        if(epAtual.dados.id && perfilAtual.progresso?.[epAtual.dados.id]) {
-            const porcentagem = perfilAtual.progresso[epAtual.dados.id];
-            video.currentTime = (porcentagem / 100) * video.duration;
+        const v = document.getElementById('video-player');
+        if(epAtual.dados.id && perfilAtual.progresso?.[epAtual.dados.id]?.tempo) {
+            v.currentTime = perfilAtual.progresso[epAtual.dados.id].tempo;
         }
-    }, 1500);
+    }, 1200);
 }
-
 function mostrarProximoEp() {
     if(temporizadorProximo) clearInterval(temporizadorProximo);
-    const proxIndice = epAtual.indice + 1;
-    if(proxIndice >= serieAtual.eps.length) return;
+    const prox = epAtual.indice + 1;
+    if(prox >= serieAtual.eps.length) {
+        document.getElementById('avisoProximo').innerHTML = `<h4>Fim da temporada</h4><p>Não há mais episódios</p>`;
+        document.getElementById('avisoProximo').classList.add('ativo');
+        return;
+    }
     document.getElementById('avisoProximo').classList.add('ativo');
     let cont = 10;
     document.getElementById('contagemRegressiva').textContent = cont;
     temporizadorProximo = setInterval(() => {
         cont--;
         document.getElementById('contagemRegressiva').textContent = cont;
-        if(cont <= 0) {
-            clearInterval(temporizadorProximo);
-            irProximoEp();
-        }
+        if(cont <= 0) { clearInterval(temporizadorProximo); irProximoEp(); }
     }, 1000);
 }
-
 function irProximoEp() {
     clearInterval(temporizadorProximo);
     document.getElementById('avisoProximo').classList.remove('ativo');
     reproduzirEp(epAtual.indice + 1);
 }
-
 function fecharPlayer() {
     salvarProgresso();
-    const video = document.getElementById('video-player');
-    video.pause();
-    video.src = "";
+    pararPlayer();
     document.getElementById('player').classList.remove('ativo');
-    document.getElementById('avisoProximo').classList.remove('ativo');
-    if(temporizadorProximo) clearInterval(temporizadorProximo);
 }
 
-// 🎮 Controles do Fire Stick / Android ======= AQUI É MUITO IMPORTANTE PRA FUNCIONAR DIREITO NA TV FIRE STICK ===== //
+// 🎮 Controles
 document.addEventListener('keydown', (e) => {
-    const video = document.getElementById('video-player');
+    const v = document.getElementById('video-player');
     const playerAtivo = document.getElementById('player').classList.contains('ativo');
-    const focoAtual = document.activeElement;
-
     if(!playerAtivo) {
         switch(e.key) {
-            case 'ArrowUp':
-                e.preventDefault();
-                moverFoco('up');
-                break;
-            case 'ArrowDown':
-                e.preventDefault();
-                moverFoco('down');
-                break;
-            case 'ArrowLeft':
-                e.preventDefault();
-                moverFoco('left');
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                moverFoco('right');
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if(focoAtual) focoAtual.click();
-                break;
-            case 'Backspace':
-            case 'Escape':
-                e.preventDefault();
-                voltarParaPerfis();
-                break;
+            case 'ArrowUp': e.preventDefault(); moverFoco('up'); break;
+            case 'ArrowDown': e.preventDefault(); moverFoco('down'); break;
+            case 'ArrowLeft': e.preventDefault(); moverFoco('left'); break;
+            case 'ArrowRight': e.preventDefault(); moverFoco('right'); break;
+            case 'Enter': e.preventDefault(); if(document.activeElement) document.activeElement.click(); break;
+            case 'Escape': e.preventDefault(); break;
         }
     } else {
         switch(e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                fecharPlayer();
-                break;
-            case 'ArrowLeft':
-                e.preventDefault();
-                video.currentTime = Math.max(0, video.currentTime - 10);
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                video.currentTime = Math.min(video.duration || 99999, video.currentTime + 10);
-                break;
-            case 'Enter':
-                e.preventDefault();
-                video.paused ? video.play() : video.pause();
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                document.getElementById('controlesVideo').classList.toggle('oculto');
-                break;
-            case 'Escape':
-                e.preventDefault();
-                fecharPlayer();
-                break;
+            case 'ArrowDown': e.preventDefault(); fecharPlayer(); break;
+            case 'ArrowLeft': e.preventDefault(); v.currentTime = Math.max(0, v.currentTime - 10); break;
+            case 'ArrowRight': e.preventDefault(); v.currentTime = Math.min(v.duration || 99999, v.currentTime + 10); break;
+            case 'Enter': e.preventDefault(); v.paused ? v.play() : v.pause(); break;
+            case 'ArrowUp': e.preventDefault(); document.getElementById('controlesVideo').classList.toggle('oculto'); break;
+            case 'Escape': e.preventDefault(); fecharPlayer(); break;
         }
     }
 });
-
 function moverFoco(direcao) {
-    const todosElementos = Array.from(document.querySelectorAll('[tabindex="0"], button, input'))
-        .filter(el => el.offsetParent !== null);
-    const indiceAtual = todosElementos.indexOf(document.activeElement);
-    if(indiceAtual === -1) return;
-
-    let novoIndice;
-    switch(direcao) {
-        case 'up': novoIndice = indiceAtual - 4; break;
-        case 'down': novoIndice = indiceAtual + 4; break;
-        case 'left': novoIndice = indiceAtual - 1; break;
-        case 'right': novoIndice = indiceAtual + 1; break;
-        default: return;
-    }
-
-    if(novoIndice >= 0 && novoIndice < todosElementos.length) {
-        todosElementos[novoIndice].focus();
-        todosElementos[novoIndice].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    const el = Array.from(document.querySelectorAll('[tabindex="0"], button')).filter(el => el.offsetParent !== null);
+    const i = el.indexOf(document.activeElement); if(i === -1) return;
+    const map = {up: i-4, down: i+4, left: i-1, right: i+1};
+    const novo = map[direcao];
+    if(novo >=0 && novo < el.length) { el[novo].focus(); el[novo].scrollIntoView({behavior: 'smooth', block: 'center'}); }
 }
-
-// ⏱️ Atualiza tempo e progresso
+function formatarTempo(s) {
+    const m = Math.floor(s/60);
+    const seg = Math.floor(s%60);
+    return `${m.toString().padStart(2,'0')}:${seg.toString().padStart(2,'0')}`;
+}
 document.getElementById('video-player').addEventListener('timeupdate', () => {
     const v = document.getElementById('video-player');
-    if(!v.duration) return;
-    const porcentagem = (v.currentTime / v.duration) * 100;
-    document.getElementById('barraTempo').style.width = porcentagem + "%";
+    if(!v.duration || isNaN(v.duration)) return;
+    const p = (v.currentTime / v.duration) * 100;
+    document.getElementById('barraTempo').style.width = p + "%";
     document.getElementById('tempoAtual').textContent = formatarTempo(v.currentTime);
     document.getElementById('tempoTotal').textContent = formatarTempo(v.duration);
-    if(porcentagem >= 95 && !document.getElementById('avisoProximo').classList.contains('ativo')) {
-        mostrarProximoEp();
-    }
+    salvarProgresso();
 });
-
-function formatarTempo(segundos) {
-    const min = Math.floor(segundos / 60);
-    const seg = Math.floor(segundos % 60);
-    return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
-}
-
-// Inicialização
-window.onload = () => {
-    listarPerfis();
-};
 </script>
 </body>
 </html>
