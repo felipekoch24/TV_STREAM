@@ -224,7 +224,17 @@
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc06.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc07.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc08.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc09.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc10.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc11.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc12.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc13.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+
         </div>
+        
     </div>
     <div class="categoria">
         <h3>Feminino</h3>
@@ -234,6 +244,14 @@
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin03.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin04.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
             <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin05.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin06.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin07.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin08.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin09.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin10.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin11.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin12.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
+            <img class="avatar-opcao" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/femin13.jpg" onclick="selecionarAvatar(this.src)" tabindex="0">
         </div>
     </div>
 </div>
@@ -259,7 +277,7 @@
                 <p>Jujutsu Kaisen T3</p>
             </div>
             <div class="item" onclick="abrirEpisodios('heroi')" tabindex="0">
-                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescutot2.jpeg" alt="Herói do Escudo">
+                <img src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg" alt="Herói do Escudo">
                 <p>Herói do Escudo T2</p>
             </div>
         </div>
@@ -308,7 +326,7 @@ let temporizadorProximo = null;
 let indiceEdicao = null;
 let nomeTemp = "", avatarTemp = "";
 
-// 📋 Catálogo de vídeos
+// 📋 Catálogo de vídeos ======= ONDE FICAM LINKS IMPORTANTES ======= //
 const CATALOGO = {
     jujutsu: {
         nome: "Jujutsu Kaisen T3",
@@ -340,7 +358,7 @@ function salvarPerfis() {
     localStorage.setItem('perfis', JSON.stringify(perfis));
     listarPerfis();
 }
-
+// ONDE LISTA OS PERFIS//
 function listarPerfis() {
     const div = document.getElementById('listaPerfis');
     div.innerHTML = "";
@@ -446,7 +464,7 @@ function voltarParaForm() {
 }
 
 // 📺 Séries e Episódios
-function abrirEpisodios(idSerie) {
+function abrirEpisodios(idSerie) {  // FUNÇÃO QUE ABRE EPISÓDIOS //
     serieAtual = CATALOGO[idSerie];
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
     const div = document.getElementById('listaEpisodios');
@@ -471,14 +489,14 @@ function abrirEpisodios(idSerie) {
     setTimeout(() => document.querySelector('#listaEpisodios .item')?.focus(), 100);
 }
 
-function voltarParaSeries() {
+function voltarParaSeries() { // VOLTA PARA SÉRIES //
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('listaSeries').parentNode.style.display = 'block';
     serieAtual = null;
     setTimeout(() => document.querySelector('#listaSeries .item')?.focus(), 100);
 }
 
-// 🎬 Player e Progresso
+// 🎬 Player e Progresso ====== RESPONSAVEL POR RODAR O PLAYER
 function reproduzirEp(indice) {
     epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
     if(!epAtual.dados.link) return alert("Episódio sem link ainda!");
@@ -490,7 +508,7 @@ function reproduzirEp(indice) {
     video.play();
     restaurarProgresso();
 }
-
+// FUNÇÃO QUE SALVA PROGRESSO //
 function salvarProgresso() {
     if(!epAtual) return;
     const video = document.getElementById('video-player');
@@ -544,7 +562,7 @@ function fecharPlayer() {
     if(temporizadorProximo) clearInterval(temporizadorProximo);
 }
 
-// 🎮 Controles do Fire Stick / Android
+// 🎮 Controles do Fire Stick / Android ======= AQUI É MUITO IMPORTANTE PRA FUNCIONAR DIREITO NA TV FIRE STICK ===== //
 document.addEventListener('keydown', (e) => {
     const video = document.getElementById('video-player');
     const playerAtivo = document.getElementById('player').classList.contains('ativo');
