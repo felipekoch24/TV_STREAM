@@ -3,473 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TV STREAM - Fire Stick / Android</title>
+    <title>TV STREAM</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :focus { outline: 3px solid #f47521 !important; outline-offset: 3px !important; border-radius: 8px; }
         body { 
-            color: white; font-family: 'Segoe UI, Roboto, Arial', sans-serif; min-height: 100vh; margin: 0; 
-            overflow-y: auto;
-            background: linear-gradient(rgba(0,0,0,0.90), rgba(0,0,0,0.90)), url('https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/fund01.jpg');
-            background-size: cover; background-position: center; background-attachment: fixed; padding: 20px;
+            color: white; font-family: Arial, sans-serif; min-height: 100vh; margin: 0; 
+            background: #000; padding: 20px;
         }
         .tela { display: none; width: 100%; min-height: 100vh; }
         .ativa { display: block !important; }
-        h2 { font-size: 32px; margin-bottom: 30px; color: #fff; }
-        .voltar { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 12px 22px; font-size: 18px; margin-bottom: 30px; color: white; border-radius: 8px; cursor: pointer; }
-        .voltar:hover, .voltar:focus { background: rgba(255,255,255,0.2); }
-        .cabecalho { display: flex; align-items: center; justify-content: space-between; padding: 30px 0; border-bottom: 2px solid rgba(255,255,255,0.15); margin-bottom: 50px; flex-wrap: wrap; gap: 25px; }
-        .info-usuario { display: flex; align-items: center; gap: 20px; }
-        .info-usuario img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #f47521; object-fit: cover; }
-        .info-usuario h2 { font-size: 30px; margin: 0; }
-        .secao { margin-bottom: 60px; }
-        .secao h3 { font-size: 28px; margin-bottom: 25px; color: #f47521; }
-        .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px; max-width: 100%; }
-        .item { 
-            cursor: pointer; transition: transform 0.2s; border-radius: 10px; overflow: hidden; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; padding: 5px; 
-            outline: none;
+        h2 { font-size: 30px; margin-bottom: 30px; color: #f47521; text-align: center; }
+        .voltar { 
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
+            padding: 12px 20px; font-size: 18px; margin-bottom: 30px; color: white; 
+            border-radius: 8px; cursor: pointer;
+            width: auto;
         }
-        .item:hover, .item:focus { transform: scale(1.07); box-shadow: 0 0 22px rgba(244,117,33,0.5); }
-        .item:active { transform: scale(0.97); }
-        .item img { width: 100%; height: 260px; object-fit: cover; display: block; }
-        .item p { padding: 15px; text-align: center; background: rgba(0,0,0,0.85); font-size: 18px; }
-        .progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.2); }
+        .secao { margin-bottom: 50px; }
+        .secao h3 { font-size: 24px; margin-bottom: 20px; color: #f47521; }
+        .grade { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 25px; max-width: 100%;
+        }
+        .item { 
+            cursor: pointer; transition: transform 0.2s; border-radius: 8px; overflow: hidden; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.6); position: relative; padding: 4px;
+        }
+        .item:hover, .item:focus { transform: scale(1.05); box-shadow: 0 0 15px rgba(244,117,33,0.6); }
+        .item img { width: 100%; height: 220px; object-fit: cover; display: block; }
+        .item p { padding: 12px; text-align: center; background: rgba(0,0,0,0.85); font-size: 16px; }
+        .progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.2); }
         .barra-progresso { height: 100%; background: #f47521; transition: width 0.3s; }
-        #tela-carregando { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-        #tela-carregando.ativa { opacity: 1; pointer-events: auto; }
-        #imgCarregando { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #f47521; margin-bottom: 30px; }
-        #textoCarregando { font-size: 34px; margin-bottom: 40px; color: #fff; }
-        .bolinhas { display: flex; gap: 20px; }
-        .bolinha { width: 22px; height: 22px; border-radius: 50%; background: #f47521; animation: pular 1.2s infinite; }
-        .bolinha:nth-child(2) { animation-delay: 0.2s; }
-        .bolinha:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pular { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-22px); opacity: 1; } }
-        .player-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 9998; display: none; flex-direction: column; }
-        .player-container.ativo { display: flex !important; }
+        .player-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 999; display: none; }
+        .player-container.ativo { display: block !important; }
         #video-player { width: 100%; height: 100%; background: #000; }
-        .controles-player { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 25px; transition: opacity 0.4s; }
-        .controles-player.oculto { opacity: 0; pointer-events: none; }
-        .info-ep { font-size: 22px; margin-bottom: 15px; }
-        .tempo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 10px; }
-        .barra-tempo { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
-        .preenchimento { height: 100%; background: #f47521; width: 0%; transition: width 0.2s; }
-        .proximo-ep { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 30px 50px; border-radius: 12px; text-align: center; display: none; }
-        .proximo-ep.ativo { display: block; }
-        .proximo-ep h4 { font-size: 28px; margin-bottom: 20px; }
-        .proximo-ep p { font-size: 22px; margin-bottom: 25px; color: #ffcc00; }
-        .btn-proximo { padding: 12px 30px; font-size: 20px; background: #f47521; border: none; color: white; border-radius: 8px; cursor: pointer; outline: none; }
-        .btn-proximo:focus { box-shadow: 0 0 15px rgba(244,117,33,0.7); }
-        .aviso-sair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 40px; border-radius: 12px; text-align: center; z-index: 9997; display: none; max-width: 90%; }
-        .aviso-sair.ativo { display: block; }
-        .aviso-sair h3 { margin-bottom: 25px; font-size: 26px; }
-        .botoes-sair { display: flex; gap: 20px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
-        .btn-sair { padding: 12px 25px; font-size: 18px; border-radius: 8px; border: none; cursor: pointer; }
-        .btn-sair.sim { background: #e74c3c; color: white; }
-        .btn-sair.nao { background: #f47521; color: white; }
+        .aviso-proximo { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            background: rgba(0,0,0,0.92); padding: 30px 50px; border-radius: 10px; 
+            text-align: center; display: none; border: 2px solid #f47521;
+            min-width: 300px;
+        }
+        .aviso-proximo.ativo { display: block !important; }
+        .aviso-proximo h4 { font-size: 26px; margin: 0; color: #ffcc00; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
 </head>
 <body>
 
 <div id="tela-home" class="tela ativa">
-    <div class="cabecalho">
-        <div class="info-usuario">
-            <img id="imgUsuario" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" alt="Foto de perfil">
-            <h2>BEM-VINDO, <span id="nomeUsuario">FELIPE</span></h2>
-        </div>
+    <h2>📺 TV STREAM</h2>
+
+    <!-- Seção Continuar Assistindo -->
+    <div class="secao" id="secaoContinuar" style="display: none;">
+        <h3>⏯️ Continuar Assistindo</h3>
+        <div class="grade" id="listaContinuar"></div>
     </div>
 
     <div class="secao" id="secaoSeries">
-        <h3>📺 MINHAS SÉRIES</h3>
+        <h3>📚 Minhas Séries</h3>
         <div class="grade" id="listaSeries"></div>
     </div>
 
     <div class="secao" id="secaoEpisodios" style="display: none;">
-        <button class="voltar" id="btnVoltarEp" onclick="voltarParaSeries()">← Voltar para Séries</button>
+        <button class="voltar" id="btnVoltarEp" onclick="voltarParaSeries()">← Voltar</button>
         <h3 id="tituloSerie"></h3>
         <div class="grade" id="listaEpisodios"></div>
     </div>
 </div>
 
-<div id="tela-carregando" class="tela">
-    <img id="imgCarregando" src="https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg" alt="Carregando">
-    <h2 id="textoCarregando">Carregando...</h2>
-    <div class="bolinhas">
-        <div class="bolinha"></div><div class="bolinha"></div><div class="bolinha"></div>
-    </div>
-</div>
-
 <div class="player-container" id="player">
-    <video id="video-player" playsinline preload="metadata"></video>
-    <div class="controles-player" id="controlesVideo">
-        <div class="info-ep" id="infoEpAtual"></div>
-        <div class="tempo">
-            <span id="tempoAtual">00:00</span>
-            <span id="tempoTotal">00:00</span>
-        </div>
-        <div class="barra-tempo">
-            <div class="preenchimento" id="barraTempo"></div>
-        </div>
-    </div>
-    <div class="proximo-ep" id="avisoProximo">
-        <h4>Próximo Episódio</h4>
-        <p>Continua em <span id="contagemRegressiva">10</span> segundos</p>
-        <button class="btn-proximo" onclick="irProximoEp()">Assistir Agora</button>
-    </div>
-</div>
-
-<div class="aviso-sair" id="avisoSair">
-    <h3>Deseja realmente sair do aplicativo?</h3>
-    <div class="botoes-sair">
-        <button class="btn-sair nao" onclick="fecharAvisoSair()">Não, continuar</button>
-        <button class="btn-sair sim" onclick="confirmarSair()">Sim, sair</button>
+    <video id="video-player" playsinline preload="metadata" controls></video>
+    <div class="aviso-proximo" id="avisoProximo">
+        <h4>Começando próximo episódio…</h4>
     </div>
 </div>
 
 <script>
-let perfilAtual = {
-    nome: "FELIPE",
-    avatar: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/imagens%20perfil/masc02.jpg",
-    progresso: JSON.parse(localStorage.getItem('progresso_felipe')) || {}
-};
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
 let hls = null;
-let nivelNavegacao = 'series'; // series | episodios | player
+let nivel = 'series'; // series | episodios | player
+// Agora salva TEMPO e PORCENTAGEM
+let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
+const COLUNAS_FIXAS = 3; // Número fixo de colunas
 
+// CATÁLOGO
 const CATALOGO = {
-    jujutsu: {
-        nome: "Jujutsu Kaisen T3",
-        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/jujutsu-t3.webp",
+    bsd_t3: {
+        nome: "Bungou Stray Dogs T3",
+        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/bsd_t3.jpg",
         eps: [
-            {id: "j3", nome: "Episódio 3", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/03v2.mp4/index.m3u8"},
-            {id: "j4", nome: "Episódio 4", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/04.mp4/index.m3u8"},
-            {id: "j5", nome: "Episódio 5", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/05.mp4/index.m3u8"},
-            {id: "j6", nome: "Episódio 6", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/06.mp4/index.m3u8"},
-            {id: "j7", nome: "Episódio 7", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/07.mp4/index.m3u8"},
-            {id: "j8", nome: "Episódio 8", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/08.mp4/index.m3u8"},
-            {id: "j9", nome: "Episódio 9", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/09.mp4/index.m3u8"},
-            {id: "j10", nome: "Episódio 10", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/10.mp4/index.m3u8"},
-            {id: "j11", nome: "Episódio 11", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/11.mp4/index.m3u8"},
-            {id: "j12", nome: "Episódio 12", link: "https://cdn.imagesskill.com/stream/j/jujutsu-kaisen-3-dublado/12.mp4/index.m3u8"}
-        ]
-    },
-    heroi: {
-        nome: "Herói do Escudo T2",
-        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/heroidescudot2.jpeg",
-        eps: [
-            {id: "h3", nome: "Episódio 3", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/03.mp4/index.m3u8"},
-            {id: "h4", nome: "Episódio 4", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/04.mp4/index.m3u8"},
-            {id: "h5", nome: "Episódio 5", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/05.mp4/index.m3u8"},
-            {id: "h6", nome: "Episódio 6", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/06.mp4/index.m3u8"},
-            {id: "h7", nome: "Episódio 7", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/07.mp4/index.m3u8"},
-            {id: "h8", nome: "Episódio 8", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/08.mp4/index.m3u8"},
-            {id: "h9", nome: "Episódio 9", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/09.mp4/index.m3u8"},
-            {id: "h10", nome: "Episódio 10", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/10.mp4/index.m3u8"},
-            {id: "h11", nome: "Episódio 11", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/11.mp4/index.m3u8"},
-            {id: "h12", nome: "Episódio 12", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/12.mp4/index.m3u8"},
-            {id: "h13", nome: "Episódio 13", link: "https://cdn.imagesskill.com/stream/t/tate-no-yuusha-no-nariagari-season-2-dublado/13.mp4/index.m3u8"}
-        ]
-    },
-    sfv: {
-        nome: "Street Fighter II V",
-        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/streetfighterv.jpeg",
-        eps: [
-            {id: "sf19", nome: "Episódio 19", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/19.mp4/index.m3u8"},
-            {id: "sf20", nome: "Episódio 20", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/20.mp4/index.m3u8"},
-            {id: "sf21", nome: "Episódio 21", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/21.mp4/index.m3u8"},
-            {id: "sf22", nome: "Episódio 22", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/22.mp4/index.m3u8"},
-            {id: "sf23", nome: "Episódio 23", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/23.mp4/index.m3u8"},
-            {id: "sf24", nome: "Episódio 24", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/24.mp4/index.m3u8"},
-            {id: "sf25", nome: "Episódio 25", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/25.mp4/index.m3u8"},
-            {id: "sf26", nome: "Episódio 26", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/26.mp4/index.m3u8"},
-            {id: "sf27", nome: "Episódio 27", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/27.mp4/index.m3u8"},
-            {id: "sf28", nome: "Episódio 28", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/28.mp4/index.m3u8"},
-            {id: "sf29", nome: "Episódio 29", link: "https://cdn.imagesskill.com/stream/s/street-fighter-2-v-dublado/29.mp4/index.m3u8"}
+            {id: "bsd01", nome: "Episódio 01", link: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/bsd_t3_ep01/index.m3u8"},
+            {id: "bsd02", nome: "Episódio 02", link: ""},
+            {id: "bsd03", nome: "Episódio 03", link: ""},
+            {id: "bsd04", nome: "Episódio 04", link: ""},
+            {id: "bsd05", nome: "Episódio 05", link: ""},
+            {id: "bsd06", nome: "Episódio 06", link: ""},
+            {id: "bsd07", nome: "Episódio 07", link: ""},
+            {id: "bsd08", nome: "Episódio 08", link: ""},
+            {id: "bsd09", nome: "Episódio 09", link: ""},
+            {id: "bsd10", nome: "Episódio 10", link: ""}
         ]
     }
 };
 
+// Carregar lista de séries e continuar assistindo
 function carregarSeries() {
-    nivelNavegacao = 'series';
+    nivel = 'series';
     const div = document.getElementById('listaSeries');
     div.innerHTML = "";
     Object.keys(CATALOGO).forEach(id => {
-        const serie = CATALOGO[id];
+        const s = CATALOGO[id];
         const el = document.createElement('div');
         el.className = 'item';
         el.tabIndex = 0;
-        el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', serie.nome);
-        el.innerHTML = `<img src="${serie.capa}" alt="${serie.nome}"><p>${serie.nome}</p>`;
+        el.innerHTML = `<img src="${s.capa}" alt="${s.nome}"><p>${s.nome}</p>`;
         el.onclick = () => abrirEpisodios(id);
-        el.onkeydown = (e) => { if(e.key === 'Enter') abrirEpisodios(id); };
         div.appendChild(el);
     });
-    setTimeout(() => {
-        const primeiro = document.querySelector('#listaSeries .item');
-        if(primeiro) primeiro.focus();
-    }, 100);
+    carregarContinuarAssistindo();
+    focarPrimeiro();
 }
 
+// Carregar seção de continuar assistindo
+function carregarContinuarAssistindo() {
+    const secao = document.getElementById('secaoContinuar');
+    const div = document.getElementById('listaContinuar');
+    div.innerHTML = "";
+    let temConteudo = false;
+
+    for (const idEp in progresso) {
+        const dados = progresso[idEp];
+        // Mostra apenas se passou de 5% do vídeo
+        if (!dados || !dados.tempo || dados.porcentagem < 5) continue;
+
+        for (const idSerie in CATALOGO) {
+            const serie = CATALOGO[idSerie];
+            const ep = serie.eps.find(e => e.id === idEp);
+            if (ep) {
+                temConteudo = true;
+                const el = document.createElement('div');
+                el.className = 'item';
+                el.tabIndex = 0;
+                el.innerHTML = `
+                    <img src="${serie.capa}" alt="${ep.nome}">
+                    <p>${serie.nome}<br>${ep.nome}</p>
+                    <div class="progresso"><div class="barra-progresso" style="width:${dados.porcentagem}%"></div></div>
+                `;
+                // Ao clicar, já vai direto do tempo salvo
+                el.onclick = () => reproduzirEpComTempo(idSerie, ep.id, dados.tempo);
+                div.appendChild(el);
+                break;
+            }
+        }
+    }
+
+    secao.style.display = temConteudo ? 'block' : 'none';
+}
+
+// Abrir episódios de uma série
 function abrirEpisodios(idSerie) {
     serieAtual = CATALOGO[idSerie];
-    nivelNavegacao = 'episodios';
+    nivel = 'episodios';
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
     const div = document.getElementById('listaEpisodios');
     div.innerHTML = "";
+
     serieAtual.eps.forEach((ep, idx) => {
-        const prog = perfilAtual.progresso?.[ep.id]?.porcentagem || 0;
+        const porcentagem = progresso[ep.id]?.porcentagem || 0;
         const el = document.createElement('div');
         el.className = 'item';
         el.tabIndex = 0;
-        el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', ep.nome);
-        el.innerHTML = `<img src="${serieAtual.capa}" alt="${ep.nome}"><p>${ep.nome}</p><div class="progresso"><div class="barra-progresso" style="width:${prog}%"></div></div>`;
+        el.innerHTML = `
+            <img src="${serieAtual.capa}" alt="${ep.nome}">
+            <p>${ep.nome}</p>
+            <div class="progresso"><div class="barra-progresso" style="width:${porcentagem}%"></div></div>
+        `;
         el.onclick = () => reproduzirEp(idx);
-        el.onkeydown = (e) => { if(e.key === 'Enter') reproduzirEp(idx); };
         div.appendChild(el);
     });
+
     document.getElementById('secaoEpisodios').style.display = 'block';
     document.getElementById('secaoSeries').style.display = 'none';
-    setTimeout(() => {
-        document.getElementById('btnVoltarEp').focus();
-    }, 100);
+    document.getElementById('btnVoltarEp').focus();
 }
 
+// Reproduzir episódio direto com tempo salvo
+function reproduzirEpComTempo(idSerie, idEp, tempoInicial) {
+    abrirEpisodios(idSerie);
+    const indice = serieAtual.eps.findIndex(e => e.id === idEp);
+    if (indice >= 0) reproduzirEp(indice, tempoInicial);
+}
+
+// Voltar para lista de séries
 function voltarParaSeries() {
     serieAtual = null;
-    nivelNavegacao = 'series';
+    nivel = 'series';
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('secaoSeries').style.display = 'block';
-    setTimeout(() => {
-        const primeiro = document.querySelector('#listaSeries .item');
-        if(primeiro) primeiro.focus();
-    }, 100);
+    carregarContinuarAssistindo();
+    focarPrimeiro();
 }
 
-function reproduzirEp(indice) {
+// Reproduzir vídeo (agora aceita tempo inicial)
+function reproduzirEp(indice, tempoInicial = null) {
     epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
-    nivelNavegacao = 'player';
-    if(!epAtual.dados.link) return alert("Link indisponível!");
+    nivel = 'player';
+
+    if(!epAtual.dados.link) { alert("Episódio ainda não adicionado!"); return; }
+
     const video = document.getElementById('video-player');
-    document.getElementById('infoEpAtual').textContent = `${serieAtual.nome} - ${epAtual.dados.nome}`;
     document.getElementById('player').classList.add('ativo');
     document.getElementById('avisoProximo').classList.remove('ativo');
     pararPlayer();
 
     if (Hls.isSupported()) {
-        hls = new Hls({ enableWorker: true, maxBufferLength: 30 });
+        hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: false,
+            maxBufferLength: 20,
+            maxMaxBufferLength: 30,
+            xhrSetup: (xhr) => { xhr.withCredentials = false; }
+        });
         hls.loadSource(epAtual.dados.link);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-            restaurarProgresso(); 
-            video.play().catch(() => {}); 
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (tempoInicial !== null) {
+                video.currentTime = tempoInicial;
+            } else {
+                restaurarProgresso();
+            }
+            video.play().catch(e => console.log("Reprodução:", e));
+        });
+        hls.on(Hls.Events.ERROR, (_, err) => {
+            if(err.fatal) {
+                console.error("Erro HLS:", err);
+                hls.destroy();
+                alert("Não foi possível carregar o vídeo.");
+                fecharPlayer();
+            }
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = epAtual.dados.link;
-        video.addEventListener('loadedmetadata', () => { 
-            restaurarProgresso(); 
-            video.play().catch(() => {}); 
+        video.load();
+        video.addEventListener('loadedmetadata', () => {
+            if (tempoInicial !== null) {
+                video.currentTime = tempoInicial;
+            } else {
+                restaurarProgresso();
+            }
         });
-    } else { alert("Formato não suportado!"); }
+        video.play().catch(() => {});
+    } else {
+        alert("Formato não suportado!");
+        fecharPlayer();
+    }
 
+    video.ontimeupdate = salvarProgressoAutomatico;
     video.onended = mostrarProximoEp;
 }
 
 function pararPlayer() {
     salvarProgresso();
-    if (hls) { hls.destroy(); hls = null; }
-    const v = document.getElementById('video-player'); 
-    v.pause(); 
+    if(hls) { hls.destroy(); hls = null; }
+    const v = document.getElementById('video-player');
+    v.pause();
     v.removeAttribute('src');
     v.load();
-    if(temporizadorProximo) clearInterval(temporizadorProximo);
+    if(temporizadorProximo) clearTimeout(temporizadorProximo);
+}
+
+function fecharPlayer() {
+    pararPlayer();
+    document.getElementById('player').classList.remove('ativo');
+    nivel = 'episodios';
+    document.getElementById('btnVoltarEp').focus();
+}
+
+// Salva tempo e porcentagem a cada 2 segundos
+function salvarProgressoAutomatico() {
+    if(!epAtual) return;
+    const v = document.getElementById('video-player');
+    if(v.duration && !isNaN(v.duration) && v.duration > 0) {
+        const tempoAtual = Math.round(v.currentTime);
+        const porcentagem = Math.min(100, Math.max(0, Math.round((v.currentTime / v.duration) * 100)));
+        progresso[epAtual.dados.id] = { tempo: tempoAtual, porcentagem: porcentagem };
+        localStorage.setItem('progresso_tv', JSON.stringify(progresso));
+    }
 }
 
 function salvarProgresso() {
     if(!epAtual) return;
     const v = document.getElementById('video-player');
-    if(!perfilAtual.progresso) perfilAtual.progresso = {};
     if(v.duration && !isNaN(v.duration) && v.duration > 0) {
-        const tempo = Math.round(v.currentTime);
-        const porcentagem = Math.min(100, Math.max(0, (tempo / v.duration) * 100));
-        perfilAtual.progresso[epAtual.dados.id] = {tempo, porcentagem};
-        localStorage.setItem('progresso_felipe', JSON.stringify(perfilAtual.progresso));
+        const tempoAtual = Math.round(v.currentTime);
+        const porcentagem = Math.min(100, Math.max(0, Math.round((v.currentTime / v.duration) * 100)));
+        progresso[epAtual.dados.id] = { tempo: tempoAtual, porcentagem: porcentagem };
+        localStorage.setItem('progresso_tv', JSON.stringify(progresso));
     }
 }
 
 function restaurarProgresso() {
     setTimeout(() => {
         const v = document.getElementById('video-player');
-        const dadosProgresso = perfilAtual.progresso?.[epAtual.dados.id];
-        if(dadosProgresso?.tempo && !isNaN(dadosProgresso.tempo)) {
-            v.currentTime = dadosProgresso.tempo;
+        const dados = progresso[epAtual.dados.id];
+        if(dados && dados.tempo && dados.tempo > 5) {
+            v.currentTime = dados.tempo;
+        } else {
+            v.currentTime = 0;
         }
-    }, 1500);
+    }, 800);
 }
 
 function mostrarProximoEp() {
     salvarProgresso();
-    if(temporizadorProximo) clearInterval(temporizadorProximo);
+    if(temporizadorProximo) clearTimeout(temporizadorProximo);
     const prox = epAtual.indice + 1;
     if(prox >= serieAtual.eps.length) {
-        document.getElementById('avisoProximo').innerHTML = `<h4>Fim da temporada</h4><p>Não há mais episódios</p>`;
+        document.getElementById('avisoProximo').innerHTML = `<h4>Fim da temporada</h4>`;
         document.getElementById('avisoProximo').classList.add('ativo');
         return;
     }
     document.getElementById('avisoProximo').classList.add('ativo');
-    let cont = 10;
-    document.getElementById('contagemRegressiva').textContent = cont;
-    temporizadorProximo = setInterval(() => {
-        cont--;
-        document.getElementById('contagemRegressiva').textContent = cont;
-        if(cont <= 0) { clearInterval(temporizadorProximo); irProximoEp(); }
-    }, 1000);
+    temporizadorProximo = setTimeout(() => {
+        document.getElementById('avisoProximo').classList.remove('ativo');
+        reproduzirEp(prox);
+    }, 3000);
 }
 
-function irProximoEp() {
-    clearInterval(temporizadorProximo);
-    document.getElementById('avisoProximo').classList.remove('ativo');
-    reproduzirEp(epAtual.indice + 1);
-}
-
-function fecharPlayer() {
-    pararPlayer();
-    document.getElementById('player').classList.remove('ativo');
-    nivelNavegacao = 'episodios';
+function focarPrimeiro() {
     setTimeout(() => {
-        document.getElementById('btnVoltarEp').focus();
+        const primeiro = document.querySelector('.item[tabindex="0"]');
+        if(primeiro) primeiro.focus();
     }, 100);
 }
 
-function voltarNavegacao() {
-    switch(nivelNavegacao) {
-        case 'player':
-            fecharPlayer();
-            break;
-        case 'episodios':
-            voltarParaSeries();
-            break;
-        case 'series':
-            document.getElementById('avisoSair').classList.add('ativo');
-            break;
-    }
-}
-
-function fecharAvisoSair() {
-    document.getElementById('avisoSair').classList.remove('ativo');
-}
-
-function confirmarSair() {
-    if(confirm('Deseja realmente fechar o aplicativo?')) {
-        window.close();
-        history.back();
-    }
-}
-
-// Bloqueia voltar do navegador e usa nossa navegação
-history.pushState(null, null, location.href);
-window.addEventListener('popstate', () => {
-    history.pushState(null, null, location.href);
-    voltarNavegacao();
-});
-
+// 🎮 CONTROLES CORRIGIDOS
 document.addEventListener('keydown', (e) => {
-    const playerAtivo = document.getElementById('player').classList.contains('ativo');
-    const avisoAberto = document.getElementById('avisoSair').classList.contains('ativo');
-    
+    const playerAberto = document.getElementById('player').classList.contains('ativo');
+    const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
+
+    // Se estiver na mensagem de troca de episódio
     if(avisoAberto) {
-        if(e.key === 'Escape' || e.key === 'ArrowLeft') {
-            e.preventDefault();
-            fecharAvisoSair();
-        }
-        if(e.key === 'Enter') {
-            e.preventDefault();
-            confirmarSair();
+        if(e.key === 'Escape' || e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            clearTimeout(temporizadorProximo);
+            fecharPlayer();
         }
         return;
     }
 
-    if(playerAtivo) {
+    // Controles dentro do vídeo
+    if(playerAberto) {
         const v = document.getElementById('video-player');
         switch(e.key) {
-            case 'ArrowDown': 
-            case 'ArrowLeft':
             case 'Escape':
-                e.preventDefault(); 
-                fecharPlayer(); 
+            case 'ArrowLeft':
+            case 'ArrowDown':
+                e.preventDefault();
+                fecharPlayer();
                 break;
-            case 'ArrowRight': 
-                e.preventDefault(); 
-                v.currentTime = Math.min(v.duration || 99999, v.currentTime + 10); 
+            case 'ArrowRight':
+                e.preventDefault();
+                v.currentTime = Math.min(v.duration || 99999, v.currentTime + 10);
                 break;
-            case 'Enter': 
-                e.preventDefault(); 
-                v.paused ? v.play().catch(()=>{}) : v.pause(); 
+            case 'ArrowUp':
+                e.preventDefault();
+                v.currentTime = Math.max(0, v.currentTime - 10);
                 break;
-            case 'ArrowUp': 
-                e.preventDefault(); 
-                document.getElementById('controlesVideo').classList.toggle('oculto'); 
+            case 'Enter':
+                e.preventDefault();
+                v.paused ? v.play().catch(() => {}) : v.pause();
                 break;
         }
         return;
     }
 
-    // Voltar com seta esquerda ou escape
-    if(e.key === 'ArrowLeft' || e.key === 'Escape') {
+    // Ação de VOLTAR
+    if(e.key === 'Escape' || e.key === 'ArrowDown') {
         e.preventDefault();
-        voltarNavegacao();
+        if(nivel === 'episodios') voltarParaSeries();
+        else if(nivel === 'series') window.close();
         return;
     }
 
-    const focoAtual = document.activeElement;
-    const todosItens = Array.from(document.querySelectorAll('[tabindex="0"]:not([disabled])'))
-        .filter(el => el.offsetParent !== null);
-    const indiceAtual = todosItens.indexOf(focoAtual);
-    if(indiceAtual === -1) return;
+    // Navegação entre itens
+    let elementos = [];
+    if(nivel === 'episodios') {
+        elementos = [document.getElementById('btnVoltarEp'), ...Array.from(document.querySelectorAll('#listaEpisodios .item'))];
+    } else {
+        elementos = Array.from(document.querySelectorAll('.item[tabindex="0"]'));
+    }
 
-    const colunas = window.innerWidth >= 1200 ? 5 : window.innerWidth >= 900 ? 4 : window.innerWidth >= 600 ? 3 : 2;
+    const atual = elementos.indexOf(document.activeElement);
+    if(atual === -1) return;
 
     switch(e.key) {
         case 'ArrowUp':
             e.preventDefault();
-            const acima = indiceAtual - colunas;
-            if(acima >= 0) todosItens[acima].focus();
+            const cima = atual - COLUNAS_FIXAS;
+            if(cima >= 0) elementos[cima].focus();
             break;
         case 'ArrowDown':
             e.preventDefault();
-            const abaixo = indiceAtual + colunas;
-            if(abaixo < todosItens.length) todosItens[abaixo].focus();
+            const baixo = atual + COLUNAS_FIXAS;
+            if(baixo < elementos.length) elementos[baixo].focus();
             break;
         case 'ArrowRight':
             e.preventDefault();
-            if((indiceAtual + 1) % colunas !== 0 && indiceAtual + 1 < todosItens.length) todosItens[indiceAtual + 1].focus();
+            if(atual + 1 < elementos.length) elementos[atual + 1].focus();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            if(atual > 0) elementos[atual - 1].focus();
             break;
         case 'Enter':
             e.preventDefault();
-            if(focoAtual.onclick) focoAtual.click();
+            if(document.activeElement.tagName === 'BUTTON') {
+                document.activeElement.click();
+            } else if(document.activeElement.onclick) {
+                document.activeElement.onclick();
+            }
             break;
     }
-});
-
-function formatarTempo(s) {
-    if(isNaN(s) || !isFinite(s)) return "00:00";
-    const m = Math.floor(s/60);
-    const seg = Math.floor(s%60);
-    return `${m.toString().padStart(2,'0')}:${seg.toString().padStart(2,'0')}`;
-}
-
-document.getElementById('video-player').addEventListener('timeupdate', () => {
-    const v = document.getElementById('video-player');
-    if(!v.duration || isNaN(v.duration) || v.duration <= 0) return;
-    const p = (v.currentTime / v.duration) * 100;
-    document.getElementById('barraTempo').style.width = p + "%";
-    document.getElementById('tempoAtual').textContent = formatarTempo(v.currentTime);
-    document.getElementById('tempoTotal').textContent = formatarTempo(v.duration);
-    salvarProgresso();
 });
 
 window.onload = carregarSeries;
