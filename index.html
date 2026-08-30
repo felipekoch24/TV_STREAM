@@ -4,50 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TV STREAM</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        :focus { outline: 3px solid #f47521 !important; outline-offset: 3px !important; border-radius: 8px; }
-        body { 
-            color: white; font-family: Arial, sans-serif; min-height: 100vh; margin: 0; 
-            background: #000; padding: 20px;
-        }
-        .tela { display: none; width: 100%; min-height: 100vh; }
-        .ativa { display: block !important; }
-        h2 { font-size: 30px; margin-bottom: 30px; color: #f47521; text-align: center; }
-        .voltar { 
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
-            padding: 12px 20px; font-size: 18px; margin-bottom: 30px; color: white; 
-            border-radius: 8px; cursor: pointer;
-            width: auto;
-        }
-        .secao { margin-bottom: 50px; }
-        .secao h3 { font-size: 24px; margin-bottom: 20px; color: #f47521; }
-        .grade { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 25px; max-width: 100%;
-        }
-        .item { 
-            cursor: pointer; transition: transform 0.2s; border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.6); position: relative; padding: 4px;
-        }
-        .item:hover, .item:focus { transform: scale(1.05); box-shadow: 0 0 15px rgba(244,117,33,0.6); }
-        .item img { width: 100%; height: 220px; object-fit: cover; display: block; }
-        .item p { padding: 12px; text-align: center; background: rgba(0,0,0,0.85); font-size: 16px; }
-        .progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.2); }
-        .barra-progresso { height: 100%; background: #f47521; transition: width 0.3s; }
-        .player-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; z-index: 999; display: none; }
-        .player-container.ativo { display: block !important; }
-        #video-player { width: 100%; height: 100%; background: #000; }
-        .aviso-proximo { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            background: rgba(0,0,0,0.92); padding: 30px 50px; border-radius: 10px; 
-            text-align: center; display: none; border: 2px solid #f47521;
-            min-width: 300px;
-        }
-        .aviso-proximo.ativo { display: block !important; }
-        .aviso-proximo h4 { font-size: 26px; margin: 0; color: #ffcc00; }
-    </style>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
 </head>
 <body>
@@ -55,7 +12,6 @@
 <div id="tela-home" class="tela ativa">
     <h2>📺 TV STREAM</h2>
 
-    <!-- Seção Continuar Assistindo -->
     <div class="secao" id="secaoContinuar" style="display: none;">
         <h3>⏯️ Continuar Assistindo</h3>
         <div class="grade" id="listaContinuar"></div>
@@ -81,36 +37,26 @@
 </div>
 
 <script>
+let CATALOGO = {};
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
 let hls = null;
-let nivel = 'series'; // series | episodios | player
-// Agora salva TEMPO e PORCENTAGEM
+let nivel = 'series'; 
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
-const COLUNAS_FIXAS = 3; // Número fixo de colunas
+const COLUNAS_FIXAS = 3;
 
-// CATÁLOGO
-const CATALOGO = {
-    bsd_t3: {
-        nome: "Bungou Stray Dogs T3",
-        capa: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/capas/bsd_t3.jpg",
-        eps: [
-            {id: "bsd01", nome: "Episódio 01", link: "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/bsd_t3_ep01/index.m3u8"},
-            {id: "bsd02", nome: "Episódio 02", link: ""},
-            {id: "bsd03", nome: "Episódio 03", link: ""},
-            {id: "bsd04", nome: "Episódio 04", link: ""},
-            {id: "bsd05", nome: "Episódio 05", link: ""},
-            {id: "bsd06", nome: "Episódio 06", link: ""},
-            {id: "bsd07", nome: "Episódio 07", link: ""},
-            {id: "bsd08", nome: "Episódio 08", link: ""},
-            {id: "bsd09", nome: "Episódio 09", link: ""},
-            {id: "bsd10", nome: "Episódio 10", link: ""}
-        ]
+// Carrega o JSON do catálogo ao iniciar
+async function inicializar() {
+    try {
+        const resposta = await fetch('catalogo.json');
+        CATALOGO = await resposta.json();
+        carregarSeries();
+    } catch (erro) {
+        console.error("Erro ao carregar o catálogo:", erro);
     }
-};
+}
 
-// Carregar lista de séries e continuar assistindo
 function carregarSeries() {
     nivel = 'series';
     const div = document.getElementById('listaSeries');
@@ -128,7 +74,6 @@ function carregarSeries() {
     focarPrimeiro();
 }
 
-// Carregar seção de continuar assistindo
 function carregarContinuarAssistindo() {
     const secao = document.getElementById('secaoContinuar');
     const div = document.getElementById('listaContinuar');
@@ -137,7 +82,6 @@ function carregarContinuarAssistindo() {
 
     for (const idEp in progresso) {
         const dados = progresso[idEp];
-        // Mostra apenas se passou de 5% do vídeo
         if (!dados || !dados.tempo || dados.porcentagem < 5) continue;
 
         for (const idSerie in CATALOGO) {
@@ -153,18 +97,15 @@ function carregarContinuarAssistindo() {
                     <p>${serie.nome}<br>${ep.nome}</p>
                     <div class="progresso"><div class="barra-progresso" style="width:${dados.porcentagem}%"></div></div>
                 `;
-                // Ao clicar, já vai direto do tempo salvo
                 el.onclick = () => reproduzirEpComTempo(idSerie, ep.id, dados.tempo);
                 div.appendChild(el);
                 break;
             }
         }
     }
-
     secao.style.display = temConteudo ? 'block' : 'none';
 }
 
-// Abrir episódios de uma série
 function abrirEpisodios(idSerie) {
     serieAtual = CATALOGO[idSerie];
     nivel = 'episodios';
@@ -191,14 +132,12 @@ function abrirEpisodios(idSerie) {
     document.getElementById('btnVoltarEp').focus();
 }
 
-// Reproduzir episódio direto com tempo salvo
 function reproduzirEpComTempo(idSerie, idEp, tempoInicial) {
     abrirEpisodios(idSerie);
     const indice = serieAtual.eps.findIndex(e => e.id === idEp);
     if (indice >= 0) reproduzirEp(indice, tempoInicial);
 }
 
-// Voltar para lista de séries
 function voltarParaSeries() {
     serieAtual = null;
     nivel = 'series';
@@ -208,7 +147,6 @@ function voltarParaSeries() {
     focarPrimeiro();
 }
 
-// Reproduzir vídeo (agora aceita tempo inicial)
 function reproduzirEp(indice, tempoInicial = null) {
     epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
     nivel = 'player';
@@ -283,7 +221,6 @@ function fecharPlayer() {
     document.getElementById('btnVoltarEp').focus();
 }
 
-// Salva tempo e porcentagem a cada 2 segundos
 function salvarProgressoAutomatico() {
     if(!epAtual) return;
     const v = document.getElementById('video-player');
@@ -296,14 +233,7 @@ function salvarProgressoAutomatico() {
 }
 
 function salvarProgresso() {
-    if(!epAtual) return;
-    const v = document.getElementById('video-player');
-    if(v.duration && !isNaN(v.duration) && v.duration > 0) {
-        const tempoAtual = Math.round(v.currentTime);
-        const porcentagem = Math.min(100, Math.max(0, Math.round((v.currentTime / v.duration) * 100)));
-        progresso[epAtual.dados.id] = { tempo: tempoAtual, porcentagem: porcentagem };
-        localStorage.setItem('progresso_tv', JSON.stringify(progresso));
-    }
+    salvarProgressoAutomatico();
 }
 
 function restaurarProgresso() {
@@ -341,12 +271,10 @@ function focarPrimeiro() {
     }, 100);
 }
 
-// 🎮 CONTROLES CORRIGIDOS
 document.addEventListener('keydown', (e) => {
     const playerAberto = document.getElementById('player').classList.contains('ativo');
     const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
 
-    // Se estiver na mensagem de troca de episódio
     if(avisoAberto) {
         if(e.key === 'Escape' || e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
             clearTimeout(temporizadorProximo);
@@ -355,7 +283,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Controles dentro do vídeo
     if(playerAberto) {
         const v = document.getElementById('video-player');
         switch(e.key) {
@@ -381,7 +308,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Ação de VOLTAR
     if(e.key === 'Escape' || e.key === 'ArrowDown') {
         e.preventDefault();
         if(nivel === 'episodios') voltarParaSeries();
@@ -389,7 +315,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Navegação entre itens
     let elementos = [];
     if(nivel === 'episodios') {
         elementos = [document.getElementById('btnVoltarEp'), ...Array.from(document.querySelectorAll('#listaEpisodios .item'))];
@@ -430,7 +355,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-window.onload = carregarSeries;
+window.onload = inicializar;
 </script>
 </body>
 </html>
