@@ -6,6 +6,7 @@
     <title>TV STREAM</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
+    <script src="catalogo.js"></script>
 </head>
 <body>
 
@@ -37,7 +38,6 @@
 </div>
 
 <script>
-let CATALOGO = {};
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
@@ -46,15 +46,8 @@ let nivel = 'series';
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
 const COLUNAS_FIXAS = 3;
 
-// Carrega o JSON do catálogo ao iniciar
-async function inicializar() {
-    try {
-        const resposta = await fetch('catalogo.json');
-        CATALOGO = await resposta.json();
-        carregarSeries();
-    } catch (erro) {
-        console.error("Erro ao carregar o catálogo:", erro);
-    }
+function inicializar() {
+    carregarSeries();
 }
 
 function carregarSeries() {
