@@ -7,6 +7,33 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
     <script src="catalogo.js"></script>
+    <style>
+        .aviso-proximo {
+            position: absolute;
+            bottom: 100px;
+            right: 80px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #fff;
+            padding: 30px 50px;
+            border-radius: 12px;
+            display: none;
+            z-index: 999;
+            text-align: center;
+        }
+        .aviso-proximo.ativo {
+            display: block;
+        }
+        .aviso-proximo h2 {
+            font-size: 36px;
+            color: #fff;
+            margin: 0 0 10px 0;
+        }
+        .aviso-proximo p {
+            font-size: 20px;
+            color: #aaa;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
 
@@ -32,8 +59,10 @@
 
 <div class="player-container" id="player">
     <video id="video-player" playsinline preload="metadata" controls></video>
+    
     <div class="aviso-proximo" id="avisoProximo">
-        <h4>Começando próximo episódio…</h4>
+        <h2 id="textoContagem">Próximo episódio em 10s</h2>
+        <p>Pressione [Voltar] para cancelar</p>
     </div>
 </div>
 
@@ -41,6 +70,7 @@
 let serieAtual = null;
 let epAtual = null;
 let temporizadorProximo = null;
+let intervaloContagem = null;
 let hls = null;
 let nivel = 'series'; 
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
@@ -75,7 +105,7 @@ function carregarContinuarAssistindo() {
 
     for (const idEp in progresso) {
         const dados = progresso[idEp];
-        if (!dados || !dados.tempo || dados.porcentagem < 5) continue;
+        if (!dados || !dados.tempo || dados.porcentagem < 5 || dados.porcentagem > 95) continue;
 
         for (const idSerie in CATALOGO) {
             const serie = CATALOGO[idSerie];
@@ -122,6 +152,7 @@ function abrirEpisodios(idSerie) {
 
     document.getElementById('secaoEpisodios').style.display = 'block';
     document.getElementById('secaoSeries').style.display = 'none';
+    document.getElementById('secaoContinuar').style.display = 'none';
     document.getElementById('btnVoltarEp').focus();
 }
 
@@ -205,13 +236,17 @@ function pararPlayer() {
     v.removeAttribute('src');
     v.load();
     if(temporizadorProximo) clearTimeout(temporizadorProximo);
+    if(intervaloContagem) clearInterval(intervaloContagem);
 }
 
 function fecharPlayer() {
     pararPlayer();
     document.getElementById('player').classList.remove('ativo');
+    document.getElementById('avisoProximo').classList.remove('ativo');
     nivel = 'episodios';
-    document.getElementById('btnVoltarEp').focus();
+    if(serieAtual) {
+        abrirEpisodios(Object.keys(CATALOGO).find(key => CATALOGO[key] === serieAtual));
+    }
 }
 
 function salvarProgressoAutomatico() {
@@ -233,7 +268,7 @@ function restaurarProgresso() {
     setTimeout(() => {
         const v = document.getElementById('video-player');
         const dados = progresso[epAtual.dados.id];
-        if(dados && dados.tempo && dados.tempo > 5) {
+        if(dados && dados.tempo && dados.tempo > 5 && dados.porcentagem < 95) {
             v.currentTime = dados.tempo;
         } else {
             v.currentTime = 0;
@@ -244,17 +279,34 @@ function restaurarProgresso() {
 function mostrarProximoEp() {
     salvarProgresso();
     if(temporizadorProximo) clearTimeout(temporizadorProximo);
+    if(intervaloContagem) clearInterval(intervaloContagem);
+
     const prox = epAtual.indice + 1;
     if(prox >= serieAtual.eps.length) {
-        document.getElementById('avisoProximo').innerHTML = `<h4>Fim da temporada</h4>`;
+        document.getElementById('textoContagem').textContent = "Fim da temporada";
         document.getElementById('avisoProximo').classList.add('ativo');
+        setTimeout(() => fecharPlayer(), 4000);
         return;
     }
+
+    let segundosRestantes = 10;
+    document.getElementById('textoContagem').textContent = `Próximo episódio em ${segundosRestantes}s`;
     document.getElementById('avisoProximo').classList.add('ativo');
+
+    intervaloContagem = setInterval(() => {
+        segundosRestantes--;
+        if(segundosRestantes > 0) {
+            document.getElementById('textoContagem')->textContent = `Próximo episódio em ${segundosRestantes}s`;
+            document.getElementById('textoContagem').textContent = `Próximo episódio em ${segundosRestantes}s`;
+        } else {
+            clearInterval(intervaloContagem);
+        }
+    }, 1000);
+
     temporizadorProximo = setTimeout(() => {
         document.getElementById('avisoProximo').classList.remove('ativo');
         reproduzirEp(prox);
-    }, 3000);
+    }, 10000);
 }
 
 function focarPrimeiro() {
@@ -268,43 +320,29 @@ document.addEventListener('keydown', (e) => {
     const playerAberto = document.getElementById('player').classList.contains('ativo');
     const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
 
+    // Se a contagem regressiva estiver ativa, tecla de voltar cancela e fecha o player
     if(avisoAberto) {
-        if(e.key === 'Escape' || e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461 || e.key === 'ArrowLeft') {
             clearTimeout(temporizadorProximo);
+            clearInterval(intervaloContagem);
+            document.getElementById('avisoProximo').classList.remove('ativo');
             fecharPlayer();
         }
         return;
     }
 
+    // Se o player estiver aberto, a tecla de voltar (Escape / BrowserBack / 8 / 461) serve exclusivamente para SAIR do vídeo.
     if(playerAberto) {
-        const v = document.getElementById('video-player');
-        switch(e.key) {
-            case 'Escape':
-            case 'ArrowLeft':
-            case 'ArrowDown':
-                e.preventDefault();
-                fecharPlayer();
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                v.currentTime = Math.min(v.duration || 99999, v.currentTime + 10);
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                v.currentTime = Math.max(0, v.currentTime - 10);
-                break;
-            case 'Enter':
-                e.preventDefault();
-                v.paused ? v.play().catch(() => {}) : v.pause();
-                break;
+        if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
+            e.preventDefault();
+            fecharPlayer();
         }
         return;
     }
 
-    if(e.key === 'Escape' || e.key === 'ArrowDown') {
+    // Fora do player, a tecla de voltar NÃO faz nada (o usuário precisa clicar no botão voltar com OK)
+    if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
         e.preventDefault();
-        if(nivel === 'episodios') voltarParaSeries();
-        else if(nivel === 'series') window.close();
         return;
     }
 
@@ -316,16 +354,23 @@ document.addEventListener('keydown', (e) => {
     }
 
     const atual = elementos.indexOf(document.activeElement);
-    if(atual === -1) return;
-
+    
     switch(e.key) {
         case 'ArrowUp':
             e.preventDefault();
+            if(atual === -1 && elementos.length > 0) {
+                elementos[0].focus();
+                break;
+            }
             const cima = atual - COLUNAS_FIXAS;
             if(cima >= 0) elementos[cima].focus();
             break;
         case 'ArrowDown':
             e.preventDefault();
+            if (atual === -1 && elementos.length > 0) {
+                elementos[0].focus();
+                break;
+            }
             const baixo = atual + COLUNAS_FIXAS;
             if(baixo < elementos.length) elementos[baixo].focus();
             break;
@@ -339,10 +384,8 @@ document.addEventListener('keydown', (e) => {
             break;
         case 'Enter':
             e.preventDefault();
-            if(document.activeElement.tagName === 'BUTTON') {
+            if(document.activeElement && document.activeElement.click) {
                 document.activeElement.click();
-            } else if(document.activeElement.onclick) {
-                document.activeElement.onclick();
             }
             break;
     }
