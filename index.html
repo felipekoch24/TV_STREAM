@@ -296,7 +296,6 @@ function mostrarProximoEp() {
     intervaloContagem = setInterval(() => {
         segundosRestantes--;
         if(segundosRestantes > 0) {
-            document.getElementById('textoContagem')->textContent = `Próximo episódio em ${segundosRestantes}s`;
             document.getElementById('textoContagem').textContent = `Próximo episódio em ${segundosRestantes}s`;
         } else {
             clearInterval(intervaloContagem);
@@ -320,7 +319,6 @@ document.addEventListener('keydown', (e) => {
     const playerAberto = document.getElementById('player').classList.contains('ativo');
     const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
 
-    // Se a contagem regressiva estiver ativa, tecla de voltar cancela e fecha o player
     if(avisoAberto) {
         if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461 || e.key === 'ArrowLeft') {
             clearTimeout(temporizadorProximo);
@@ -331,7 +329,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Se o player estiver aberto, a tecla de voltar (Escape / BrowserBack / 8 / 461) serve exclusivamente para SAIR do vídeo.
     if(playerAberto) {
         if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
             e.preventDefault();
@@ -340,7 +337,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Fora do player, a tecla de voltar NÃO faz nada (o usuário precisa clicar no botão voltar com OK)
     if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
         e.preventDefault();
         return;
