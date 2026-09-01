@@ -10,7 +10,7 @@
     <style>
         .aviso-proximo {
             position: absolute;
-            bottom: 100px;
+            bottom: 120px;
             right: 80px;
             background: rgba(0, 0, 0, 0.85);
             border: 2px solid #fff;
@@ -32,6 +32,45 @@
             font-size: 20px;
             color: #aaa;
             margin: 0;
+        }
+
+        /* Barra de controles flutuante embaixo do player */
+        .controles-player {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-controle {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid transparent;
+            padding: 12px 22px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-controle.btn-sair {
+            background: rgba(244, 117, 33, 0.85);
+            border-color: #fff;
+        }
+
+        .btn-controle:focus, .btn-controle:hover {
+            background: #f47521;
+            border-color: #fff;
+            transform: scale(1.05);
+            outline: none;
         }
     </style>
 </head>
@@ -58,8 +97,16 @@
 </div>
 
 <div class="player-container" id="player">
-    <video id="video-player" playsinline preload="metadata" controls></video>
+    <video id="video-player" playsinline preload="metadata"></video>
     
+    <!-- Barra de controle embaixo -->
+    <div class="controles-player" id="barraControles">
+        <button class="btn-controle" id="btnVoltar10" tabindex="0" onclick="pularTempo(-10)">⏪ -10s</button>
+        <button class="btn-controle" id="btnPlayPause" tabindex="0" onclick="alternarPlayPause()">⏯️ Play/Pause</button>
+        <button class="btn-controle" id="btnAvancar10" tabindex="0" onclick="pularTempo(10)">+10s ⏩</button>
+        <button class="btn-controle btn-sair" id="btnSairPlayer" tabindex="0" onclick="fecharPlayer()">🚪 SAIR</button>
+    </div>
+
     <div class="aviso-proximo" id="avisoProximo">
         <h2 id="textoContagem">Próximo episódio em 10s</h2>
         <p>Pressione [Voltar] para cancelar</p>
@@ -226,6 +273,10 @@ function reproduzirEp(indice, tempoInicial = null) {
 
     video.ontimeupdate = salvarProgressoAutomatico;
     video.onended = mostrarProximoEp;
+
+    setTimeout(() => {
+        document.getElementById('btnPlayPause').focus();
+    }, 500);
 }
 
 function pararPlayer() {
@@ -246,6 +297,22 @@ function fecharPlayer() {
     nivel = 'episodios';
     if(serieAtual) {
         abrirEpisodios(Object.keys(CATALOGO).find(key => CATALOGO[key] === serieAtual));
+    }
+}
+
+function pularTempo(segundos) {
+    const video = document.getElementById('video-player');
+    if(video.duration) {
+        video.currentTime = Math.min(Math.max(0, video.currentTime + segundos), video.duration);
+    }
+}
+
+function alternarPlayPause() {
+    const video = document.getElementById('video-player');
+    if(video.paused) {
+        video.play();
+    } else {
+        video.pause();
     }
 }
 
@@ -315,33 +382,63 @@ function focarPrimeiro() {
     }, 100);
 }
 
+// Controle remoto dentro do player
 document.addEventListener('keydown', (e) => {
     const playerAberto = document.getElementById('player').classList.contains('ativo');
     const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
 
-    if(avisoAberto) {
-        if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461 || e.key === 'ArrowLeft') {
-            clearTimeout(temporizadorProximo);
-            clearInterval(intervaloContagem);
-            document.getElementById('avisoProximo').classList.remove('ativo');
-            fecharPlayer();
-        }
-        return;
-    }
-
     if(playerAberto) {
-        if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
-            e.preventDefault();
-            fecharPlayer();
+        e.preventDefault(); // Impede o APK de fechar
+
+        if(avisoAberto) {
+            if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461 || e.key === 'ArrowLeft') {
+                clearTimeout(temporizadorProximo);
+                clearInterval(intervaloContagem);
+                document.getElementById('avisoProximo').classList.remove('ativo');
+                fecharPlayer();
+            }
+            return;
+        }
+
+        const botoesPlayer = [
+            document.getElementById('btnVoltar10'),
+            document.getElementById('btnPlayPause'),
+            document.getElementById('btnAvancar10'),
+            document.getElementById('btnSairPlayer')
+        ];
+        const atualPlayer = botoesPlayer.indexOf(document.activeElement);
+
+        switch(e.key) {
+            case 'ArrowRight':
+                // Seta Direita avança o vídeo em 10 segundos diretamente
+                pularTempo(10);
+                break;
+            case 'ArrowLeft':
+                // Seta Esquerda retrocede o vídeo em 10 segundos diretamente
+                pularTempo(-10);
+                break;
+            case 'Enter':
+            case ' ':
+            case 'MediaPlayPause':
+                // OK dá Play/Pause no botão que estiver selecionado ou alterna o vídeo
+                if(document.activeElement && document.activeElement.click) {
+                    document.activeElement.click();
+                } else {
+                    alternarPlayPause();
+                }
+                break;
+            case 'ArrowUp':
+            case 'ArrowDown':
+                // Se apertar para cima/baixo, foca no menu inferior para facilitar escolher SAIR
+                if(atualPlayer === -1) {
+                    botoesPlayer[1].focus(); // Vai pro Play/Pause
+                }
+                break;
         }
         return;
     }
 
-    if(e.key === 'Escape' || e.key === 'BrowserBack' || e.keyCode === 8 || e.keyCode === 461) {
-        e.preventDefault();
-        return;
-    }
-
+    // Navegação normal nos menus
     let elementos = [];
     if(nivel === 'episodios') {
         elementos = [document.getElementById('btnVoltarEp'), ...Array.from(document.querySelectorAll('#listaEpisodios .item'))];
