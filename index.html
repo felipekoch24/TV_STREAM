@@ -48,11 +48,71 @@
         .btn-sair-player:focus, .btn-sair-player:hover {
             background: #fff; color: #000; outline: none; transform: scale(1.05);
         }
+
+        /* Estilo da Tela de Escolha de Perfil / Personagem */
+        #tela-perfil {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            background-size: cover;
+            background-position: center;
+        }
+        .perfis-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        .perfil-card {
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 3px solid transparent;
+        }
+        .perfil-card:focus, .perfil-card:hover {
+            transform: scale(1.1);
+            border-color: #f47521;
+            outline: none;
+        }
+        .perfil-card img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            margin-bottom: 15px;
+        }
+        .perfil-card p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
 
-<div id="tela-home" class="tela ativa">
+<!-- TELA DE ESCOLHA DE PERFIL / PERSONAGEM -->
+<div id="tela-perfil" class="tela ativa">
+    <h2>Quem está assistindo?</h2>
+    <div class="perfis-container">
+        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem01', 'fundo01.jpg')">
+            <img src="personagem01.png" alt="Personagem 1">
+            <p>Personagem 01</p>
+        </div>
+        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem02', 'fundo02.jpg')">
+            <img src="personagem02.png" alt="Personagem 2">
+            <p>Personagem 02</p>
+        </div>
+    </div>
+</div>
+
+<!-- TELA PRINCIPAL (HOME / SÉRIES) -->
+<div id="tela-home" class="tela">
     <h2>📺 TV STREAM</h2>
     <div class="secao" id="secaoContinuar" style="display: none;">
         <h3>⏯️ Continuar Assistindo</h3>
@@ -90,20 +150,37 @@
 </div>
 
 <script>
-let serieAtual = null, epAtual = null, hls = null, nivel = 'series';
+let serieAtual = null, epAtual = null, hls = null, nivel = 'perfil';
 let tempoProx = null, intervaloProx = null;
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
-const COLUNAS = 3;
+let COLUNAS = 2; // Começa na tela de perfil que tem 2 colunas
 
 function inicializar() {
+    // Aplica o fundo salvo se já tiver escolhido antes
+    let fundoSalvo = localStorage.getItem('fundo_tv') || 'fundo01.jpg';
+    document.getElementById('tela-perfil').style.backgroundImage = `url('${fundoSalvo}')`;
+
     const div = document.getElementById('listaSeries');
     div.innerHTML = "";
     Object.keys(CATALOGO).forEach(id => {
         let s = CATALOGO[id];
         div.innerHTML += `<div class="item" tabindex="0" onclick="abrirEpisodios('${id}')"><img src="${s.capa}"><p>${s.nome}</p></div>`;
     });
+    focarPerfil();
+}
+
+function selecionarPerfil(personagem, fundo) {
+    localStorage.setItem('fundo_tv', fundo);
+    document.body.style.backgroundImage = `url('${fundo}')`;
+    
+    // Troca de tela
+    document.getElementById('tela-perfil').classList.remove('ativa');
+    document.getElementById('tela-home').classList.add('ativa');
+    
+    nivel = 'series';
+    COLUNAS = 3; // O catálogo usa 3 colunas na grid
     atualizarContinuar();
-    focar();
+    focarSeries();
 }
 
 function atualizarContinuar() {
@@ -145,9 +222,10 @@ function iniciarEp(idS, idE, tempo) {
 
 function voltarParaSeries() {
     serieAtual = null; nivel = 'series';
+    COLUNAS = 3;
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('secaoSeries').style.display = 'block';
-    atualizarContinuar(); focar();
+    atualizarContinuar(); focarSeries();
 }
 
 function reproduzir(idx, tempoInicial = null) {
@@ -187,6 +265,7 @@ function fecharPlayer() {
     document.getElementById('avisoProximo').classList.remove('ativo');
     fecharHud();
     nivel = 'episodios';
+    COLUNAS = 3;
     if(serieAtual) abrirEpisodios(Object.keys(CATALOGO).find(k => CATALOGO[k] === serieAtual));
 }
 
@@ -253,8 +332,12 @@ function proximoEp() {
     }, 10000);
 }
 
-function focar() {
-    setTimeout(() => document.querySelector('.item[tabindex="0"]')?.focus(), 100);
+function focarPerfil() {
+    setTimeout(() => document.querySelector('#tela-perfil .perfil-card[tabindex="0"]')?.focus(), 100);
+}
+
+function focarSeries() {
+    setTimeout(() => document.querySelector('#tela-home .item[tabindex="0"]')?.focus(), 100);
 }
 
 document.addEventListener('keydown', (e) => {
@@ -263,7 +346,7 @@ document.addEventListener('keydown', (e) => {
     let hudAtivo = document.getElementById('hudPlayer').classList.contains('ativo');
 
     if(playerAtivo) {
-        e.preventDefault(); // Impede o APK de fechar
+        e.preventDefault();
 
         if(avisoAtivo) {
             clearTimeout(tempoProx); clearInterval(intervaloProx);
@@ -274,15 +357,12 @@ document.addEventListener('keydown', (e) => {
 
         switch(e.key) {
             case 'ArrowDown':
-                // Seta para baixo abre o HUD com o progresso e o botão SAIR
                 abrirHud();
                 break;
             case 'ArrowUp':
-                // Seta para cima esconde o HUD se estiver aberto
                 if(hudAtivo) fecharHud();
                 break;
             case 'ArrowRight':
-                // Se o HUD estiver aberto e focado no botão sair, não pula o vídeo. Senão, avança 10s.
                 if(!hudAtivo) pular(10);
                 break;
             case 'ArrowLeft':
@@ -301,7 +381,16 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    let itens = nivel === 'episodios' ? [document.getElementById('btnVoltarEp'), ...document.querySelectorAll('#listaEpisodios .item')] : document.querySelectorAll('.item[tabindex="0"]');
+    // Seleção de itens baseada no nível atual (perfil, series ou episodios)
+    let itens;
+    if (nivel === 'perfil') {
+        itens = document.querySelectorAll('#tela-perfil .perfil-card[tabindex="0"]');
+    } else if (nivel === 'episodios') {
+        itens = [document.getElementById('btnVoltarEp'), ...document.querySelectorAll('#listaEpisodios .item')];
+    } else {
+        itens = document.querySelectorAll('#tela-home .item[tabindex="0"]');
+    }
+
     let atual = Array.from(itens).indexOf(document.activeElement);
 
     if(e.key === 'ArrowUp') { e.preventDefault(); if(atual - COLUNAS >= 0) itens[atual - COLUNAS].focus(); }
