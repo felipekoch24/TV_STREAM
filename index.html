@@ -6,22 +6,62 @@
     <title>TV STREAM</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
+    <script src="catalogo.js"></script>
+    <style>
+        .aviso-proximo {
+            position: absolute; bottom: 140px; right: 80px;
+            background: rgba(0,0,0,0.85); border: 2px solid #fff;
+            padding: 30px 50px; border-radius: 12px; display: none; z-index: 999; text-align: center;
+        }
+        .aviso-proximo.ativo { display: block; }
+        .aviso-proximo h2 { font-size: 36px; color: #fff; margin: 0 0 10px 0; }
+        .aviso-proximo p { font-size: 20px; color: #aaa; margin: 0; }
+
+        /* HUD do Player (Escondido por padrão) */
+        .hud-player {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            padding: 40px 30px 30px 30px;
+            display: flex; flex-direction: column; gap: 15px;
+            transform: translateY(100%); transition: transform 0.3s ease;
+            z-index: 1000; box-sizing: border-box;
+        }
+        .hud-player.ativo { transform: translateY(0); }
+
+        .barra-tempo-container {
+            width: 100%; background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; overflow: hidden;
+        }
+        .barra-tempo-atual {
+            width: 0%; height: 100%; background: #f47521;
+        }
+
+        .hud-botoes {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .hud-info-tempo {
+            color: #fff; font-size: 18px; font-weight: bold;
+        }
+        .btn-sair-player {
+            background: rgba(244,117,33,0.9); color: white; border: 2px solid #fff;
+            padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;
+        }
+        .btn-sair-player:focus, .btn-sair-player:hover {
+            background: #fff; color: #000; outline: none; transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
 
 <div id="tela-home" class="tela ativa">
     <h2>📺 TV STREAM</h2>
-
     <div class="secao" id="secaoContinuar" style="display: none;">
         <h3>⏯️ Continuar Assistindo</h3>
         <div class="grade" id="listaContinuar"></div>
     </div>
-
     <div class="secao" id="secaoSeries">
         <h3>📚 Minhas Séries</h3>
         <div class="grade" id="listaSeries"></div>
     </div>
-
     <div class="secao" id="secaoEpisodios" style="display: none;">
         <button class="voltar" id="btnVoltarEp" onclick="voltarParaSeries()">← Voltar</button>
         <h3 id="tituloSerie"></h3>
@@ -30,329 +70,245 @@
 </div>
 
 <div class="player-container" id="player">
-    <video id="video-player" playsinline preload="metadata" controls></video>
+    <video id="video-player" playsinline preload="metadata"></video>
+    
+    <!-- HUD Profissional (Progresso + Botão Sair) -->
+    <div class="hud-player" id="hudPlayer">
+        <div class="barra-tempo-container">
+            <div class="barra-tempo-atual" id="barraTempoAtual"></div>
+        </div>
+        <div class="hud-botoes">
+            <span class="hud-info-tempo" id="infoTempoTexto">00:00 / 00:00</span>
+            <button class="btn-sair-player" id="btnSairPlayer" onclick="fecharPlayer()" tabindex="-1">🚪 SAIR</button>
+        </div>
+    </div>
+
     <div class="aviso-proximo" id="avisoProximo">
-        <h4>Começando próximo episódio…</h4>
+        <h2 id="textoContagem">Próximo episódio em 10s</h2>
+        <p>Pressione [Voltar] para cancelar</p>
     </div>
 </div>
 
 <script>
-let CATALOGO = {};
-let serieAtual = null;
-let epAtual = null;
-let temporizadorProximo = null;
-let hls = null;
-let nivel = 'series'; 
+let serieAtual = null, epAtual = null, hls = null, nivel = 'series';
+let tempoProx = null, intervaloProx = null;
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
-const COLUNAS_FIXAS = 3;
+const COLUNAS = 3;
 
-// Carrega o JSON do catálogo ao iniciar
-async function inicializar() {
-    try {
-        const resposta = await fetch('catalogo.json');
-        CATALOGO = await resposta.json();
-        carregarSeries();
-    } catch (erro) {
-        console.error("Erro ao carregar o catálogo:", erro);
-    }
-}
-
-function carregarSeries() {
-    nivel = 'series';
+function inicializar() {
     const div = document.getElementById('listaSeries');
     div.innerHTML = "";
     Object.keys(CATALOGO).forEach(id => {
-        const s = CATALOGO[id];
-        const el = document.createElement('div');
-        el.className = 'item';
-        el.tabIndex = 0;
-        el.innerHTML = `<img src="${s.capa}" alt="${s.nome}"><p>${s.nome}</p>`;
-        el.onclick = () => abrirEpisodios(id);
-        div.appendChild(el);
+        let s = CATALOGO[id];
+        div.innerHTML += `<div class="item" tabindex="0" onclick="abrirEpisodios('${id}')"><img src="${s.capa}"><p>${s.nome}</p></div>`;
     });
-    carregarContinuarAssistindo();
-    focarPrimeiro();
+    atualizarContinuar();
+    focar();
 }
 
-function carregarContinuarAssistindo() {
-    const secao = document.getElementById('secaoContinuar');
-    const div = document.getElementById('listaContinuar');
-    div.innerHTML = "";
-    let temConteudo = false;
-
-    for (const idEp in progresso) {
-        const dados = progresso[idEp];
-        if (!dados || !dados.tempo || dados.porcentagem < 5) continue;
-
-        for (const idSerie in CATALOGO) {
-            const serie = CATALOGO[idSerie];
-            const ep = serie.eps.find(e => e.id === idEp);
+function atualizarContinuar() {
+    let secao = document.getElementById('secaoContinuar'), div = document.getElementById('listaContinuar');
+    div.innerHTML = ""; let tem = false;
+    for (let idEp in progresso) {
+        let p = progresso[idEp];
+        if (!p || p.porcentagem < 5 || p.porcentagem > 95) continue;
+        for (let idS in CATALOGO) {
+            let s = CATALOGO[idS], ep = s.eps.find(e => e.id === idEp);
             if (ep) {
-                temConteudo = true;
-                const el = document.createElement('div');
-                el.className = 'item';
-                el.tabIndex = 0;
-                el.innerHTML = `
-                    <img src="${serie.capa}" alt="${ep.nome}">
-                    <p>${serie.nome}<br>${ep.nome}</p>
-                    <div class="progresso"><div class="barra-progresso" style="width:${dados.porcentagem}%"></div></div>
-                `;
-                el.onclick = () => reproduzirEpComTempo(idSerie, ep.id, dados.tempo);
-                div.appendChild(el);
-                break;
+                tem = true;
+                div.innerHTML += `<div class="item" tabindex="0" onclick="iniciarEp('${idS}','${ep.id}',${p.tempo})"><img src="${s.capa}"><p>${s.nome}<br>${ep.nome}</p><div class="progresso"><div class="barra-progresso" style="width:${p.porcentagem}%"></div></div></div>`;
             }
         }
     }
-    secao.style.display = temConteudo ? 'block' : 'none';
+    secao.style.display = tem ? 'block' : 'none';
 }
 
-function abrirEpisodios(idSerie) {
-    serieAtual = CATALOGO[idSerie];
-    nivel = 'episodios';
+function abrirEpisodios(id) {
+    serieAtual = CATALOGO[id]; nivel = 'episodios';
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
-    const div = document.getElementById('listaEpisodios');
-    div.innerHTML = "";
-
+    let div = document.getElementById('listaEpisodios'); div.innerHTML = "";
     serieAtual.eps.forEach((ep, idx) => {
-        const porcentagem = progresso[ep.id]?.porcentagem || 0;
-        const el = document.createElement('div');
-        el.className = 'item';
-        el.tabIndex = 0;
-        el.innerHTML = `
-            <img src="${serieAtual.capa}" alt="${ep.nome}">
-            <p>${ep.nome}</p>
-            <div class="progresso"><div class="barra-progresso" style="width:${porcentagem}%"></div></div>
-        `;
-        el.onclick = () => reproduzirEp(idx);
-        div.appendChild(el);
+        let pct = progresso[ep.id]?.porcentagem || 0;
+        div.innerHTML += `<div class="item" tabindex="0" onclick="reproduzir(${idx})"><img src="${serieAtual.capa}"><p>${ep.nome}</p><div class="progresso"><div class="barra-progresso" style="width:${pct}%"></div></div></div>`;
     });
-
     document.getElementById('secaoEpisodios').style.display = 'block';
     document.getElementById('secaoSeries').style.display = 'none';
+    document.getElementById('secaoContinuar').style.display = 'none';
     document.getElementById('btnVoltarEp').focus();
 }
 
-function reproduzirEpComTempo(idSerie, idEp, tempoInicial) {
-    abrirEpisodios(idSerie);
-    const indice = serieAtual.eps.findIndex(e => e.id === idEp);
-    if (indice >= 0) reproduzirEp(indice, tempoInicial);
+function iniciarEp(idS, idE, tempo) {
+    abrirEpisodios(idS);
+    let idx = serieAtual.eps.findIndex(e => e.id === idE);
+    if(idx >= 0) reproduzir(idx, tempo);
 }
 
 function voltarParaSeries() {
-    serieAtual = null;
-    nivel = 'series';
+    serieAtual = null; nivel = 'series';
     document.getElementById('secaoEpisodios').style.display = 'none';
     document.getElementById('secaoSeries').style.display = 'block';
-    carregarContinuarAssistindo();
-    focarPrimeiro();
+    atualizarContinuar(); focar();
 }
 
-function reproduzirEp(indice, tempoInicial = null) {
-    epAtual = {serie: serieAtual, indice: indice, dados: serieAtual.eps[indice]};
+function reproduzir(idx, tempoInicial = null) {
+    epAtual = {serie: serieAtual, indice: idx, dados: serieAtual.eps[idx]};
     nivel = 'player';
-
-    if(!epAtual.dados.link) { alert("Episódio ainda não adicionado!"); return; }
-
-    const video = document.getElementById('video-player');
+    let v = document.getElementById('video-player');
     document.getElementById('player').classList.add('ativo');
     document.getElementById('avisoProximo').classList.remove('ativo');
-    pararPlayer();
+    fecharHud();
+    limparPlayer();
 
     if (Hls.isSupported()) {
-        hls = new Hls({
-            enableWorker: true,
-            lowLatencyMode: false,
-            maxBufferLength: 20,
-            maxMaxBufferLength: 30,
-            xhrSetup: (xhr) => { xhr.withCredentials = false; }
-        });
+        hls = new Hls();
         hls.loadSource(epAtual.dados.link);
-        hls.attachMedia(video);
+        hls.attachMedia(v);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            if (tempoInicial !== null) {
-                video.currentTime = tempoInicial;
-            } else {
-                restaurarProgresso();
-            }
-            video.play().catch(e => console.log("Reprodução:", e));
+            v.currentTime = tempoInicial !== null ? tempoInicial : (progresso[epAtual.dados.id]?.tempo > 5 ? progresso[epAtual.dados.id].tempo : 0);
+            v.play().catch(()=>{});
         });
-        hls.on(Hls.Events.ERROR, (_, err) => {
-            if(err.fatal) {
-                console.error("Erro HLS:", err);
-                hls.destroy();
-                alert("Não foi possível carregar o vídeo.");
-                fecharPlayer();
-            }
-        });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = epAtual.dados.link;
-        video.load();
-        video.addEventListener('loadedmetadata', () => {
-            if (tempoInicial !== null) {
-                video.currentTime = tempoInicial;
-            } else {
-                restaurarProgresso();
-            }
-        });
-        video.play().catch(() => {});
     } else {
-        alert("Formato não suportado!");
-        fecharPlayer();
+        v.src = epAtual.dados.link;
+        v.play().catch(()=>{});
     }
-
-    video.ontimeupdate = salvarProgressoAutomatico;
-    video.onended = mostrarProximoEp;
+    v.ontimeupdate = atualizarProgressoPlayer;
+    v.onended = proximoEp;
 }
 
-function pararPlayer() {
-    salvarProgresso();
+function limparPlayer() {
     if(hls) { hls.destroy(); hls = null; }
-    const v = document.getElementById('video-player');
-    v.pause();
-    v.removeAttribute('src');
-    v.load();
-    if(temporizadorProximo) clearTimeout(temporizadorProximo);
+    let v = document.getElementById('video-player'); v.pause(); v.removeAttribute('src'); v.load();
+    clearTimeout(tempoProx); clearInterval(intervaloProx);
 }
 
 function fecharPlayer() {
-    pararPlayer();
+    limparPlayer();
     document.getElementById('player').classList.remove('ativo');
+    document.getElementById('avisoProximo').classList.remove('ativo');
+    fecharHud();
     nivel = 'episodios';
-    document.getElementById('btnVoltarEp').focus();
+    if(serieAtual) abrirEpisodios(Object.keys(CATALOGO).find(k => CATALOGO[k] === serieAtual));
 }
 
-function salvarProgressoAutomatico() {
+function formatarTempo(segundos) {
+    let m = Math.floor(segundos / 60), s = Math.floor(segundos % 60);
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function atualizarProgressoPlayer() {
     if(!epAtual) return;
-    const v = document.getElementById('video-player');
-    if(v.duration && !isNaN(v.duration) && v.duration > 0) {
-        const tempoAtual = Math.round(v.currentTime);
-        const porcentagem = Math.min(100, Math.max(0, Math.round((v.currentTime / v.duration) * 100)));
-        progresso[epAtual.dados.id] = { tempo: tempoAtual, porcentagem: porcentagem };
+    let v = document.getElementById('video-player');
+    if(v.duration) {
+        let t = v.currentTime, d = v.duration;
+        let pct = (t / d) * 100;
+        document.getElementById('barraTempoAtual').style.width = `${pct}%`;
+        document.getElementById('infoTempoTexto').textContent = `${formatarTempo(t)} / ${formatarTempo(d)}`;
+        
+        let r = Math.round(t), p = Math.round(pct);
+        progresso[epAtual.dados.id] = { tempo: r, porcentagem: p };
         localStorage.setItem('progresso_tv', JSON.stringify(progresso));
     }
 }
 
-function salvarProgresso() {
-    salvarProgressoAutomatico();
+function pular(seg) {
+    let v = document.getElementById('video-player');
+    if(v.duration) v.currentTime = Math.min(Math.max(0, v.currentTime + seg), v.duration);
 }
 
-function restaurarProgresso() {
-    setTimeout(() => {
-        const v = document.getElementById('video-player');
-        const dados = progresso[epAtual.dados.id];
-        if(dados && dados.tempo && dados.tempo > 5) {
-            v.currentTime = dados.tempo;
-        } else {
-            v.currentTime = 0;
-        }
-    }, 800);
+function tocarPausar() {
+    let v = document.getElementById('video-player');
+    v.paused ? v.play() : v.pause();
 }
 
-function mostrarProximoEp() {
-    salvarProgresso();
-    if(temporizadorProximo) clearTimeout(temporizadorProximo);
-    const prox = epAtual.indice + 1;
-    if(prox >= serieAtual.eps.length) {
-        document.getElementById('avisoProximo').innerHTML = `<h4>Fim da temporada</h4>`;
-        document.getElementById('avisoProximo').classList.add('ativo');
-        return;
-    }
+function abrirHud() {
+    let hud = document.getElementById('hudPlayer');
+    hud.classList.add('ativo');
+    document.getElementById('btnSairPlayer').tabIndex = 0;
+    document.getElementById('btnSairPlayer').focus();
+}
+
+function fecharHud() {
+    let hud = document.getElementById('hudPlayer');
+    hud.classList.remove('ativo');
+    document.getElementById('btnSairPlayer').tabIndex = -1;
+}
+
+function proximoEp() {
+    let prox = epAtual.indice + 1;
+    if(prox >= serieAtual.eps.length) { fecharPlayer(); return; }
+    
+    let seg = 10;
+    document.getElementById('textoContagem').textContent = `Próximo episódio em ${seg}s`;
     document.getElementById('avisoProximo').classList.add('ativo');
-    temporizadorProximo = setTimeout(() => {
+    
+    intervaloProx = setInterval(() => {
+        seg--;
+        document.getElementById('textoContagem').textContent = `Próximo episódio em ${seg}s`;
+        if(seg <= 0) clearInterval(intervaloProx);
+    }, 1000);
+
+    tempoProx = setTimeout(() => {
         document.getElementById('avisoProximo').classList.remove('ativo');
-        reproduzirEp(prox);
-    }, 3000);
+        reproduzir(prox);
+    }, 10000);
 }
 
-function focarPrimeiro() {
-    setTimeout(() => {
-        const primeiro = document.querySelector('.item[tabindex="0"]');
-        if(primeiro) primeiro.focus();
-    }, 100);
+function focar() {
+    setTimeout(() => document.querySelector('.item[tabindex="0"]')?.focus(), 100);
 }
 
 document.addEventListener('keydown', (e) => {
-    const playerAberto = document.getElementById('player').classList.contains('ativo');
-    const avisoAberto = document.getElementById('avisoProximo').classList.contains('ativo');
+    let playerAtivo = document.getElementById('player').classList.contains('ativo');
+    let avisoAtivo = document.getElementById('avisoProximo').classList.contains('ativo');
+    let hudAtivo = document.getElementById('hudPlayer').classList.contains('ativo');
 
-    if(avisoAberto) {
-        if(e.key === 'Escape' || e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-            clearTimeout(temporizadorProximo);
+    if(playerAtivo) {
+        e.preventDefault(); // Impede o APK de fechar
+
+        if(avisoAtivo) {
+            clearTimeout(tempoProx); clearInterval(intervaloProx);
+            document.getElementById('avisoProximo').classList.remove('ativo');
             fecharPlayer();
+            return;
         }
-        return;
-    }
 
-    if(playerAberto) {
-        const v = document.getElementById('video-player');
         switch(e.key) {
-            case 'Escape':
-            case 'ArrowLeft':
             case 'ArrowDown':
-                e.preventDefault();
-                fecharPlayer();
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                v.currentTime = Math.min(v.duration || 99999, v.currentTime + 10);
+                // Seta para baixo abre o HUD com o progresso e o botão SAIR
+                abrirHud();
                 break;
             case 'ArrowUp':
-                e.preventDefault();
-                v.currentTime = Math.max(0, v.currentTime - 10);
+                // Seta para cima esconde o HUD se estiver aberto
+                if(hudAtivo) fecharHud();
+                break;
+            case 'ArrowRight':
+                // Se o HUD estiver aberto e focado no botão sair, não pula o vídeo. Senão, avança 10s.
+                if(!hudAtivo) pular(10);
+                break;
+            case 'ArrowLeft':
+                if(!hudAtivo) pular(-10);
                 break;
             case 'Enter':
-                e.preventDefault();
-                v.paused ? v.play().catch(() => {}) : v.pause();
+            case ' ':
+            case 'MediaPlayPause':
+                if(hudAtivo && document.activeElement.id === 'btnSairPlayer') {
+                    fecharPlayer();
+                } else {
+                    tocarPausar();
+                }
                 break;
         }
         return;
     }
 
-    if(e.key === 'Escape' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        if(nivel === 'episodios') voltarParaSeries();
-        else if(nivel === 'series') window.close();
-        return;
-    }
+    let itens = nivel === 'episodios' ? [document.getElementById('btnVoltarEp'), ...document.querySelectorAll('#listaEpisodios .item')] : document.querySelectorAll('.item[tabindex="0"]');
+    let atual = Array.from(itens).indexOf(document.activeElement);
 
-    let elementos = [];
-    if(nivel === 'episodios') {
-        elementos = [document.getElementById('btnVoltarEp'), ...Array.from(document.querySelectorAll('#listaEpisodios .item'))];
-    } else {
-        elementos = Array.from(document.querySelectorAll('.item[tabindex="0"]'));
-    }
-
-    const atual = elementos.indexOf(document.activeElement);
-    if(atual === -1) return;
-
-    switch(e.key) {
-        case 'ArrowUp':
-            e.preventDefault();
-            const cima = atual - COLUNAS_FIXAS;
-            if(cima >= 0) elementos[cima].focus();
-            break;
-        case 'ArrowDown':
-            e.preventDefault();
-            const baixo = atual + COLUNAS_FIXAS;
-            if(baixo < elementos.length) elementos[baixo].focus();
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            if(atual + 1 < elementos.length) elementos[atual + 1].focus();
-            break;
-        case 'ArrowLeft':
-            e.preventDefault();
-            if(atual > 0) elementos[atual - 1].focus();
-            break;
-        case 'Enter':
-            e.preventDefault();
-            if(document.activeElement.tagName === 'BUTTON') {
-                document.activeElement.click();
-            } else if(document.activeElement.onclick) {
-                document.activeElement.onclick();
-            }
-            break;
-    }
+    if(e.key === 'ArrowUp') { e.preventDefault(); if(atual - COLUNAS >= 0) itens[atual - COLUNAS].focus(); }
+    if(e.key === 'ArrowDown') { e.preventDefault(); if(atual + COLUNAS < itens.length) itens[atual + COLUNAS].focus(); }
+    if(e.key === 'ArrowRight') { e.preventDefault(); if(atual + 1 < itens.length) itens[atual + 1].focus(); }
+    if(e.key === 'ArrowLeft') { e.preventDefault(); if(atual > 0) itens[atual - 1].focus(); }
+    if(e.key === 'Enter') { e.preventDefault(); document.activeElement?.click(); }
 });
 
 window.onload = inicializar;

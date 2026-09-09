@@ -16,4 +16,8 @@ const CATALOGO = {
             {"id": "hm2_09", "nome": "Episódio 09", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E9/playlist.m3u8"}
         ]
     }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 327a5fec2830ef0abadc17a3fe311cc3815fa4b9
