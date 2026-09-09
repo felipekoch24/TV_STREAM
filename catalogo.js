@@ -13,7 +13,8 @@ const CATALOGO = {
             {"id": "hm2_06", "nome": "Episódio 06", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E6/playlist.m3u8"},
             {"id": "hm2_07", "nome": "Episódio 07", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E7/playlist.m3u8"},
             {"id": "hm2_08", "nome": "Episódio 08", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E8/playlist.m3u8"},
-            {"id": "hm2_09", "nome": "Episódio 09", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E9/playlist.m3u8"}
+            {"id": "hm2_09", "nome": "Episódio 09", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E9/playlist.m3u8"},
+            {"id": "hm2_10", "nome": "Episódio 10", "link": "https://raw.githubusercontent.com/felipekoch24/TV_STREAM/main/HellMode_T2E10/playlist.m3u8"}
         ]
     }
 <<<<<<< HEAD
