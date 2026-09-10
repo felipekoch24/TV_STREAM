@@ -87,17 +87,8 @@
 </head>
 <body>
 
-<!-- TELA DE ABERTURA (5 Segundos) -->
-<div id="tela-abertura" class="tela ativa">
-    <h1>Bem-vindo ao TV Streaming</h1>
-    <div class="barra-carregamento-container">
-        <div class="barra-carregamento-atual" id="barraCarregamento"></div>
-    </div>
-    <div id="textoPorcentagem">0%</div>
-</div>
-
 <!-- TELA DE ESCOLHA DE PERFIL -->
-<div id="tela-perfil" class="tela">
+<div id="tela-perfil" class="tela ativa">
     <h2>Quem está assistindo?</h2>
     <div class="perfis-container">
         <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem01', 'fundo01.jpg')">
@@ -162,32 +153,15 @@
 </div>
 
 <script>
-let serieAtual = null, epAtual = null, hls = null, nivel = 'abertura';
+let serieAtual = null, epAtual = null, hls = null, nivel = 'perfil';
 let tempoProx = null, intervaloProx = null;
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
 let COLUNAS = 2; // Começa na tela de perfil
 
 function iniciarApp() {
-    let p = 0;
-    let barra = document.getElementById('barraCarregamento');
-    let texto = document.getElementById('textoPorcentagem');
-
-    let timer = setInterval(() => {
-        p += 2;
-        barra.style.width = p + '%';
-        texto.textContent = p + '%';
-        if(p >= 100) {
-            clearInterval(timer);
-            document.getElementById('tela-abertura').classList.remove('ativa');
-            document.getElementById('tela-perfil').classList.add('ativa');
-            nivel = 'perfil';
-            
-            let fundoSalvo = localStorage.getItem('fundo_tv') || 'fundo01.jpg';
-            document.getElementById('tela-perfil').style.backgroundImage = `url('${fundoSalvo}')`;
-            
-            setTimeout(() => document.querySelector('#tela-perfil .perfil-card[tabindex="0"]')?.focus(), 100);
-        }
-    }, 100); // 50 ciclos de 100ms = 5 segundos exatos
+    let fundoSalvo = localStorage.getItem('fundo_tv') || 'fundo01.jpg';
+    document.getElementById('tela-perfil').style.backgroundImage = `url('${fundoSalvo}')`;
+    setTimeout(() => document.querySelector('#tela-perfil .perfil-card[tabindex="0"]')?.focus(), 100);
 }
 
 function selecionarPerfil(personagem, fundo) {
@@ -232,7 +206,7 @@ function atualizarContinuar() {
 
 function abrirEpisodios(id) {
     serieAtual = CATALOGO[id]; nivel = 'episodios';
-    COLUNAS = 4; // A grade de episódios agora tem 4 colunas
+    COLUNAS = 4;
     document.getElementById('tituloSerie').textContent = serieAtual.nome;
     let div = document.getElementById('listaEpisodios'); div.innerHTML = "";
     serieAtual.eps.forEach((ep, idx) => {
@@ -258,7 +232,6 @@ function tratarCliqueEpPorId(idS, idE) {
 
 function verificarProgressoEExecutar(serie, idx, ep) {
     let p = progresso[ep.id];
-    // Se o vídeo já foi iniciado e não terminou (< 95%), abre o modal de escolha
     if (p && p.tempo > 5 && p.porcentagem < 95) {
         nivel = 'modal';
         document.getElementById('modalNomeEp').textContent = `${ep.nome} (${p.porcentagem}% assistido)`;
