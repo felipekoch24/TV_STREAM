@@ -6,7 +6,7 @@
 }
 
 :focus { 
-    outline: 3px solid #f47521 !important; 
+    outline: 3px solid #22c55e !important; 
     outline-offset: 3px !important; 
     border-radius: 8px; 
 }
@@ -16,11 +16,12 @@ body {
     font-family: Arial, sans-serif; 
     min-height: 100vh; 
     margin: 0;
-    background: #000; 
-    padding: 20px;
+    background-image: url('fundo-stream.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    background-color: #000; 
+    padding: 20px;
 }
 
 .tela { 
@@ -33,10 +34,57 @@ body {
     display: block !important; 
 }
 
+/* TELA DE PERFIL */
+#tela-perfil {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+}
+
+.perfis-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.perfil-card {
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 3px solid transparent;
+}
+
+.perfil-card:focus, .perfil-card:hover {
+    transform: scale(1.1);
+    border-color: #22c55e;
+    outline: none;
+}
+
+.perfil-card img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    margin-bottom: 15px;
+}
+
+.perfil-card p {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+}
+
 h2 { 
     font-size: 30px; 
     margin-bottom: 30px; 
-    color: #f47521; 
+    color: #22c55e; 
     text-align: center; 
 }
 
@@ -59,7 +107,7 @@ h2 {
 .secao h3 { 
     font-size: 24px; 
     margin-bottom: 20px; 
-    color: #f47521; 
+    color: #22c55e; 
 }
 
 .grade {
@@ -78,12 +126,13 @@ h2 {
     box-shadow: 0 3px 10px rgba(0,0,0,0.6); 
     position: relative; 
     padding: 4px;
-    background: #1a1a1a;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .item:hover, .item:focus { 
     transform: scale(1.05); 
-    box-shadow: 0 0 15px rgba(244,117,33,0.6); 
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6); 
 }
 
 .item img { 
@@ -126,7 +175,7 @@ h2 {
 
 .barra-progresso { 
     height: 100%; 
-    background: #f47521; 
+    background: #22c55e; 
     transition: width 0.3s; 
 }
 
@@ -140,35 +189,41 @@ h2 {
     align-items: center;
     z-index: 9999;
 }
+
 .modal-overlay.ativo {
     display: flex !important;
 }
+
 .modal-box {
-    background: #1a1a1a;
-    border: 3px solid #f47521;
+    background: #111;
+    border: 2px solid #22c55e;
     padding: 40px;
     border-radius: 12px;
     text-align: center;
     max-width: 450px;
     width: 90%;
 }
+
 .modal-box h2 {
     font-size: 26px;
     margin-bottom: 10px;
     color: #fff;
 }
+
 .modal-box p {
     font-size: 18px;
     color: #aaa;
     margin-bottom: 25px;
 }
+
 .modal-botoes {
     display: flex;
     gap: 20px;
     justify-content: center;
 }
+
 .btn-modal {
-    background: #333;
+    background: #222;
     color: white;
     border: 2px solid #fff;
     padding: 10px 20px;
@@ -177,14 +232,15 @@ h2 {
     border-radius: 8px;
     cursor: pointer;
 }
+
 .btn-modal:focus, .btn-modal:hover {
-    background: #f47521;
-    border-color: #f47521;
+    background: #22c55e;
+    border-color: #22c55e;
     outline: none;
     transform: scale(1.05);
 }
 
-/* PLAYER E AVISOS */
+/* PLAYER E HUD */
 .player-container { 
     position: fixed; 
     top: 0; left: 0; 
@@ -205,6 +261,42 @@ h2 {
     background: #000; 
 }
 
+.hud-player {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    padding: 40px 30px 30px 30px;
+    display: flex; flex-direction: column; gap: 15px;
+    transform: translateY(100%); transition: transform 0.3s ease;
+    z-index: 1000; box-sizing: border-box;
+}
+
+.hud-player.ativo { transform: translateY(0); }
+
+.barra-tempo-container {
+    width: 100%; background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; overflow: hidden;
+}
+
+.barra-tempo-atual {
+    width: 0%; height: 100%; background: #22c55e;
+}
+
+.hud-botoes {
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.hud-info-tempo {
+    color: #fff; font-size: 18px; font-weight: bold;
+}
+
+.btn-sair-player {
+    background: rgba(34, 197, 94, 0.9); color: white; border: 2px solid #fff;
+    padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;
+}
+
+.btn-sair-player:focus, .btn-sair-player:hover {
+    background: #fff; color: #000; outline: none; transform: scale(1.05);
+}
+
 .aviso-proximo {
     position: absolute; 
     top: 50%; left: 50%; 
@@ -214,7 +306,7 @@ h2 {
     border-radius: 12px;
     text-align: center; 
     display: none; 
-    border: 2px solid #f47521;
+    border: 2px solid #22c55e;
     min-width: 350px;
     z-index: 9999;
 }
