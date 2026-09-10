@@ -7,83 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11/dist/hls.min.js"></script>
     <script src="catalogo.js"></script>
-    <style>
-        /* Estilo da Tela de Escolha de Perfil / Personagem */
-        #tela-perfil {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            background-size: cover;
-            background-position: center;
-        }
-        .perfis-container {
-            display: flex;
-            gap: 40px;
-            margin-top: 30px;
-        }
-        .perfil-card {
-            background: rgba(0,0,0,0.6);
-            padding: 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: 3px solid transparent;
-        }
-        .perfil-card:focus, .perfil-card:hover {
-            transform: scale(1.1);
-            border-color: #f47521;
-            outline: none;
-        }
-        .perfil-card img {
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            margin-bottom: 15px;
-        }
-        .perfil-card p {
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-            margin: 0;
-        }
-
-        /* HUD do Player */
-        .hud-player {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(transparent, rgba(0,0,0,0.85));
-            padding: 40px 30px 30px 30px;
-            display: flex; flex-direction: column; gap: 15px;
-            transform: translateY(100%); transition: transform 0.3s ease;
-            z-index: 1000; box-sizing: border-box;
-        }
-        .hud-player.ativo { transform: translateY(0); }
-
-        .barra-tempo-container {
-            width: 100%; background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; overflow: hidden;
-        }
-        .barra-tempo-atual {
-            width: 0%; height: 100%; background: #f47521;
-        }
-
-        .hud-botoes {
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .hud-info-tempo {
-            color: #fff; font-size: 18px; font-weight: bold;
-        }
-        .btn-sair-player {
-            background: rgba(244,117,33,0.9); color: white; border: 2px solid #fff;
-            padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;
-        }
-        .btn-sair-player:focus, .btn-sair-player:hover {
-            background: #fff; color: #000; outline: none; transform: scale(1.05);
-        }
-    </style>
 </head>
 <body>
 
@@ -91,11 +14,11 @@
 <div id="tela-perfil" class="tela ativa">
     <h2>Quem está assistindo?</h2>
     <div class="perfis-container">
-        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem01', 'fundo01.jpg')">
+        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem01')">
             <img src="personagem01.jpg" alt="OUTRO">
             <p>OUTRO</p>
         </div>
-        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem02', 'fundo02.jpg')">
+        <div class="perfil-card" tabindex="0" onclick="selecionarPerfil('personagem02')">
             <img src="personagem02.png" alt="FELIPE">
             <p>FELIPE</p>
         </div>
@@ -156,18 +79,13 @@
 let serieAtual = null, epAtual = null, hls = null, nivel = 'perfil';
 let tempoProx = null, intervaloProx = null;
 let progresso = JSON.parse(localStorage.getItem('progresso_tv')) || {};
-let COLUNAS = 2; // Começa na tela de perfil
+let COLUNAS = 2;
 
 function iniciarApp() {
-    let fundoSalvo = localStorage.getItem('fundo_tv') || 'fundo01.jpg';
-    document.getElementById('tela-perfil').style.backgroundImage = `url('${fundoSalvo}')`;
     setTimeout(() => document.querySelector('#tela-perfil .perfil-card[tabindex="0"]')?.focus(), 100);
 }
 
-function selecionarPerfil(personagem, fundo) {
-    localStorage.setItem('fundo_tv', fundo);
-    document.body.style.backgroundImage = `url('${fundo}')`;
-    
+function selecionarPerfil(personagem) {
     document.getElementById('tela-perfil').classList.remove('ativa');
     document.getElementById('tela-home').classList.add('ativa');
     
@@ -369,7 +287,7 @@ function dispararProximoEp() {
     }, 10000);
 }
 
-// Controle remoto FireStick / Teclado
+// Navegação no teclado e controle remoto
 document.addEventListener('keydown', (e) => {
     let modalAtivo = document.getElementById('modalContinuar').classList.contains('ativo');
     let playerAtivo = document.getElementById('player').classList.contains('ativo');
