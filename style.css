@@ -69,7 +69,7 @@ h2 {
     max-width: 100%;
 }
 
-/* CARDS DE SÉRIES (Padrão) */
+/* CARDS DE SÉRIES */
 .item {
     cursor: pointer; 
     transition: transform 0.2s; 
@@ -100,7 +100,7 @@ h2 {
     font-size: 16px; 
 }
 
-/* CARDS DE EPISÓDIOS (Diminuídos conforme pedido) */
+/* CARDS DE EPISÓDIOS */
 #listaEpisodios {
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
@@ -128,43 +128,6 @@ h2 {
     height: 100%; 
     background: #f47521; 
     transition: width 0.3s; 
-}
-
-/* TELA DE ABERTURA */
-#tela-abertura {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: #000;
-}
-
-#tela-abertura h1 {
-    font-size: 42px;
-    color: #f47521;
-    margin-bottom: 25px;
-}
-
-.barra-carregamento-container {
-    width: 350px;
-    height: 10px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.barra-carregamento-atual {
-    width: 0%;
-    height: 100%;
-    background: #f47521;
-}
-
-#textoPorcentagem {
-    font-size: 20px;
-    color: #ccc;
-    font-weight: bold;
 }
 
 /* MODAL DE CONTINUAR / VER DO COMEÇO */
